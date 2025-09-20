@@ -4,6 +4,7 @@ import 'auth/screens/auth_shell.dart';
 import 'auth/screens/forgot_password_page.dart';
 import 'auth/screens/reset_password_page.dart';
 import 'auth/screens/change_password_page.dart';
+import 'bookings/screens/bookings_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
         '/forgot': (_) => const ForgotPasswordPage(),
         '/reset': (_) => const ResetPasswordPage(),
         '/change': (_) => const ChangePasswordPage(),
+        '/bookings': (_) => const BookingsPage(),
       },
     );
   }
