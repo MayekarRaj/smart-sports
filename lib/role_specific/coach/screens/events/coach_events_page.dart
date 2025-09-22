@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:smart_sports/bookings/screens/bookings_page.dart';
-import 'package:smart_sports/role_specific/common/role_router.dart';
+import 'package:smart_sports/events/screens/events_editor_page.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
-import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_dashboard_page.dart';
+import 'package:smart_sports/role_specific/common/role_router.dart';
+import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_analytics_dashboard_page.dart';
 import 'package:smart_sports/role_specific/coach/screens/courts/coach_courts_page.dart';
 import 'package:smart_sports/role_specific/coach/screens/profile/coach_profile_page.dart';
 import 'package:smart_sports/role_specific/coach/screens/transactions/coach_transactions_page.dart';
+import 'package:smart_sports/role_specific/coach/screens/bookings/coach_bookings_page.dart';
 
-class CoachBookingsPage extends StatelessWidget {
-  const CoachBookingsPage({super.key});
+class CoachEventsPage extends StatelessWidget {
+  const CoachEventsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bookings'),
+        title: const Text('Events / Tournaments'),
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu),
@@ -27,12 +28,12 @@ class CoachBookingsPage extends StatelessWidget {
         child: SafeArea(
           child: RoleSidebar(
             role: UserRole.coach,
-            selectedIndex: 4,
+            selectedIndex: 5,
             edgeToEdge: true,
             onSelectIndex: (i) async {
               Navigator.of(context).pop();
               await Future.delayed(const Duration(milliseconds: 160));
-              _navigateFromCoachSidebar(context, i);
+              _navigateFromEventsSidebar(context, i);
             },
             onProfileTap: () async {
               Navigator.of(context).pop();
@@ -44,16 +45,16 @@ class CoachBookingsPage extends StatelessWidget {
           ),
         ),
       ),
-      body: const BookingsPage(),
+      body: const EventsEditorPage(),
     );
   }
 }
 
-void _navigateFromCoachSidebar(BuildContext context, int index) {
+void _navigateFromEventsSidebar(BuildContext context, int index) {
   switch (index) {
     case 0:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const CoachDashboardPage()),
+        MaterialPageRoute(builder: (_) => const CoachAnalyticsDashboardPage()),
       );
       break;
     case 1:
@@ -66,15 +67,17 @@ void _navigateFromCoachSidebar(BuildContext context, int index) {
         MaterialPageRoute(builder: (_) => const CoachCourtsPage()),
       );
       break;
-    case 3:
-      Navigator.of(context).pop();
-      break;
     case 4:
-      // Already on bookings
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const CoachBookingsPage()),
+      );
+      break;
+    case 5:
+      // Already on events
       break;
     default:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const CoachDashboardPage()),
+        MaterialPageRoute(builder: (_) => const CoachAnalyticsDashboardPage()),
       );
   }
 }

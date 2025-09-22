@@ -7,6 +7,7 @@ import 'package:smart_sports/role_specific/club/screens/dashboard/club_analytics
 import 'package:smart_sports/role_specific/club/screens/transactions/club_transactions_page.dart';
 import 'package:smart_sports/role_specific/club/screens/bookings/club_bookings_page.dart';
 import 'package:smart_sports/role_specific/club/screens/events/club_events_page.dart';
+import 'package:smart_sports/auth/screens/auth_shell.dart';
 
 class ClubDashboardPage extends StatefulWidget {
   const ClubDashboardPage({super.key});
@@ -18,6 +19,13 @@ class ClubDashboardPage extends StatefulWidget {
 class _ClubDashboardPageState extends State<ClubDashboardPage> {
   int selectedIndex = 0;
   bool _sidebarOpen = true;
+
+  void _signOut() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthShell()),
+      (route) => false,
+    );
+  }
 
   String get _title {
     switch (selectedIndex) {
@@ -79,7 +87,10 @@ class _ClubDashboardPageState extends State<ClubDashboardPage> {
                         // Close drawer first to avoid popping the newly pushed page
                         Navigator.of(ctx).pop();
                         setState(() => selectedIndex = i);
-                        Future.delayed(const Duration(milliseconds: 220), () => _openSection(i));
+                        Future.delayed(
+                          const Duration(milliseconds: 220),
+                          () => _openSection(i),
+                        );
                       },
                       // Avoid double-pop; we'll handle closing in onSelectIndex/onProfileTap
                       onClose: null,
@@ -88,10 +99,13 @@ class _ClubDashboardPageState extends State<ClubDashboardPage> {
                         Future.delayed(
                           const Duration(milliseconds: 180),
                           () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const ClubProfilePage()),
+                            MaterialPageRoute(
+                              builder: (_) => const ClubProfilePage(),
+                            ),
                           ),
                         );
                       },
+                      onSignOut: _signOut,
                       edgeToEdge: true,
                     ),
                   ),
@@ -118,9 +132,12 @@ class _ClubDashboardPageState extends State<ClubDashboardPage> {
                         onProfileTap: () {
                           setState(() => _sidebarOpen = false);
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const ClubProfilePage()),
+                            MaterialPageRoute(
+                              builder: (_) => const ClubProfilePage(),
+                            ),
                           );
                         },
+                        onSignOut: _signOut,
                       ),
                     )
                   : const SizedBox.shrink(key: ValueKey('closed')),
@@ -132,9 +149,7 @@ class _ClubDashboardPageState extends State<ClubDashboardPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Expanded(
-                    child: Center(child: Text('Content area')),
-                  ),
+                  Expanded(child: Center(child: Text('Content area'))),
                 ],
               ),
             ),
@@ -181,6 +196,12 @@ class _PlaceholderPage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const ClubProfilePage()),
               );
             },
+            onSignOut: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const AuthShell()),
+                (route) => false,
+              );
+            },
           ),
         ),
       ),
@@ -198,7 +219,10 @@ void _navigateFromClubSidebar(BuildContext context, int index) {
       break;
     case 1:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _PlaceholderPage(title: 'Transactions', currentIndex: 1)),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _PlaceholderPage(title: 'Transactions', currentIndex: 1),
+        ),
       );
       break;
     case 2:
@@ -208,7 +232,10 @@ void _navigateFromClubSidebar(BuildContext context, int index) {
       break;
     case 3:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _PlaceholderPage(title: 'Clubs', currentIndex: 3)),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _PlaceholderPage(title: 'Clubs', currentIndex: 3),
+        ),
       );
       break;
     case 4:
@@ -223,17 +250,26 @@ void _navigateFromClubSidebar(BuildContext context, int index) {
       break;
     case 6:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _PlaceholderPage(title: 'Sponsorships', currentIndex: 6)),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _PlaceholderPage(title: 'Sponsorships', currentIndex: 6),
+        ),
       );
       break;
     case 7:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _PlaceholderPage(title: 'Users', currentIndex: 7)),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _PlaceholderPage(title: 'Users', currentIndex: 7),
+        ),
       );
       break;
     case 8:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _PlaceholderPage(title: 'Referrals', currentIndex: 8)),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _PlaceholderPage(title: 'Referrals', currentIndex: 8),
+        ),
       );
       break;
     default:
@@ -262,7 +298,10 @@ extension on _ClubDashboardPageState {
         break;
       case 3:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const _PlaceholderPage(title: 'Clubs', currentIndex: 3)),
+          MaterialPageRoute(
+            builder: (_) =>
+                const _PlaceholderPage(title: 'Clubs', currentIndex: 3),
+          ),
         );
         break;
       case 4:
@@ -277,17 +316,26 @@ extension on _ClubDashboardPageState {
         break;
       case 6:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const _PlaceholderPage(title: 'Sponsorships', currentIndex: 6)),
+          MaterialPageRoute(
+            builder: (_) =>
+                const _PlaceholderPage(title: 'Sponsorships', currentIndex: 6),
+          ),
         );
         break;
       case 7:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const _PlaceholderPage(title: 'Users', currentIndex: 7)),
+          MaterialPageRoute(
+            builder: (_) =>
+                const _PlaceholderPage(title: 'Users', currentIndex: 7),
+          ),
         );
         break;
       case 8:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const _PlaceholderPage(title: 'Referrals', currentIndex: 8)),
+          MaterialPageRoute(
+            builder: (_) =>
+                const _PlaceholderPage(title: 'Referrals', currentIndex: 8),
+          ),
         );
         break;
       default:

@@ -9,6 +9,7 @@ class RoleSidebar extends StatelessWidget {
   final bool edgeToEdge;
   final VoidCallback? onClose;
   final VoidCallback? onProfileTap;
+  final VoidCallback? onSignOut;
 
   const RoleSidebar({
     super.key,
@@ -18,6 +19,7 @@ class RoleSidebar extends StatelessWidget {
     this.edgeToEdge = false,
     this.onClose,
     this.onProfileTap,
+    this.onSignOut,
   });
 
   @override
@@ -116,7 +118,7 @@ class RoleSidebar extends StatelessWidget {
 
             // Sign out
             InkWell(
-              onTap: () {},
+              onTap: onSignOut,
               borderRadius: BorderRadius.circular(12),
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
