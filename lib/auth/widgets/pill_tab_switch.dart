@@ -15,32 +15,37 @@ class PillTabSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 56,
+      height: 50,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [t.AppTheme.pillGradientStart, t.AppTheme.pillGradientEnd],
-        ),
-        borderRadius: BorderRadius.circular(40),
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(4),
       child: Row(
         children: List.generate(labels.length, (i) {
           final selected = i == index;
           return Expanded(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(40),
+            child: GestureDetector(
               onTap: () => onChanged(i),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 250),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: selected ? Colors.black : Colors.transparent,
-                  borderRadius: BorderRadius.circular(32),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: selected ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ] : null,
                 ),
                 child: Text(
                   labels[i],
                   style: TextStyle(
-                    color: selected ? Colors.white : Colors.black87,
+                    color: selected ? Colors.white : Colors.grey.shade600,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_sports/events/screens/events_editor_page.dart';
+import 'package:smart_sports/events/screens/mobile_create_event_page.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/corporate/screens/dashboard/corporate_analytics_dashboard_page.dart';
@@ -45,7 +45,7 @@ class CorporateEventsPage extends StatelessWidget {
           ),
         ),
       ),
-      body: const EventsEditorPage(),
+      body: const MobileCreateEventPage(),
     );
   }
 }
@@ -54,7 +54,9 @@ void _navigateFromEventsSidebar(BuildContext context, int index) {
   switch (index) {
     case 0:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const CorporateAnalyticsDashboardPage()),
+        MaterialPageRoute(
+          builder: (_) => const CorporateAnalyticsDashboardPage(),
+        ),
       );
       break;
     case 1:
@@ -77,7 +79,9 @@ void _navigateFromEventsSidebar(BuildContext context, int index) {
       break;
     default:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const CorporateAnalyticsDashboardPage()),
+        MaterialPageRoute(
+          builder: (_) => const CorporateAnalyticsDashboardPage(),
+        ),
       );
   }
 }

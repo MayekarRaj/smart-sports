@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_sports/events/screens/events_editor_page.dart';
+import 'package:smart_sports/events/screens/mobile_create_event_page.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
@@ -39,13 +39,15 @@ class MerchandiserEventsPage extends StatelessWidget {
               Navigator.of(context).pop();
               await Future.delayed(const Duration(milliseconds: 160));
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const MerchandiserProfilePage()),
+                MaterialPageRoute(
+                  builder: (_) => const MerchandiserProfilePage(),
+                ),
               );
             },
           ),
         ),
       ),
-      body: const EventsEditorPage(),
+      body: const MobileCreateEventPage(),
     );
   }
 }
@@ -54,7 +56,9 @@ void _navigateFromEventsSidebar(BuildContext context, int index) {
   switch (index) {
     case 0:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MerchandiserAnalyticsDashboardPage()),
+        MaterialPageRoute(
+          builder: (_) => const MerchandiserAnalyticsDashboardPage(),
+        ),
       );
       break;
     case 1:
@@ -77,7 +81,9 @@ void _navigateFromEventsSidebar(BuildContext context, int index) {
       break;
     default:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MerchandiserAnalyticsDashboardPage()),
+        MaterialPageRoute(
+          builder: (_) => const MerchandiserAnalyticsDashboardPage(),
+        ),
       );
   }
 }

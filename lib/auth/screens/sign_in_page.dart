@@ -47,40 +47,111 @@ class _SignInPageState extends State<SignInPage> {
             keyboardType: TextInputType.emailAddress,
             validator: Validators.email,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           PasswordField(controller: passCtrl, hint: 'Password', validator: Validators.password),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ForgotPasswordPage())),
-              child: const Text('Forgot Password?'),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Text('Role: '),
-              const SizedBox(width: 12),
-              DropdownButton<UserRole>(
-                value: role,
-                onChanged: (v) => setState(()=> role = v ?? UserRole.member),
-                items: UserRole.values.map((r) => DropdownMenuItem(value: r, child: Text(r.label))).toList(),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 56,
-            child: ElevatedButton.icon(
-              onPressed: _onSignIn,
-              icon: const Icon(Icons.login),
-              label: const Text('Sign In'),
+              child: Text(
+                'Forgot Password?',
+                style: TextStyle(
+                  color: Colors.red.shade400,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 24),
-          Row(children: const [Expanded(child: Divider()), SizedBox(width: 12), Text('Or continue with'), SizedBox(width: 12), Expanded(child: Divider())]),
           const SizedBox(height: 12),
+          // Role Dropdown
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            child: Row(
+              children: [
+                Text(
+                  'Role: ',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<UserRole>(
+                      value: role,
+                      onChanged: (v) => setState(() => role = v ?? UserRole.member),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                      items: UserRole.values.map((r) => DropdownMenuItem(
+                        value: r,
+                        child: Text(r.label),
+                      )).toList(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Sign In Button
+          Container(
+            height: 50,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Colors.black87, Colors.black],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _onSignIn,
+                borderRadius: BorderRadius.circular(16),
+                child: const Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.login, color: Colors.white),
+                      SizedBox(width: 12),
+                      Text(
+                        'Sign In',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(children: const [Expanded(child: Divider()), SizedBox(width: 12), Text('Or continue with'), SizedBox(width: 12), Expanded(child: Divider())]),
+          const SizedBox(height: 10),
           const SocialRow(),
         ],
       ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_sports/events/screens/events_editor_page.dart';
+import 'package:smart_sports/events/screens/mobile_create_event_page.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_analytics_dashboard_page.dart';
@@ -45,7 +45,7 @@ class CoachEventsPage extends StatelessWidget {
           ),
         ),
       ),
-      body: const EventsEditorPage(),
+      body: const MobileCreateEventPage(),
     );
   }
 }
