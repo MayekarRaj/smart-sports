@@ -26,7 +26,7 @@ class _AuthShellState extends State<AuthShell> {
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage(
-              'lib/assets/images/pngtree-a-large-cricket-stadium-green-field-empty-picture-image_15985507.jpg',
+              'assets/images/pngtree-a-large-cricket-stadium-green-field-empty-picture-image_15985507.jpg',
             ),
             fit: BoxFit.cover,
             alignment: Alignment(0.0, -0.2), // Slightly above center to show more stadium
