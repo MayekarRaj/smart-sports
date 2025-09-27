@@ -3,6 +3,8 @@ import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/coach/screens/courts/coach_courts_page.dart';
 import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_analytics_dashboard_page.dart';
+import 'package:smart_sports/role_specific/coach/screens/users/coach_users_page.dart';
+import 'package:smart_sports/role_specific/coach/screens/referrals/coach_referrals_page.dart';
 
 class CoachProfilePage extends StatefulWidget {
   const CoachProfilePage({super.key});
@@ -20,7 +22,9 @@ void _navigateFromCoachSidebar(BuildContext context, int index) {
       break;
     case 1:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CoachProfilePlaceholder(title: 'Transactions')),
+        MaterialPageRoute(
+          builder: (_) => const _CoachProfilePlaceholder(title: 'Transactions'),
+        ),
       );
       break;
     case 2:
@@ -30,32 +34,41 @@ void _navigateFromCoachSidebar(BuildContext context, int index) {
       break;
     case 3:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CoachProfilePlaceholder(title: 'Clubs')),
+        MaterialPageRoute(
+          builder: (_) => const _CoachProfilePlaceholder(title: 'Clubs'),
+        ),
       );
       break;
     case 4:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CoachProfilePlaceholder(title: 'Bookings')),
+        MaterialPageRoute(
+          builder: (_) => const _CoachProfilePlaceholder(title: 'Bookings'),
+        ),
       );
       break;
     case 5:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CoachProfilePlaceholder(title: 'Events / Tournaments')),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _CoachProfilePlaceholder(title: 'Events / Tournaments'),
+        ),
       );
       break;
     case 6:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CoachProfilePlaceholder(title: 'Sponsorships')),
+        MaterialPageRoute(
+          builder: (_) => const _CoachProfilePlaceholder(title: 'Sponsorships'),
+        ),
       );
       break;
     case 7:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CoachProfilePlaceholder(title: 'Users')),
+        MaterialPageRoute(builder: (_) => const CoachUsersPage()),
       );
       break;
     case 8:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CoachProfilePlaceholder(title: 'Referrals')),
+        MaterialPageRoute(builder: (_) => const CoachReferralsPage()),
       );
       break;
     default:
@@ -106,7 +119,8 @@ class _CoachProfilePlaceholder extends StatelessWidget {
   }
 }
 
-class _CoachProfilePageState extends State<CoachProfilePage> with TickerProviderStateMixin {
+class _CoachProfilePageState extends State<CoachProfilePage>
+    with TickerProviderStateMixin {
   late final TabController _tabController;
 
   @override
@@ -157,12 +171,15 @@ class _CoachProfilePageState extends State<CoachProfilePage> with TickerProvider
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: _PillTabBar(controller: _tabController, tabs: const [
-                Tab(text: 'Profile'),
-                Tab(text: 'Training'),
-                Tab(text: 'Bank Details & Financials'),
-                Tab(text: 'Subscriptions'),
-              ]),
+              child: _PillTabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(text: 'Profile'),
+                  Tab(text: 'Training'),
+                  Tab(text: 'Bank Details & Financials'),
+                  Tab(text: 'Subscriptions'),
+                ],
+              ),
             ),
             Expanded(
               child: TabBarView(
@@ -174,7 +191,7 @@ class _CoachProfilePageState extends State<CoachProfilePage> with TickerProvider
                   _SubscriptionsTab(isWide: isWide),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -228,7 +245,10 @@ class _ProfileTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Coach Profile Information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Coach Profile Information',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           if (isWide)
             Row(
@@ -264,7 +284,10 @@ class _TrainingTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Training Information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Training Information',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           const Center(child: Text('Training details coming soon')),
         ],
@@ -284,7 +307,10 @@ class _BankDetailsTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Bank Details & Financials', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Bank Details & Financials',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           const Center(child: Text('Bank details coming soon')),
         ],
@@ -304,7 +330,10 @@ class _SubscriptionsTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Subscriptions', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Subscriptions',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           const Center(child: Text('Subscription details coming soon')),
         ],
@@ -322,7 +351,10 @@ class _ProfileForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Personal Information', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Personal Information',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             TextFormField(
               decoration: const InputDecoration(labelText: 'Full Name'),
@@ -341,7 +373,9 @@ class _ProfileForm extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Experience (Years)'),
+              decoration: const InputDecoration(
+                labelText: 'Experience (Years)',
+              ),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -372,10 +406,7 @@ class _ProfileImage extends StatelessWidget {
               child: Icon(Icons.person, size: 60, color: Colors.white),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {},
-              child: const Text('Change Photo'),
-            ),
+            ElevatedButton(onPressed: () {}, child: const Text('Change Photo')),
           ],
         ),
       ),

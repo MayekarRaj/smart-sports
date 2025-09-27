@@ -5,14 +5,21 @@ class PillTabSwitch extends StatelessWidget {
   final int index;
   final ValueChanged<int> onChanged;
   final List<String> labels;
-  const PillTabSwitch({super.key, required this.index, required this.onChanged, required this.labels});
+  const PillTabSwitch({
+    super.key,
+    required this.index,
+    required this.onChanged,
+    required this.labels,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 56,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [t.AppTheme.pillGradientStart, t.AppTheme.pillGradientEnd]),
+        gradient: const LinearGradient(
+          colors: [t.AppTheme.pillGradientStart, t.AppTheme.pillGradientEnd],
+        ),
         borderRadius: BorderRadius.circular(40),
       ),
       padding: const EdgeInsets.all(6),

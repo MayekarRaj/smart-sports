@@ -3,24 +3,32 @@ import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/courts/merchandiser_courts_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/users/merchandiser_users_page.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/referrals/merchandiser_referrals_page.dart';
 
 class MerchandiserProfilePage extends StatefulWidget {
   const MerchandiserProfilePage({super.key});
 
   @override
-  State<MerchandiserProfilePage> createState() => _MerchandiserProfilePageState();
+  State<MerchandiserProfilePage> createState() =>
+      _MerchandiserProfilePageState();
 }
 
 void _navigateFromMerchandiserSidebar(BuildContext context, int index) {
   switch (index) {
     case 0:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MerchandiserAnalyticsDashboardPage()),
+        MaterialPageRoute(
+          builder: (_) => const MerchandiserAnalyticsDashboardPage(),
+        ),
       );
       break;
     case 1:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _MerchandiserProfilePlaceholder(title: 'Transactions')),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _MerchandiserProfilePlaceholder(title: 'Transactions'),
+        ),
       );
       break;
     case 2:
@@ -30,32 +38,44 @@ void _navigateFromMerchandiserSidebar(BuildContext context, int index) {
       break;
     case 3:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _MerchandiserProfilePlaceholder(title: 'Clubs')),
+        MaterialPageRoute(
+          builder: (_) => const _MerchandiserProfilePlaceholder(title: 'Clubs'),
+        ),
       );
       break;
     case 4:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _MerchandiserProfilePlaceholder(title: 'Bookings')),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _MerchandiserProfilePlaceholder(title: 'Bookings'),
+        ),
       );
       break;
     case 5:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _MerchandiserProfilePlaceholder(title: 'Events / Tournaments')),
+        MaterialPageRoute(
+          builder: (_) => const _MerchandiserProfilePlaceholder(
+            title: 'Events / Tournaments',
+          ),
+        ),
       );
       break;
     case 6:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _MerchandiserProfilePlaceholder(title: 'Sponsorships')),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _MerchandiserProfilePlaceholder(title: 'Sponsorships'),
+        ),
       );
       break;
     case 7:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _MerchandiserProfilePlaceholder(title: 'Users')),
+        MaterialPageRoute(builder: (_) => const MerchandiserUsersPage()),
       );
       break;
     case 8:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _MerchandiserProfilePlaceholder(title: 'Referrals')),
+        MaterialPageRoute(builder: (_) => const MerchandiserReferralsPage()),
       );
       break;
     default:
@@ -95,7 +115,9 @@ class _MerchandiserProfilePlaceholder extends StatelessWidget {
               Navigator.of(context).pop();
               await Future.delayed(const Duration(milliseconds: 160));
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const MerchandiserProfilePage()),
+                MaterialPageRoute(
+                  builder: (_) => const MerchandiserProfilePage(),
+                ),
               );
             },
           ),
@@ -106,7 +128,8 @@ class _MerchandiserProfilePlaceholder extends StatelessWidget {
   }
 }
 
-class _MerchandiserProfilePageState extends State<MerchandiserProfilePage> with TickerProviderStateMixin {
+class _MerchandiserProfilePageState extends State<MerchandiserProfilePage>
+    with TickerProviderStateMixin {
   late final TabController _tabController;
 
   @override
@@ -157,12 +180,15 @@ class _MerchandiserProfilePageState extends State<MerchandiserProfilePage> with 
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: _PillTabBar(controller: _tabController, tabs: const [
-                Tab(text: 'Profile'),
-                Tab(text: 'Stores'),
-                Tab(text: 'Bank Details & Financials'),
-                Tab(text: 'Subscriptions'),
-              ]),
+              child: _PillTabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(text: 'Profile'),
+                  Tab(text: 'Stores'),
+                  Tab(text: 'Bank Details & Financials'),
+                  Tab(text: 'Subscriptions'),
+                ],
+              ),
             ),
             Expanded(
               child: TabBarView(
@@ -174,7 +200,7 @@ class _MerchandiserProfilePageState extends State<MerchandiserProfilePage> with 
                   _SubscriptionsTab(isWide: isWide),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -228,7 +254,10 @@ class _ProfileTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Merchandiser Profile Information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Merchandiser Profile Information',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           if (isWide)
             Row(
@@ -264,7 +293,10 @@ class _StoresTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Merchandiser Stores', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Merchandiser Stores',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           const Center(child: Text('Store details coming soon')),
         ],
@@ -284,7 +316,10 @@ class _BankDetailsTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Bank Details & Financials', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Bank Details & Financials',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           const Center(child: Text('Bank details coming soon')),
         ],
@@ -304,7 +339,10 @@ class _SubscriptionsTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Subscriptions', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Subscriptions',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           const Center(child: Text('Subscription details coming soon')),
         ],
@@ -322,7 +360,10 @@ class _ProfileForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Business Information', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Business Information',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             TextFormField(
               decoration: const InputDecoration(labelText: 'Business Name'),
@@ -372,10 +413,7 @@ class _ProfileImage extends StatelessWidget {
               child: Icon(Icons.store, size: 60, color: Colors.white),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {},
-              child: const Text('Change Logo'),
-            ),
+            ElevatedButton(onPressed: () {}, child: const Text('Change Logo')),
           ],
         ),
       ),

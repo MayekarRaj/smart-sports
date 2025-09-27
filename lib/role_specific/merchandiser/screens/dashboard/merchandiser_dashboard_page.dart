@@ -7,6 +7,7 @@ import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/mercha
 import 'package:smart_sports/role_specific/merchandiser/screens/transactions/merchandiser_transactions_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/bookings/merchandiser_bookings_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/events/merchandiser_events_page.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/referrals/merchandiser_referrals_page.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 
 class MerchandiserDashboardPage extends StatefulWidget {
@@ -268,10 +269,7 @@ void _navigateFromMerchandiserSidebar(BuildContext context, int index) {
       break;
     case 8:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) =>
-              const _PlaceholderPage(title: 'Referrals', currentIndex: 8),
-        ),
+        MaterialPageRoute(builder: (_) => const MerchandiserReferralsPage()),
       );
       break;
     default:

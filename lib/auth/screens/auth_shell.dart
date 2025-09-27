@@ -22,19 +22,34 @@ class _AuthShellState extends State<AuthShell> {
           child: Card(
             elevation: 12,
             color: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  PillTabSwitch(index: index, onChanged: (i){ setState(()=> index = i); }, labels: const ['Sign In','Sign Up']),
+                  PillTabSwitch(
+                    index: index,
+                    onChanged: (i) {
+                      setState(() => index = i);
+                    },
+                    labels: const ['Sign In', 'Sign Up'],
+                  ),
                   const SizedBox(height: 24),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
                     child: index == 0 ? const SignInPage() : const SignUpPage(),
-                  )
+                  ),
+                  const SizedBox(height: 16),
+                  // Demo button for testing user screens
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed('/demo-users'),
+                    child: const Text('Demo: Test User Screens'),
+                  ),
                 ],
               ),
             ),

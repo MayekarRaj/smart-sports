@@ -7,6 +7,7 @@ import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_analyti
 import 'package:smart_sports/role_specific/coach/screens/transactions/coach_transactions_page.dart';
 import 'package:smart_sports/role_specific/coach/screens/bookings/coach_bookings_page.dart';
 import 'package:smart_sports/role_specific/coach/screens/events/coach_events_page.dart';
+import 'package:smart_sports/role_specific/coach/screens/referrals/coach_referrals_page.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 
 class CoachDashboardPage extends StatefulWidget {
@@ -263,10 +264,7 @@ void _navigateFromCoachSidebar(BuildContext context, int index) {
       break;
     case 8:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) =>
-              const _PlaceholderPage(title: 'Referrals', currentIndex: 8),
-        ),
+        MaterialPageRoute(builder: (_) => const CoachReferralsPage()),
       );
       break;
     default:
@@ -331,10 +329,7 @@ extension on _CoachDashboardPageState {
         break;
       case 8:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) =>
-                const _PlaceholderPage(title: 'Referrals', currentIndex: 8),
-          ),
+          MaterialPageRoute(builder: (_) => const CoachReferralsPage()),
         );
         break;
       default:

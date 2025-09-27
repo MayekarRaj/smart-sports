@@ -3,6 +3,8 @@ import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/corporate/screens/courts/corporate_courts_page.dart';
 import 'package:smart_sports/role_specific/corporate/screens/dashboard/corporate_analytics_dashboard_page.dart';
+import 'package:smart_sports/role_specific/corporate/screens/users/corporate_users_page.dart';
+import 'package:smart_sports/role_specific/corporate/screens/referrals/corporate_referrals_page.dart';
 
 class CorporateProfilePage extends StatefulWidget {
   const CorporateProfilePage({super.key});
@@ -15,12 +17,17 @@ void _navigateFromCorporateSidebar(BuildContext context, int index) {
   switch (index) {
     case 0:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const CorporateAnalyticsDashboardPage()),
+        MaterialPageRoute(
+          builder: (_) => const CorporateAnalyticsDashboardPage(),
+        ),
       );
       break;
     case 1:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CorporateProfilePlaceholder(title: 'Transactions')),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _CorporateProfilePlaceholder(title: 'Transactions'),
+        ),
       );
       break;
     case 2:
@@ -30,32 +37,42 @@ void _navigateFromCorporateSidebar(BuildContext context, int index) {
       break;
     case 3:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CorporateProfilePlaceholder(title: 'Clubs')),
+        MaterialPageRoute(
+          builder: (_) => const _CorporateProfilePlaceholder(title: 'Clubs'),
+        ),
       );
       break;
     case 4:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CorporateProfilePlaceholder(title: 'Bookings')),
+        MaterialPageRoute(
+          builder: (_) => const _CorporateProfilePlaceholder(title: 'Bookings'),
+        ),
       );
       break;
     case 5:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CorporateProfilePlaceholder(title: 'Events / Tournaments')),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _CorporateProfilePlaceholder(title: 'Events / Tournaments'),
+        ),
       );
       break;
     case 6:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CorporateProfilePlaceholder(title: 'Sponsorships')),
+        MaterialPageRoute(
+          builder: (_) =>
+              const _CorporateProfilePlaceholder(title: 'Sponsorships'),
+        ),
       );
       break;
     case 7:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CorporateProfilePlaceholder(title: 'Users')),
+        MaterialPageRoute(builder: (_) => const CorporateUsersPage()),
       );
       break;
     case 8:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _CorporateProfilePlaceholder(title: 'Referrals')),
+        MaterialPageRoute(builder: (_) => const CorporateReferralsPage()),
       );
       break;
     default:
@@ -106,7 +123,8 @@ class _CorporateProfilePlaceholder extends StatelessWidget {
   }
 }
 
-class _CorporateProfilePageState extends State<CorporateProfilePage> with TickerProviderStateMixin {
+class _CorporateProfilePageState extends State<CorporateProfilePage>
+    with TickerProviderStateMixin {
   late final TabController _tabController;
 
   @override
@@ -157,12 +175,15 @@ class _CorporateProfilePageState extends State<CorporateProfilePage> with Ticker
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: _PillTabBar(controller: _tabController, tabs: const [
-                Tab(text: 'Profile'),
-                Tab(text: 'Branches'),
-                Tab(text: 'Bank Details & Financials'),
-                Tab(text: 'Subscriptions'),
-              ]),
+              child: _PillTabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(text: 'Profile'),
+                  Tab(text: 'Branches'),
+                  Tab(text: 'Bank Details & Financials'),
+                  Tab(text: 'Subscriptions'),
+                ],
+              ),
             ),
             Expanded(
               child: TabBarView(
@@ -174,7 +195,7 @@ class _CorporateProfilePageState extends State<CorporateProfilePage> with Ticker
                   _SubscriptionsTab(isWide: isWide),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -228,7 +249,10 @@ class _ProfileTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Corporate Profile Information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Corporate Profile Information',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           if (isWide)
             Row(
@@ -264,7 +288,10 @@ class _BranchesTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Corporate Branches', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Corporate Branches',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           const Center(child: Text('Branch details coming soon')),
         ],
@@ -284,7 +311,10 @@ class _BankDetailsTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Bank Details & Financials', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Bank Details & Financials',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           const Center(child: Text('Bank details coming soon')),
         ],
@@ -304,7 +334,10 @@ class _SubscriptionsTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Subscriptions', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Subscriptions',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           const Center(child: Text('Subscription details coming soon')),
         ],
@@ -322,7 +355,10 @@ class _ProfileForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Company Information', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Company Information',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             TextFormField(
               decoration: const InputDecoration(labelText: 'Company Name'),
@@ -341,7 +377,9 @@ class _ProfileForm extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Number of Employees'),
+              decoration: const InputDecoration(
+                labelText: 'Number of Employees',
+              ),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -372,10 +410,7 @@ class _ProfileImage extends StatelessWidget {
               child: Icon(Icons.business, size: 60, color: Colors.white),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {},
-              child: const Text('Change Logo'),
-            ),
+            ElevatedButton(onPressed: () {}, child: const Text('Change Logo')),
           ],
         ),
       ),

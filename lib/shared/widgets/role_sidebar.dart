@@ -32,18 +32,24 @@ class RoleSidebar extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           gradient: t.background,
-          borderRadius: edgeToEdge ? BorderRadius.zero : BorderRadius.circular(24),
+          borderRadius: edgeToEdge
+              ? BorderRadius.zero
+              : BorderRadius.circular(24),
         ),
-        padding: edgeToEdge ? const EdgeInsets.symmetric(horizontal: 16, vertical: 16) : const EdgeInsets.all(16),
+        padding: edgeToEdge
+            ? const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
+            : const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: edgeToEdge ? CrossAxisAlignment.stretch : CrossAxisAlignment.start,
+          crossAxisAlignment: edgeToEdge
+              ? CrossAxisAlignment.stretch
+              : CrossAxisAlignment.start,
           children: [
             // Header Profile
-            _ProfileHeader(textColor: t.textColor, onClose: onClose, onProfileTap: onProfileTap),
-            const SizedBox(height: 16),
-
-            // Search
-            _SearchBox(textColor: t.textColor, iconColor: t.iconColor),
+            _ProfileHeader(
+              textColor: t.textColor,
+              onClose: onClose,
+              onProfileTap: onProfileTap,
+            ),
             const SizedBox(height: 16),
 
             // Menu
@@ -110,6 +116,18 @@ class RoleSidebar extends StatelessWidget {
                       label: 'Referrals',
                       t: t,
                     ),
+                    _tile(
+                      index: 9,
+                      icon: Icons.support_agent_outlined,
+                      label: 'Customer Support',
+                      t: t,
+                    ),
+                    _tile(
+                      index: 10,
+                      icon: Icons.settings_outlined,
+                      label: 'Settings',
+                      t: t,
+                    ),
                   ],
                 ),
               ),
@@ -128,7 +146,10 @@ class RoleSidebar extends StatelessWidget {
                     const SizedBox(width: 12),
                     Text(
                       'Sign Out',
-                      style: TextStyle(color: t.textColor, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: t.textColor,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -158,7 +179,9 @@ class RoleSidebar extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white.withOpacity(0.18) : Colors.transparent,
+            color: isSelected
+                ? Colors.white.withValues(alpha: 0.18)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -189,7 +212,11 @@ class _ProfileHeader extends StatelessWidget {
   final Color textColor;
   final VoidCallback? onClose;
   final VoidCallback? onProfileTap;
-  const _ProfileHeader({required this.textColor, this.onClose, this.onProfileTap});
+  const _ProfileHeader({
+    required this.textColor,
+    this.onClose,
+    this.onProfileTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +232,7 @@ class _ProfileHeader extends StatelessWidget {
         },
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            color: Colors.white.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(16),
           ),
           padding: const EdgeInsets.all(12),
@@ -214,7 +241,7 @@ class _ProfileHeader extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 28,
-                backgroundColor: Colors.white.withOpacity(0.15),
+                backgroundColor: Colors.white.withValues(alpha: 0.15),
                 child: Icon(Icons.person, color: textColor),
               ),
               const SizedBox(width: 12),
@@ -231,14 +258,26 @@ class _ProfileHeader extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text('Designation', style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 12)),
-                    Text('Role', style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 12)),
+                    Text(
+                      'Designation',
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: 0.8),
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      'Role',
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: 0.8),
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 padding: const EdgeInsets.all(8),
@@ -247,39 +286,6 @@ class _ProfileHeader extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SearchBox extends StatelessWidget {
-  final Color textColor;
-  final Color iconColor;
-  const _SearchBox({required this.textColor, required this.iconColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white10),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              style: TextStyle(color: textColor),
-              decoration: InputDecoration(
-                hintText: 'Search',
-                hintStyle: TextStyle(color: textColor.withOpacity(0.6)),
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-          Icon(Icons.search, color: iconColor),
-        ],
       ),
     );
   }

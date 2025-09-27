@@ -7,6 +7,7 @@ import 'package:smart_sports/role_specific/corporate/screens/dashboard/corporate
 import 'package:smart_sports/role_specific/corporate/screens/transactions/corporate_transactions_page.dart';
 import 'package:smart_sports/role_specific/corporate/screens/bookings/corporate_bookings_page.dart';
 import 'package:smart_sports/role_specific/corporate/screens/events/corporate_events_page.dart';
+import 'package:smart_sports/role_specific/corporate/screens/referrals/corporate_referrals_page.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 
 class CorporateDashboardPage extends StatefulWidget {
@@ -265,10 +266,7 @@ void _navigateFromCorporateSidebar(BuildContext context, int index) {
       break;
     case 8:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) =>
-              const _PlaceholderPage(title: 'Referrals', currentIndex: 8),
-        ),
+        MaterialPageRoute(builder: (_) => const CorporateReferralsPage()),
       );
       break;
     default:

@@ -6,7 +6,8 @@ class FreelancerDashboardPage extends StatefulWidget {
   const FreelancerDashboardPage({super.key});
 
   @override
-  State<FreelancerDashboardPage> createState() => _FreelancerDashboardPageState();
+  State<FreelancerDashboardPage> createState() =>
+      _FreelancerDashboardPageState();
 }
 
 class _FreelancerDashboardPageState extends State<FreelancerDashboardPage> {
