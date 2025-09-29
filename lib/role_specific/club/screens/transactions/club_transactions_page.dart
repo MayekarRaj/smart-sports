@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
-import 'package:smart_sports/role_specific/club/screens/dashboard/club_analytics_dashboard_page.dart';
+import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 
 class ClubTransactionsPage extends StatefulWidget {
   const ClubTransactionsPage({super.key});
@@ -84,11 +84,11 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
             role: UserRole.club,
             selectedIndex: 1,
             edgeToEdge: true,
-            onSelectIndex: (i) async {
-              Navigator.of(context).pop();
-              await Future.delayed(const Duration(milliseconds: 160));
-              _navigateFromSidebar(context, i);
-            },
+            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
+              context,
+              UserRole.club,
+              i,
+            ),
           ),
         ),
       ),
@@ -956,38 +956,6 @@ class _Footer extends StatelessWidget {
   }
 }
 
-class _Link extends StatelessWidget {
-  final String text;
-  final VoidCallback onTap;
-  const _Link(this.text, this.onTap);
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.blue,
-          decoration: TextDecoration.underline,
-        ),
-      ),
-    );
-  }
-}
+// Removed unused _Link widget
 
-void _navigateFromSidebar(BuildContext context, int index) {
-  switch (index) {
-    case 0:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const ClubAnalyticsDashboardPage()),
-      );
-      break;
-    case 1:
-      // already on transactions
-      break;
-    default:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const ClubAnalyticsDashboardPage()),
-      );
-  }
-}
+// Navigation from sidebar now centralized via RoleNavigationManager

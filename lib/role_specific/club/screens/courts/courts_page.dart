@@ -1,10 +1,106 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
-import 'package:smart_sports/role_specific/club/screens/dashboard/club_analytics_dashboard_page.dart';
+import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 
-class ClubCourtsPage extends StatelessWidget {
+class ClubCourtsPage extends StatefulWidget {
   const ClubCourtsPage({super.key});
+
+  @override
+  State<ClubCourtsPage> createState() => _ClubCourtsPageState();
+}
+
+class _ClubCourtsPageState extends State<ClubCourtsPage> {
+  bool _showFilters = false;
+  int _selectedBranchIndex = 0;
+  int _selectedCourtIndex = 0;
+  final ScrollController _scrollController = ScrollController();
+
+  late final List<_ClubBranch> _branches = [
+    _ClubBranch(
+      name: 'Branch 1',
+      courts: [
+        _Court(
+          name: 'Court 1',
+          available: true,
+          maxPlayers: 30,
+          maxTeams: 3,
+          guestCapacity: 300,
+          coachCount: 3,
+          schedule: const {
+            'weekdays': '08:30 - 22:00',
+            'saturday': '11:30 - 20:00',
+            'sunday': 'Off',
+          },
+          bookingStatus: const {'Available': 18, 'Booked': 9, 'Maintenance': 3},
+        ),
+        _Court(
+          name: 'Court 2',
+          available: false,
+          maxPlayers: 24,
+          maxTeams: 2,
+          guestCapacity: 150,
+          coachCount: 2,
+          schedule: const {
+            'weekdays': '09:00 - 21:00',
+            'saturday': '10:00 - 18:00',
+            'sunday': 'Off',
+          },
+          bookingStatus: const {
+            'Available': 10,
+            'Booked': 18,
+            'Maintenance': 2,
+          },
+        ),
+      ],
+    ),
+    _ClubBranch(
+      name: 'Branch 2',
+      courts: [
+        _Court(
+          name: 'Court A',
+          available: true,
+          maxPlayers: 20,
+          maxTeams: 2,
+          guestCapacity: 120,
+          coachCount: 1,
+          schedule: const {
+            'weekdays': '07:00 - 20:00',
+            'saturday': '09:00 - 17:00',
+            'sunday': 'Off',
+          },
+          bookingStatus: const {
+            'Available': 15,
+            'Booked': 12,
+            'Maintenance': 3,
+          },
+        ),
+      ],
+    ),
+    _ClubBranch(
+      name: 'Branch 3',
+      courts: [
+        _Court(
+          name: 'Main Court',
+          available: true,
+          maxPlayers: 40,
+          maxTeams: 4,
+          guestCapacity: 400,
+          coachCount: 4,
+          schedule: const {
+            'weekdays': '06:00 - 23:00',
+            'saturday': '08:00 - 22:00',
+            'sunday': '10:00 - 18:00',
+          },
+          bookingStatus: const {
+            'Available': 20,
+            'Booked': 10,
+            'Maintenance': 5,
+          },
+        ),
+      ],
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +114,15 @@ class ClubCourtsPage extends StatelessWidget {
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: () => setState(() => _showFilters = !_showFilters),
+            icon: Icon(
+              _showFilters ? Icons.filter_list_off : Icons.filter_list,
+            ),
+            tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
+          ),
+        ],
       ),
       drawer: Drawer(
         elevation: 0,
@@ -26,15 +131,16 @@ class ClubCourtsPage extends StatelessWidget {
             role: UserRole.club,
             selectedIndex: 2,
             edgeToEdge: true,
-            onSelectIndex: (i) async {
-              Navigator.of(context).pop();
-              await Future.delayed(const Duration(milliseconds: 160));
-              _navigateFromCourtsSidebar(context, i);
-            },
+            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
+              context,
+              UserRole.club,
+              i,
+            ),
           ),
         ),
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,13 +149,31 @@ class ClubCourtsPage extends StatelessWidget {
             const SizedBox(height: 12),
             _ShowSearchRow(isWide: isWide),
             const SizedBox(height: 12),
-            const _FilterStrip(),
+            if (_showFilters) const _FilterStrip(),
             const SizedBox(height: 16),
             const _ClubCard(),
             const SizedBox(height: 16),
-            const _BranchTabs(),
+            _BranchTabs(
+              branches: _branches.map((b) => b.name).toList(),
+              selectedIndex: _selectedBranchIndex,
+              onSelect: (i) {
+                setState(() {
+                  _selectedBranchIndex = i;
+                  _selectedCourtIndex = 0; // reset court on branch change
+                });
+              },
+            ),
             const SizedBox(height: 12),
-            const _CourtDetailCard(),
+            _CourtSelector(
+              courts: _branches[_selectedBranchIndex].courts,
+              selectedIndex: _selectedCourtIndex,
+              onSelect: (i) => setState(() => _selectedCourtIndex = i),
+            ),
+            const SizedBox(height: 12),
+            _CourtDetailCard(
+              court:
+                  _branches[_selectedBranchIndex].courts[_selectedCourtIndex],
+            ),
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -59,6 +183,12 @@ class ClubCourtsPage extends StatelessWidget {
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
+            ),
+            const SizedBox(height: 8),
+            _BookingStatusSummary(
+              status: _branches[_selectedBranchIndex]
+                  .courts[_selectedCourtIndex]
+                  .bookingStatus,
             ),
             const SizedBox(height: 12),
             _BookingAndSlots(isWide: isWide),
@@ -75,22 +205,142 @@ class ClubCourtsPage extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 }
 
-void _navigateFromCourtsSidebar(BuildContext context, int index) {
-  switch (index) {
-    case 0:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const ClubAnalyticsDashboardPage()),
-      );
-      break;
-    case 2:
-      // already here
-      break;
-    default:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const ClubAnalyticsDashboardPage()),
-      );
+// Simple in-file data models to power the interactive UI.
+class _ClubBranch {
+  final String name;
+  final List<_Court> courts;
+  _ClubBranch({required this.name, required this.courts});
+}
+
+class _Court {
+  final String name;
+  final bool available;
+  final int maxPlayers;
+  final int maxTeams;
+  final int guestCapacity;
+  final int coachCount;
+  final Map<String, String> schedule; // weekdays, saturday, sunday
+  final Map<String, int> bookingStatus; // Available/Booked/Maintenance
+  _Court({
+    required this.name,
+    required this.available,
+    required this.maxPlayers,
+    required this.maxTeams,
+    required this.guestCapacity,
+    required this.coachCount,
+    required this.schedule,
+    required this.bookingStatus,
+  });
+}
+
+class _CourtSelector extends StatelessWidget {
+  final List<_Court> courts;
+  final int selectedIndex;
+  final ValueChanged<int> onSelect;
+  const _CourtSelector({
+    required this.courts,
+    required this.selectedIndex,
+    required this.onSelect,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (int i = 0; i < courts.length; i++) ...[
+            _pill(
+              context,
+              label: courts[i].name,
+              active: selectedIndex == i,
+              onTap: () => onSelect(i),
+            ),
+            const SizedBox(width: 8),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _pill(
+    BuildContext context, {
+    required String label,
+    required bool active,
+    required VoidCallback onTap,
+  }) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(22),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: active ? Colors.black87 : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: active ? Colors.black54 : Colors.black26),
+        boxShadow: const [
+          BoxShadow(
+            blurRadius: 6,
+            color: Color(0x14000000),
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: active ? Colors.white : Colors.black87,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    ),
+  );
+}
+
+class _BookingStatusSummary extends StatelessWidget {
+  final Map<String, int> status;
+  const _BookingStatusSummary({required this.status});
+  @override
+  Widget build(BuildContext context) {
+    Widget chip(Color color, String label, int count) => Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          border: Border.all(color: color.withOpacity(0.4)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(color: color, fontWeight: FontWeight.w700),
+            ),
+            Text(
+              '$count',
+              style: TextStyle(color: color, fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return Row(
+      children: [
+        chip(Colors.green, 'Available', status['Available'] ?? 0),
+        const SizedBox(width: 8),
+        chip(Colors.blueGrey, 'Booked', status['Booked'] ?? 0),
+        const SizedBox(width: 8),
+        chip(Colors.orange, 'Maintenance', status['Maintenance'] ?? 0),
+      ],
+    );
   }
 }
 
@@ -435,6 +685,10 @@ class _FilterStripState extends State<_FilterStrip> {
   }
 }
 
+/// Mobile-only compact bar with a Filter button that opens the filters
+/// inside a bottom sheet for a better small-screen experience.
+// Removed mobile bottom-sheet filter; header toggle now controls filters inline.
+
 class _ClubCard extends StatelessWidget {
   const _ClubCard();
   @override
@@ -564,42 +818,60 @@ class _ClubCard extends StatelessWidget {
 }
 
 class _BranchTabs extends StatelessWidget {
-  const _BranchTabs();
+  final List<String> branches;
+  final int selectedIndex;
+  final ValueChanged<int> onSelect;
+  const _BranchTabs({
+    required this.branches,
+    required this.selectedIndex,
+    required this.onSelect,
+  });
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: _tab('Branch 1', active: true)),
-        const SizedBox(width: 8),
-        Expanded(child: _tab('Branch 2')),
-        const SizedBox(width: 8),
-        Expanded(child: _tab('Branch 3')),
+        for (int i = 0; i < branches.length; i++) ...[
+          Expanded(
+            child: _tab(
+              branches[i],
+              active: selectedIndex == i,
+              onTap: () => onSelect(i),
+            ),
+          ),
+          if (i != branches.length - 1) const SizedBox(width: 8),
+        ],
       ],
     );
   }
 
-  Widget _tab(String text, {bool active = false}) => Container(
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    decoration: BoxDecoration(
-      color: active ? Colors.white : const Color(0xFFF3F4F7),
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: active
-          ? const [BoxShadow(blurRadius: 6, color: Color(0x14000000))]
-          : null,
-    ),
-    alignment: Alignment.center,
-    child: Text(
-      text,
-      style: TextStyle(
-        fontWeight: FontWeight.w700,
-        color: active ? Colors.black87 : Colors.black54,
-      ),
-    ),
-  );
+  Widget _tab(String text, {bool active = false, VoidCallback? onTap}) =>
+      InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: active ? Colors.white : const Color(0xFFF3F4F7),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: active
+                ? const [BoxShadow(blurRadius: 6, color: Color(0x14000000))]
+                : null,
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            text,
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: active ? Colors.black87 : Colors.black54,
+            ),
+          ),
+        ),
+      );
 }
 
 class _CourtDetailCard extends StatelessWidget {
-  const _CourtDetailCard();
+  final _Court court;
+  const _CourtDetailCard({required this.court});
   @override
   Widget build(BuildContext context) {
     Widget stat(String k, String v) => Expanded(
@@ -648,30 +920,34 @@ class _CourtDetailCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          'Court 1',
+                          court.name,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(Icons.circle, color: Colors.green, size: 12),
+                        Icon(
+                          Icons.circle,
+                          color: court.available ? Colors.green : Colors.red,
+                          size: 12,
+                        ),
                         const SizedBox(width: 4),
-                        const Text('Available'),
+                        Text(court.available ? 'Available' : 'Unavailable'),
                       ],
                     ),
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        stat('Max Players', '30'),
+                        stat('Max Players', '${court.maxPlayers}'),
                         const SizedBox(width: 8),
-                        stat('Max Teams', '3'),
+                        stat('Max Teams', '${court.maxTeams}'),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        stat('Guest Cap', '300'),
+                        stat('Guest Cap', '${court.guestCapacity}'),
                         const SizedBox(width: 8),
-                        stat('Coach', '3'),
+                        stat('Coach', '${court.coachCount}'),
                       ],
                     ),
                   ],
@@ -682,11 +958,20 @@ class _CourtDetailCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: stat('Weekdays', '08:30 - 22:00')),
+              Expanded(
+                child: stat('Weekdays', court.schedule['weekdays'] ?? '-'),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: stat('Saturday', '11:30 - 20:00')),
+              Expanded(
+                child: stat('Saturday', court.schedule['saturday'] ?? '-'),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: stat('Sunday & Holidays', 'Off')),
+              Expanded(
+                child: stat(
+                  'Sunday & Holidays',
+                  court.schedule['sunday'] ?? '-',
+                ),
+              ),
             ],
           ),
         ],

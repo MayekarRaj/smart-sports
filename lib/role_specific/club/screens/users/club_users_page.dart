@@ -5,14 +5,8 @@ import 'package:smart_sports/role_specific/club/screens/users/user_card.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/club/screens/profile/club_profile_page.dart';
-import 'package:smart_sports/role_specific/club/screens/dashboard/club_analytics_dashboard_page.dart';
-import 'package:smart_sports/role_specific/club/screens/transactions/club_transactions_page.dart';
-import 'package:smart_sports/role_specific/club/screens/courts/courts_page.dart';
-import 'package:smart_sports/role_specific/club/screens/bookings/club_bookings_page.dart';
-import 'package:smart_sports/role_specific/club/screens/events/club_events_page.dart';
-import 'package:smart_sports/role_specific/club/screens/referrals/club_referrals_page.dart';
-import 'package:smart_sports/role_specific/club/screens/customer_support/club_customer_support_page.dart';
-import 'package:smart_sports/role_specific/club/screens/settings/club_settings_page.dart';
+import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
+// Navigation to other screens is handled via RoleNavigationManager from the sidebar.
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 
 class ClubUsersPage extends StatefulWidget {
@@ -125,15 +119,11 @@ class _ClubUsersPageState extends State<ClubUsersPage>
             role: UserRole.club,
             selectedIndex: 7, // Users is index 7
             edgeToEdge: true,
-            onSelectIndex: (i) async {
-              final navigator = Navigator.of(context);
-              final currentContext = context;
-              navigator.pop();
-              await Future.delayed(const Duration(milliseconds: 160));
-              if (mounted) {
-                _navigateFromSidebar(currentContext, i);
-              }
-            },
+            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
+              context,
+              UserRole.club,
+              i,
+            ),
             onProfileTap: () async {
               final navigator = Navigator.of(context);
               navigator.pop();
@@ -591,57 +581,5 @@ class _ClubUsersPageState extends State<ClubUsersPage>
     );
   }
 
-  void _navigateFromSidebar(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubAnalyticsDashboardPage()),
-        );
-        break;
-      case 1:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubTransactionsPage()),
-        );
-        break;
-      case 2:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubCourtsPage()),
-        );
-        break;
-      case 3:
-        // Clubs - placeholder
-        break;
-      case 4:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubBookingsPage()),
-        );
-        break;
-      case 5:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubEventsPage()),
-        );
-        break;
-      case 6:
-        // Sponsorships - placeholder
-        break;
-      case 7:
-        // Already on users
-        break;
-      case 8:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubReferralsPage()),
-        );
-        break;
-      case 9:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubCustomerSupportPage()),
-        );
-        break;
-      case 10:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubSettingsPage()),
-        );
-        break;
-    }
-  }
+  // Navigation from sidebar now centralized via RoleNavigationManager
 }

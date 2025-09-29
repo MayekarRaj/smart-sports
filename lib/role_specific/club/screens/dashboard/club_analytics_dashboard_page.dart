@@ -18,8 +18,12 @@ class MediaUtils {
 }
 
 class _ClubAnalyticsDashboardPageState extends State<ClubAnalyticsDashboardPage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late final TabController _tableTabs;
+  final ScrollController _scrollController = ScrollController();
+  final PageStorageKey<String> _storageKey = const PageStorageKey<String>(
+    'club_dashboard_scroll',
+  );
 
   final TextEditingController _searchController = TextEditingController();
   DateTime? _fromDate;
@@ -42,11 +46,15 @@ class _ClubAnalyticsDashboardPageState extends State<ClubAnalyticsDashboardPage>
   void dispose() {
     _tableTabs.dispose();
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
+  bool get wantKeepAlive => true;
+  @override
   Widget build(BuildContext context) {
+    super.build(context); // for AutomaticKeepAliveClientMixin
     final isWide = MediaUtils(context).isWide;
 
     return Scaffold(
@@ -98,6 +106,9 @@ class _ClubAnalyticsDashboardPageState extends State<ClubAnalyticsDashboardPage>
       body: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
+            key: _storageKey,
+            controller: _scrollController,
+            physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,6 +134,7 @@ class _ClubAnalyticsDashboardPageState extends State<ClubAnalyticsDashboardPage>
                         lastDate: DateTime(2100),
                         initialDate: _fromDate ?? DateTime.now(),
                       );
+                      if (!mounted) return;
                       if (result != null) setState(() => _fromDate = result);
                     },
                     onPickToDate: () async {
@@ -132,6 +144,7 @@ class _ClubAnalyticsDashboardPageState extends State<ClubAnalyticsDashboardPage>
                         lastDate: DateTime(2100),
                         initialDate: _toDate ?? DateTime.now(),
                       );
+                      if (!mounted) return;
                       if (result != null) setState(() => _toDate = result);
                     },
                     onPickFromTime: () async {
@@ -139,6 +152,7 @@ class _ClubAnalyticsDashboardPageState extends State<ClubAnalyticsDashboardPage>
                         context: context,
                         initialTime: _fromTime ?? TimeOfDay.now(),
                       );
+                      if (!mounted) return;
                       if (result != null) setState(() => _fromTime = result);
                     },
                     onPickToTime: () async {
@@ -146,6 +160,7 @@ class _ClubAnalyticsDashboardPageState extends State<ClubAnalyticsDashboardPage>
                         context: context,
                         initialTime: _toTime ?? TimeOfDay.now(),
                       );
+                      if (!mounted) return;
                       if (result != null) setState(() => _toTime = result);
                     },
                     onChangeDays: (v) => setState(() => _days = v),

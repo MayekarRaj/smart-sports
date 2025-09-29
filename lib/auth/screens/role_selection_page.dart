@@ -73,7 +73,7 @@ class RoleSelectionPage extends StatelessWidget {
                 child: const Column(
                   children: [
                     Text(
-                      '🚀 Join Our Community',
+                      'Join Our Platform',
                       style: TextStyle(
                         fontSize: 20,
                         color: Colors.white,
@@ -83,7 +83,7 @@ class RoleSelectionPage extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'Choose your role and unlock amazing features tailored just for you',
+                      'Choose your role and access professional features designed for your needs',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.white,
