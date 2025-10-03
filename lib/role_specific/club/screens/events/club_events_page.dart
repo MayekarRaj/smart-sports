@@ -42,7 +42,7 @@ class ClubEventsPage extends StatelessWidget {
           ),
         ),
       ),
-      body: const MobileCreateEventPage(),
+      body: const MobileCreateEventPage(showAppBar: false),
     );
   }
 }

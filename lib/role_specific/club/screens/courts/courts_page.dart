@@ -550,9 +550,9 @@ class _FilterStripState extends State<_FilterStrip> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF1E40AF),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: const Color(0xFF1E40AF)),
       ),
       padding: const EdgeInsets.all(12),
       child: Wrap(
@@ -572,7 +572,7 @@ class _FilterStripState extends State<_FilterStrip> {
               onChanged: (v) => setState(() => _sport = v ?? _sport),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: const Color(0xFFF7F7F7),
+                fillColor: Colors.white.withOpacity(0.15),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -666,7 +666,7 @@ class _FilterStripState extends State<_FilterStrip> {
               onChanged: (v) => setState(() => _status = v ?? _status),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: const Color(0xFFF7F7F7),
+                fillColor: Colors.white.withOpacity(0.15),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,

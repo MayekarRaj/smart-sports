@@ -3,7 +3,8 @@ import '../widgets/mobile_event_header.dart';
 import '../widgets/mobile_form_section.dart';
 
 class MobileCreateEventPage extends StatefulWidget {
-  const MobileCreateEventPage({super.key});
+  final bool showAppBar;
+  const MobileCreateEventPage({super.key, this.showAppBar = true});
 
   @override
   State<MobileCreateEventPage> createState() => _MobileCreateEventPageState();
@@ -21,6 +22,7 @@ class _MobileCreateEventPageState extends State<MobileCreateEventPage> {
   bool _eventLocationSameAsClub = true;
   bool _sponsorshipApplicable = false;
   List<String> _selectedSports = ['Cricket', 'Tennis', 'Basketball'];
+  final List<String> _selectedSponsorshipParties = [];
   final DateTime _eventDate = DateTime.now().add(const Duration(days: 28));
   final DateTime _registrationLastDate = DateTime.now().add(
     const Duration(days: 27),
@@ -41,21 +43,23 @@ class _MobileCreateEventPageState extends State<MobileCreateEventPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: const Text(
-          'Events / Tournaments',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () {
-            // Handle menu tap
-          },
-        ),
-      ),
+      appBar: widget.showAppBar
+          ? AppBar(
+              title: const Text(
+                'Events / Tournaments',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black87,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  // Handle menu tap
+                },
+              ),
+            )
+          : null,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -248,11 +252,18 @@ class _MobileCreateEventPageState extends State<MobileCreateEventPage> {
   }
 
   Widget _buildSponsorshipChip(String label) {
+    final isSelected = _selectedSponsorshipParties.contains(label);
     return FilterChip(
       label: Text(label),
-      selected: false,
+      selected: isSelected,
       onSelected: (selected) {
-        // Handle sponsorship selection
+        setState(() {
+          if (selected) {
+            if (!isSelected) _selectedSponsorshipParties.add(label);
+          } else {
+            _selectedSponsorshipParties.remove(label);
+          }
+        });
       },
       backgroundColor: Colors.grey.shade100,
       selectedColor: Colors.blue.shade100,

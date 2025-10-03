@@ -255,7 +255,7 @@ class _ClubUsersPageState extends State<ClubUsersPage>
         children: [
           // Filter section
           Container(
-            color: const Color(0xFF1E3A8A),
+            color: const Color(0xFF1E40AF),
             child: Column(
               children: [
                 // Filter toggle button

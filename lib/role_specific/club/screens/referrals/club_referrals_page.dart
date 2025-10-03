@@ -253,7 +253,7 @@ class _ClubReferralsPageState extends State<ClubReferralsPage> {
           // Filter section - Only show when toggled
           if (_showFilters)
             Container(
-              color: const Color(0xFF2D3748),
+              color: const Color(0xFF1E40AF),
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
