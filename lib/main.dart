@@ -17,6 +17,7 @@ import 'role_specific/club/screens/transactions/club_transactions_page.dart';
 import 'role_specific/club/screens/courts/courts_page.dart';
 import 'role_specific/club/screens/bookings/club_bookings_page.dart';
 import 'role_specific/club/screens/events/club_events_page.dart';
+import 'role_specific/club/screens/clubs/clubs_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -50,7 +51,7 @@ class MyApp extends StatelessWidget {
         '/club-dashboard': (_) => const ClubAnalyticsDashboardPage(),
         '/club-transactions': (_) => const ClubTransactionsPage(),
         '/club-courts': (_) => const ClubCourtsPage(),
-        '/club-clubs': (_) => const _PlaceholderPage(title: 'Clubs'),
+        '/club-clubs': (_) => const ClubsPage(),
         '/club-bookings': (_) => const ClubBookingsPage(),
         '/club-events': (_) => const ClubEventsPage(),
         '/club-sponsorships': (_) =>

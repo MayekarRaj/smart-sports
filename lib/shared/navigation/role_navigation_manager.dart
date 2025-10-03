@@ -14,6 +14,7 @@ import 'package:smart_sports/role_specific/club/screens/customer_support/club_cu
 import 'package:smart_sports/role_specific/club/screens/settings/club_settings_page.dart';
 import 'package:smart_sports/role_specific/club/screens/profile/club_profile_page.dart';
 import 'package:smart_sports/role_specific/club/screens/sponsorships/club_sponsorships_page.dart';
+import 'package:smart_sports/role_specific/club/screens/clubs/clubs_page.dart';
 
 // Coach imports
 import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_analytics_dashboard_page.dart';
@@ -122,12 +123,9 @@ class RoleNavigationManager {
         );
         break;
       case 3:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) =>
-                const _ClubPlaceholder(title: 'Clubs', currentIndex: 3),
-          ),
-        );
+        Navigator.of(
+          context,
+        ).pushReplacement(MaterialPageRoute(builder: (_) => const ClubsPage()));
         break;
       case 4:
         Navigator.of(context).pushReplacement(
@@ -427,44 +425,6 @@ class RoleNavigationManager {
 }
 
 // Placeholder widgets for each role
-class _ClubPlaceholder extends StatelessWidget {
-  final String title;
-  final int currentIndex;
-  const _ClubPlaceholder({required this.title, required this.currentIndex});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
-      ),
-      drawer: Drawer(
-        elevation: 0,
-        child: SafeArea(
-          child: RoleSidebar(
-            role: UserRole.club,
-            selectedIndex: currentIndex,
-            edgeToEdge: true,
-            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
-              context,
-              UserRole.club,
-              i,
-            ),
-            onProfileTap: () =>
-                RoleNavigationManager.navigateToProfile(context, UserRole.club),
-          ),
-        ),
-      ),
-      body: Center(child: Text('$title screen coming soon')),
-    );
-  }
-}
 
 class _CoachPlaceholder extends StatelessWidget {
   final String title;
