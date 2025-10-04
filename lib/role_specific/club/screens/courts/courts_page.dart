@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
+import 'courts_list_page.dart';
 
 class ClubCourtsPage extends StatefulWidget {
   const ClubCourtsPage({super.key});
@@ -12,95 +13,7 @@ class ClubCourtsPage extends StatefulWidget {
 
 class _ClubCourtsPageState extends State<ClubCourtsPage> {
   bool _showFilters = false;
-  int _selectedBranchIndex = 0;
-  int _selectedCourtIndex = 0;
   final ScrollController _scrollController = ScrollController();
-
-  late final List<_ClubBranch> _branches = [
-    _ClubBranch(
-      name: 'Branch 1',
-      courts: [
-        _Court(
-          name: 'Court 1',
-          available: true,
-          maxPlayers: 30,
-          maxTeams: 3,
-          guestCapacity: 300,
-          coachCount: 3,
-          schedule: const {
-            'weekdays': '08:30 - 22:00',
-            'saturday': '11:30 - 20:00',
-            'sunday': 'Off',
-          },
-          bookingStatus: const {'Available': 18, 'Booked': 9, 'Maintenance': 3},
-        ),
-        _Court(
-          name: 'Court 2',
-          available: false,
-          maxPlayers: 24,
-          maxTeams: 2,
-          guestCapacity: 150,
-          coachCount: 2,
-          schedule: const {
-            'weekdays': '09:00 - 21:00',
-            'saturday': '10:00 - 18:00',
-            'sunday': 'Off',
-          },
-          bookingStatus: const {
-            'Available': 10,
-            'Booked': 18,
-            'Maintenance': 2,
-          },
-        ),
-      ],
-    ),
-    _ClubBranch(
-      name: 'Branch 2',
-      courts: [
-        _Court(
-          name: 'Court A',
-          available: true,
-          maxPlayers: 20,
-          maxTeams: 2,
-          guestCapacity: 120,
-          coachCount: 1,
-          schedule: const {
-            'weekdays': '07:00 - 20:00',
-            'saturday': '09:00 - 17:00',
-            'sunday': 'Off',
-          },
-          bookingStatus: const {
-            'Available': 15,
-            'Booked': 12,
-            'Maintenance': 3,
-          },
-        ),
-      ],
-    ),
-    _ClubBranch(
-      name: 'Branch 3',
-      courts: [
-        _Court(
-          name: 'Main Court',
-          available: true,
-          maxPlayers: 40,
-          maxTeams: 4,
-          guestCapacity: 400,
-          coachCount: 4,
-          schedule: const {
-            'weekdays': '06:00 - 23:00',
-            'saturday': '08:00 - 22:00',
-            'sunday': '10:00 - 18:00',
-          },
-          bookingStatus: const {
-            'Available': 20,
-            'Booked': 10,
-            'Maintenance': 5,
-          },
-        ),
-      ],
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -151,47 +64,7 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
             const SizedBox(height: 12),
             if (_showFilters) const _FilterStrip(),
             const SizedBox(height: 16),
-            const _ClubCard(),
-            const SizedBox(height: 16),
-            _BranchTabs(
-              branches: _branches.map((b) => b.name).toList(),
-              selectedIndex: _selectedBranchIndex,
-              onSelect: (i) {
-                setState(() {
-                  _selectedBranchIndex = i;
-                  _selectedCourtIndex = 0; // reset court on branch change
-                });
-              },
-            ),
-            const SizedBox(height: 12),
-            _CourtSelector(
-              courts: _branches[_selectedBranchIndex].courts,
-              selectedIndex: _selectedCourtIndex,
-              onSelect: (i) => setState(() => _selectedCourtIndex = i),
-            ),
-            const SizedBox(height: 12),
-            _CourtDetailCard(
-              court:
-                  _branches[_selectedBranchIndex].courts[_selectedCourtIndex],
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: Text(
-                'Booking Status',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-              ),
-            ),
-            const SizedBox(height: 8),
-            _BookingStatusSummary(
-              status: _branches[_selectedBranchIndex]
-                  .courts[_selectedCourtIndex]
-                  .bookingStatus,
-            ),
-            const SizedBox(height: 12),
-            _BookingAndSlots(isWide: isWide),
+            _EliteSportsArenaCard(onTap: () => _showAllCourts(context)),
             const SizedBox(height: 20),
             const _CoachListSection(),
             const SizedBox(height: 16),
@@ -211,135 +84,318 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
     _scrollController.dispose();
     super.dispose();
   }
+
+  void _showAllCourts(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const CourtsListPage()));
+  }
 }
 
-// Simple in-file data models to power the interactive UI.
-class _ClubBranch {
-  final String name;
-  final List<_Court> courts;
-  _ClubBranch({required this.name, required this.courts});
-}
+class _EliteSportsArenaCard extends StatelessWidget {
+  final VoidCallback onTap;
 
-class _Court {
-  final String name;
-  final bool available;
-  final int maxPlayers;
-  final int maxTeams;
-  final int guestCapacity;
-  final int coachCount;
-  final Map<String, String> schedule; // weekdays, saturday, sunday
-  final Map<String, int> bookingStatus; // Available/Booked/Maintenance
-  _Court({
-    required this.name,
-    required this.available,
-    required this.maxPlayers,
-    required this.maxTeams,
-    required this.guestCapacity,
-    required this.coachCount,
-    required this.schedule,
-    required this.bookingStatus,
-  });
-}
+  const _EliteSportsArenaCard({required this.onTap});
 
-class _CourtSelector extends StatelessWidget {
-  final List<_Court> courts;
-  final int selectedIndex;
-  final ValueChanged<int> onSelect;
-  const _CourtSelector({
-    required this.courts,
-    required this.selectedIndex,
-    required this.onSelect,
-  });
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (int i = 0; i < courts.length; i++) ...[
-            _pill(
-              context,
-              label: courts[i].name,
-              active: selectedIndex == i,
-              onTap: () => onSelect(i),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            const SizedBox(width: 8),
           ],
-        ],
+        ),
+        child: Row(
+          children: [
+            // Court Image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 120,
+                height: 100,
+                color: Colors.blue.shade100,
+                child: Icon(Icons.sports_tennis, color: Colors.blue, size: 40),
+              ),
+            ),
+            const SizedBox(width: 16),
+
+            // Court Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Elite Sports Arena',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.bookmark, color: Colors.white, size: 16),
+                            SizedBox(width: 4),
+                            Text(
+                              'Favourite',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Location
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'Los Angeles, CA',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Available Sports
+                  const Text(
+                    'AVAILABLE SPORTS',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    children: [
+                      _buildSportChip('Basketball'),
+                      _buildSportChip('Basketball'),
+                      _buildSportChip('Basketball'),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildActionButton(
+                          icon: Icons.share,
+                          label: 'Share',
+                          onTap: () {},
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildActionButton(
+                          icon: Icons.sports_tennis,
+                          label: 'Coach',
+                          onTap: () {},
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildActionButton(
+                          icon: Icons.group,
+                          label: 'Players',
+                          onTap: () {},
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 16),
+
+            // Right side info
+            Column(
+              children: [
+                // Coach Section
+                Column(
+                  children: [
+                    const Text(
+                      'COACH',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: Colors.yellow,
+                          child: Icon(Icons.person, size: 16),
+                        ),
+                        Positioned(
+                          left: 16,
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Colors.blue,
+                            child: Icon(Icons.person, size: 16),
+                          ),
+                        ),
+                        Positioned(
+                          left: 32,
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Colors.green,
+                            child: Icon(Icons.person, size: 16),
+                          ),
+                        ),
+                        Positioned(
+                          left: 48,
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Colors.orange,
+                            child: Icon(Icons.person, size: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Branch Section
+                Column(
+                  children: [
+                    const Text(
+                      'BRANCH',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: 30,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          '3',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Star Icon
+                Icon(Icons.star, color: Colors.blue, size: 24),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _pill(
-    BuildContext context, {
-    required String label,
-    required bool active,
-    required VoidCallback onTap,
-  }) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(22),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+  Widget _buildSportChip(String sport) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: active ? Colors.black87 : Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: active ? Colors.black54 : Colors.black26),
-        boxShadow: const [
-          BoxShadow(
-            blurRadius: 6,
-            color: Color(0x14000000),
-            offset: Offset(0, 2),
-          ),
-        ],
+        color: Colors.blue,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        label,
-        style: TextStyle(
-          color: active ? Colors.white : Colors.black87,
-          fontWeight: FontWeight.w700,
+        sport,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-class _BookingStatusSummary extends StatelessWidget {
-  final Map<String, int> status;
-  const _BookingStatusSummary({required this.status});
-  @override
-  Widget build(BuildContext context) {
-    Widget chip(Color color, String label, int count) => Expanded(
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
-          border: Border.all(color: color.withOpacity(0.4)),
-          borderRadius: BorderRadius.circular(12),
+          color: Colors.blue,
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
           children: [
+            Icon(icon, color: Colors.white, size: 16),
+            const SizedBox(height: 4),
             Text(
               label,
-              style: TextStyle(color: color, fontWeight: FontWeight.w700),
-            ),
-            Text(
-              '$count',
-              style: TextStyle(color: color, fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
       ),
-    );
-
-    return Row(
-      children: [
-        chip(Colors.green, 'Available', status['Available'] ?? 0),
-        const SizedBox(width: 8),
-        chip(Colors.blueGrey, 'Booked', status['Booked'] ?? 0),
-        const SizedBox(width: 8),
-        chip(Colors.orange, 'Maintenance', status['Maintenance'] ?? 0),
-      ],
     );
   }
 }
@@ -689,453 +745,27 @@ class _FilterStripState extends State<_FilterStrip> {
 /// inside a bottom sheet for a better small-screen experience.
 // Removed mobile bottom-sheet filter; header toggle now controls filters inline.
 
-class _ClubCard extends StatelessWidget {
-  const _ClubCard();
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [BoxShadow(blurRadius: 10, color: Color(0x14000000))],
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  color: Colors.grey.shade300,
-                  width: 110,
-                  height: 90,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Elite Sports Arena',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                        const Icon(Icons.bookmark, color: Colors.blue),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Wrap(spacing: 8, children: [_chip('Los Angeles, CA')]),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _chip('Cricket'),
-                        _chip('Basketball'),
-                        _chip('Tennis'),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                children: [
-                  Text(
-                    '4.8',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const Text('Club Rating'),
-                  const SizedBox(height: 8),
-                  _kv('Branches', '3'),
-                  _kv('Courts', '30'),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: _btn(context, Icons.share, 'Share')),
-              const SizedBox(width: 8),
-              Expanded(child: _btn(context, Icons.sports_tennis, 'Coach')),
-              const SizedBox(width: 8),
-              Expanded(child: _btn(context, Icons.group, 'Players')),
-              const SizedBox(width: 8),
-              Expanded(child: _btn(context, Icons.reviews, 'Reviews')),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _chip(String text) => Container(
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Colors.black26),
-    ),
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-    child: Text(text, style: const TextStyle(fontWeight: FontWeight.w700)),
-  );
-  Widget _kv(String k, String v) => Container(
-    margin: const EdgeInsets.only(bottom: 6),
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-    decoration: BoxDecoration(
-      border: Border.all(color: Colors.black26),
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: Column(
-      children: [
-        Text(k, style: const TextStyle(fontSize: 10)),
-        Text(v, style: const TextStyle(fontWeight: FontWeight.w800)),
-      ],
-    ),
-  );
-  Widget _btn(BuildContext context, IconData icon, String text) =>
-      ElevatedButton.icon(
-        onPressed: () {},
-        icon: Icon(icon),
-        label: Text(text),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-        ),
-      );
-}
-
-class _BranchTabs extends StatelessWidget {
-  final List<String> branches;
-  final int selectedIndex;
-  final ValueChanged<int> onSelect;
-  const _BranchTabs({
-    required this.branches,
-    required this.selectedIndex,
-    required this.onSelect,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        for (int i = 0; i < branches.length; i++) ...[
-          Expanded(
-            child: _tab(
-              branches[i],
-              active: selectedIndex == i,
-              onTap: () => onSelect(i),
-            ),
-          ),
-          if (i != branches.length - 1) const SizedBox(width: 8),
-        ],
-      ],
-    );
-  }
-
-  Widget _tab(String text, {bool active = false, VoidCallback? onTap}) =>
-      InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: active ? Colors.white : const Color(0xFFF3F4F7),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: active
-                ? const [BoxShadow(blurRadius: 6, color: Color(0x14000000))]
-                : null,
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            text,
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: active ? Colors.black87 : Colors.black54,
-            ),
-          ),
-        ),
-      );
-}
-
-class _CourtDetailCard extends StatelessWidget {
-  final _Court court;
-  const _CourtDetailCard({required this.court});
-  @override
-  Widget build(BuildContext context) {
-    Widget stat(String k, String v) => Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.blue.shade200),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(k, style: const TextStyle(color: Colors.blue)),
-            Text(v, style: const TextStyle(fontWeight: FontWeight.w800)),
-          ],
-        ),
-      ),
-    );
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [BoxShadow(blurRadius: 10, color: Color(0x14000000))],
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  color: Colors.grey.shade300,
-                  width: 110,
-                  height: 90,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          court.name,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.circle,
-                          color: court.available ? Colors.green : Colors.red,
-                          size: 12,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(court.available ? 'Available' : 'Unavailable'),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        stat('Max Players', '${court.maxPlayers}'),
-                        const SizedBox(width: 8),
-                        stat('Max Teams', '${court.maxTeams}'),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        stat('Guest Cap', '${court.guestCapacity}'),
-                        const SizedBox(width: 8),
-                        stat('Coach', '${court.coachCount}'),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: stat('Weekdays', court.schedule['weekdays'] ?? '-'),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: stat('Saturday', court.schedule['saturday'] ?? '-'),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: stat(
-                  'Sunday & Holidays',
-                  court.schedule['sunday'] ?? '-',
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BookingAndSlots extends StatelessWidget {
-  final bool isWide;
-  const _BookingAndSlots({this.isWide = false});
-  @override
-  Widget build(BuildContext context) {
-    if (isWide) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Expanded(child: _CalendarCard()),
-          SizedBox(width: 12),
-          Expanded(child: _SlotsCard()),
-        ],
-      );
-    }
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [_CalendarCard(), SizedBox(height: 12), _SlotsCard()],
-    );
-  }
-}
-
-class _CalendarCard extends StatelessWidget {
-  const _CalendarCard();
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black12),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: const [
-              Icon(Icons.chevron_left),
-              Spacer(),
-              Text('March 2025', style: TextStyle(fontWeight: FontWeight.w800)),
-              Spacer(),
-              Icon(Icons.chevron_right),
-            ],
-          ),
-          const SizedBox(height: 8),
-          GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: 35,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 6,
-              childAspectRatio: 1.2,
-            ),
-            itemBuilder: (ctx, i) {
-              final available = i % 4 != 0;
-              final selected = i == 10;
-              return Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: selected
-                      ? Colors.orange
-                      : available
-                      ? Colors.green
-                      : Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '${i + 1}',
-                  style: TextStyle(
-                    color: selected || available
-                        ? Colors.white
-                        : Colors.black54,
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SlotsCard extends StatelessWidget {
-  const _SlotsCard();
-  @override
-  Widget build(BuildContext context) {
-    Widget slot(String title) => Container(
-      width: 160,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              'Available',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'USD 5000 4900',
-            style: TextStyle(fontWeight: FontWeight.w700, color: Colors.blue),
-          ),
-        ],
-      ),
-    );
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black12),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Full Slots',
-            style: TextStyle(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 8),
-          const Text('Select Available Slots to make your court booking.'),
-          const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                slot('Full Month'),
-                const SizedBox(width: 10),
-                slot('Full Week'),
-                const SizedBox(width: 10),
-                slot('Full Day'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// class _BookingAndSlots extends StatelessWidget {
+//   final bool isWide;
+//   const _BookingAndSlots({this.isWide = false});
+//   @override
+//   Widget build(BuildContext context) {
+//     if (isWide) {
+//       return Row(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: const [r
+//           Expanded(child: _CalendarCard()),
+//           SizedBox(width: 12),
+//           Expanded(child: _SlotsCard()),
+//         ],
+//       );
+//     }
+//     return const Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [_CalendarCard(), SizedBox(height: 12), _SlotsCard()],
+//     );
+//   }
+// }
 
 class _CoachListSection extends StatelessWidget {
   const _CoachListSection();

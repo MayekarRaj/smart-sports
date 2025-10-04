@@ -45,7 +45,7 @@ class CoachEventsPage extends StatelessWidget {
           ),
         ),
       ),
-      body: const MobileCreateEventPage(showAppBar: false),
+      body: const MobileCreateEventPage(),
     );
   }
 }
