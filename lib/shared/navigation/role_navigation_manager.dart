@@ -3,47 +3,54 @@ import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 
 // Club imports
-import 'package:smart_sports/role_specific/club/screens/dashboard/club_analytics_dashboard_page.dart';
-import 'package:smart_sports/role_specific/club/screens/transactions/club_transactions_page.dart';
-import 'package:smart_sports/role_specific/club/screens/courts/courts_page.dart';
-import 'package:smart_sports/role_specific/club/screens/bookings/club_bookings_page.dart';
-import 'package:smart_sports/role_specific/club/screens/events/club_events_page.dart';
-import 'package:smart_sports/role_specific/club/screens/users/club_users_page.dart';
-import 'package:smart_sports/role_specific/club/screens/referrals/club_referrals_page.dart';
-import 'package:smart_sports/role_specific/club/screens/customer_support/club_customer_support_page.dart';
-import 'package:smart_sports/role_specific/club/screens/settings/club_settings_page.dart';
-import 'package:smart_sports/role_specific/club/screens/profile/club_profile_page.dart';
-import 'package:smart_sports/role_specific/club/screens/sponsorships/club_sponsorships_page.dart';
-import 'package:smart_sports/role_specific/club/screens/clubs/clubs_page.dart';
+import 'package:smart_sports/role_specific/club/screens/dashboard/club_analytics_dashboard_page.dart'
+    as club_dashboard;
+import 'package:smart_sports/role_specific/club/screens/transactions/club_transactions_page.dart'
+    as club_transactions;
+import 'package:smart_sports/role_specific/club/screens/courts/courts_page.dart'
+    as club_courts;
+import 'package:smart_sports/role_specific/club/screens/bookings/club_bookings_page.dart'
+    as club_bookings;
+import 'package:smart_sports/role_specific/club/screens/events/club_events_page.dart'
+    as club_events;
+import 'package:smart_sports/role_specific/club/screens/users/club_users_page.dart'
+    as club_users;
+import 'package:smart_sports/role_specific/club/screens/referrals/club_referrals_page.dart'
+    as club_referrals;
+import 'package:smart_sports/role_specific/club/screens/customer_support/club_customer_support_page.dart'
+    as club_support;
+import 'package:smart_sports/role_specific/club/screens/settings/club_settings_page.dart'
+    as club_settings;
+import 'package:smart_sports/role_specific/club/screens/profile/club_profile_page.dart'
+    as club_profile;
+import 'package:smart_sports/role_specific/club/screens/sponsorships/club_sponsorships_page.dart'
+    as club_sponsorships;
+import 'package:smart_sports/role_specific/club/screens/clubs/clubs_page.dart'
+    as club_clubs;
 
 // Coach imports
-import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_analytics_dashboard_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/transactions/coach_transactions_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/courts/coach_courts_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/bookings/coach_bookings_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/events/coach_events_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/users/coach_users_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/referrals/coach_referrals_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/customer_support/coach_customer_support_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/settings/coach_settings_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/profile/coach_profile_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/sponsorships/coach_sponsorships_page.dart';
-
-// Corporate imports
-import 'package:smart_sports/role_specific/corporate/screens/dashboard/corporate_analytics_dashboard_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/transactions/corporate_transactions_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/courts/corporate_courts_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/bookings/corporate_bookings_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/events/corporate_events_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/users/corporate_users_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/referrals/corporate_referrals_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/customer_support/corporate_customer_support_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/settings/corporate_settings_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/profile/corporate_profile_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/sponsorships/corporate_sponsorships_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/billing/corporate_billing_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/my_bookings/corporate_my_bookings_page.dart';
-import 'package:smart_sports/role_specific/corporate/screens/my_clubs/corporate_my_clubs_page.dart';
+import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_analytics_dashboard_page.dart'
+    as coach_dashboard;
+import 'package:smart_sports/role_specific/coach/screens/transactions/coach_transactions_page.dart'
+    as coach_transactions;
+import 'package:smart_sports/role_specific/coach/screens/courts/courts_page.dart'
+    as coach_courts;
+import 'package:smart_sports/role_specific/coach/screens/bookings/coach_bookings_page.dart'
+    as coach_bookings;
+import 'package:smart_sports/role_specific/coach/screens/events/coach_events_page.dart'
+    as coach_events;
+import 'package:smart_sports/role_specific/coach/screens/users/coach_users_page.dart'
+    as coach_users;
+import 'package:smart_sports/role_specific/coach/screens/referrals/coach_referrals_page.dart'
+    as coach_referrals;
+import 'package:smart_sports/role_specific/coach/screens/customer_support/coach_customer_support_page.dart'
+    as coach_support;
+import 'package:smart_sports/role_specific/coach/screens/settings/coach_settings_page.dart'
+    as coach_settings;
+import 'package:smart_sports/role_specific/coach/screens/profile/coach_profile_page.dart'
+    as coach_profile;
+import 'package:smart_sports/role_specific/coach/screens/sponsorships/coach_sponsorships_page.dart'
+    as coach_sponsorships;
 
 // Merchandiser imports
 import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
@@ -90,7 +97,7 @@ class RoleNavigationManager {
         _navigateCoachScreen(context, index);
         break;
       case UserRole.corporate:
-        _navigateCorporateScreen(context, index);
+        _navigateClubScreen(context, index);
         break;
       case UserRole.merchandiser:
         _navigateMerchandiserScreen(context, index);
@@ -109,57 +116,71 @@ class RoleNavigationManager {
       case 0:
         // Dashboard - always navigate to dashboard
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubAnalyticsDashboardPage()),
+          MaterialPageRoute(
+            builder: (_) => const club_dashboard.ClubAnalyticsDashboardPage(),
+          ),
         );
         break;
       case 1:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubTransactionsPage()),
+          MaterialPageRoute(
+            builder: (_) => const club_transactions.ClubTransactionsPage(),
+          ),
         );
         break;
       case 2:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubCourtsPage()),
+          MaterialPageRoute(builder: (_) => const club_courts.ClubCourtsPage()),
         );
         break;
       case 3:
-        Navigator.of(
-          context,
-        ).pushReplacement(MaterialPageRoute(builder: (_) => const ClubsPage()));
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const club_clubs.ClubsPage()),
+        );
         break;
       case 4:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubBookingsPage()),
+          MaterialPageRoute(
+            builder: (_) => const club_bookings.ClubBookingsPage(),
+          ),
         );
         break;
       case 5:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubEventsPage()),
+          MaterialPageRoute(builder: (_) => const club_events.ClubEventsPage()),
         );
         break;
       case 6:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubSponsorshipsPage()),
+          MaterialPageRoute(
+            builder: (_) => const club_sponsorships.ClubSponsorshipsPage(),
+          ),
         );
         break;
       case 7:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubUsersPage()),
+          MaterialPageRoute(builder: (_) => const club_users.ClubUsersPage()),
         );
         break;
       case 8:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubReferralsPage()),
+          MaterialPageRoute(
+            builder: (_) => const club_referrals.ClubReferralsPage(),
+          ),
         );
         break;
       case 9:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubCustomerSupportPage()),
+          MaterialPageRoute(
+            builder: (_) => const club_support.ClubCustomerSupportPage(),
+          ),
         );
         break;
       case 10:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubSettingsPage()),
+          MaterialPageRoute(
+            builder: (_) => const club_settings.ClubSettingsPage(),
+          ),
         );
         break;
     }
@@ -170,18 +191,22 @@ class RoleNavigationManager {
       case 0:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const CoachAnalyticsDashboardPage(),
+            builder: (_) => const coach_dashboard.ClubAnalyticsDashboardPage(),
           ),
         );
         break;
       case 1:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachTransactionsPage()),
+          MaterialPageRoute(
+            builder: (_) => const coach_transactions.ClubTransactionsPage(),
+          ),
         );
         break;
       case 2:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachCourtsPage()),
+          MaterialPageRoute(
+            builder: (_) => const coach_courts.ClubCourtsPage(),
+          ),
         );
         break;
       case 3:
@@ -194,111 +219,49 @@ class RoleNavigationManager {
         break;
       case 4:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachBookingsPage()),
-        );
-        break;
-      case 5:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachEventsPage()),
-        );
-        break;
-      case 6:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachSponsorshipsPage()),
-        );
-        break;
-      case 7:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachUsersPage()),
-        );
-        break;
-      case 8:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachReferralsPage()),
-        );
-        break;
-      case 9:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachCustomerSupportPage()),
-        );
-        break;
-      case 10:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachSettingsPage()),
-        );
-        break;
-    }
-  }
-
-  static void _navigateCorporateScreen(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const CorporateAnalyticsDashboardPage(),
+            builder: (_) => const coach_bookings.ClubBookingsPage(),
           ),
         );
         break;
-      case 1:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CorporateTransactionsPage()),
-        );
-        break;
-      case 2:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CorporateCourtsPage()),
-        );
-        break;
-      case 3:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CorporateMyClubsPage()),
-        );
-        break;
-      case 4:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CorporateBookingsPage()),
-        );
-        break;
       case 5:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CorporateEventsPage()),
+          MaterialPageRoute(
+            builder: (_) => const coach_events.ClubEventsPage(),
+          ),
         );
         break;
       case 6:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CorporateSponsorshipsPage()),
+          MaterialPageRoute(
+            builder: (_) => const coach_sponsorships.ClubSponsorshipsPage(),
+          ),
         );
         break;
       case 7:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CorporateUsersPage()),
+          MaterialPageRoute(builder: (_) => const coach_users.ClubUsersPage()),
         );
         break;
       case 8:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CorporateReferralsPage()),
+          MaterialPageRoute(
+            builder: (_) => const coach_referrals.ClubReferralsPage(),
+          ),
         );
         break;
       case 9:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const CorporateCustomerSupportPage(),
+            builder: (_) => const coach_support.ClubCustomerSupportPage(),
           ),
         );
         break;
       case 10:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CorporateSettingsPage()),
-        );
-        break;
-      case 11:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CorporateBillingPage()),
-        );
-        break;
-      case 12:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CorporateMyBookingsPage()),
+          MaterialPageRoute(
+            builder: (_) => const coach_settings.ClubSettingsPage(),
+          ),
         );
         break;
     }
@@ -390,18 +353,24 @@ class RoleNavigationManager {
     Future.delayed(const Duration(milliseconds: 100), () {
       switch (role) {
         case UserRole.club:
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const ClubProfilePage()));
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const club_profile.ClubProfilePage(),
+            ),
+          );
           break;
         case UserRole.coach:
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const CoachProfilePage()));
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const coach_profile.ClubProfilePage(),
+            ),
+          );
           break;
         case UserRole.corporate:
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const CorporateProfilePage()),
+            MaterialPageRoute(
+              builder: (_) => const club_profile.ClubProfilePage(),
+            ),
           );
           break;
         case UserRole.merchandiser:

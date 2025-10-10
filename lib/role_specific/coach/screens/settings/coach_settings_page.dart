@@ -3,17 +3,17 @@ import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
-import 'package:smart_sports/role_specific/coach/screens/profile/coach_profile_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/customer_support/coach_customer_support_page.dart';
+import 'package:smart_sports/role_specific/club/screens/profile/club_profile_page.dart';
+import 'package:smart_sports/role_specific/club/screens/customer_support/club_customer_support_page.dart';
 
-class CoachSettingsPage extends StatefulWidget {
-  const CoachSettingsPage({super.key});
+class ClubSettingsPage extends StatefulWidget {
+  const ClubSettingsPage({super.key});
 
   @override
-  State<CoachSettingsPage> createState() => _CoachSettingsPageState();
+  State<ClubSettingsPage> createState() => _ClubSettingsPageState();
 }
 
-class _CoachSettingsPageState extends State<CoachSettingsPage> {
+class _ClubSettingsPageState extends State<ClubSettingsPage> {
   bool _notificationsEnabled = true;
   bool _emailNotifications = true;
   bool _pushNotifications = true;
@@ -32,24 +32,25 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isMobile = screenSize.width < 768;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       drawer: Drawer(
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.club,
             selectedIndex: 10, // Settings is index 10
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.club,
               i,
             ),
-            onProfileTap: () => RoleNavigationManager.navigateToProfile(
-              context,
-              UserRole.coach,
-            ),
+            onProfileTap: () =>
+                RoleNavigationManager.navigateToProfile(context, UserRole.club),
             onSignOut: () {
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const AuthShell()),
@@ -68,8 +69,9 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFF10B981), // Coach green
+        backgroundColor: const Color(0xFF1E40AF),
         elevation: 0,
+        centerTitle: isMobile,
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(
@@ -82,7 +84,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isMobile ? 12 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -90,15 +92,17 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
             _buildSectionCard(
               title: 'Account Settings',
               icon: Icons.person_outline,
+              isMobile: isMobile,
               children: [
                 _buildSettingsTile(
                   icon: Icons.person,
                   title: 'Profile Information',
                   subtitle: 'Manage your personal details',
+                  isMobile: isMobile,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const CoachProfilePage(),
+                        builder: (_) => const ClubProfilePage(),
                       ),
                     );
                   },
@@ -107,6 +111,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                   icon: Icons.security,
                   title: 'Security',
                   subtitle: 'Password, 2FA, and security settings',
+                  isMobile: isMobile,
                   onTap: () {
                     _showComingSoonDialog('Security Settings');
                   },
@@ -115,6 +120,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                   icon: Icons.privacy_tip,
                   title: 'Privacy',
                   subtitle: 'Control your privacy settings',
+                  isMobile: isMobile,
                   onTap: () {
                     _showComingSoonDialog('Privacy Settings');
                   },
@@ -127,12 +133,14 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
             _buildSectionCard(
               title: 'Notifications',
               icon: Icons.notifications_outlined,
+              isMobile: isMobile,
               children: [
                 _buildSwitchTile(
                   icon: Icons.notifications,
                   title: 'Push Notifications',
                   subtitle: 'Receive notifications on your device',
                   value: _pushNotifications,
+                  isMobile: isMobile,
                   onChanged: (value) {
                     setState(() {
                       _pushNotifications = value;
@@ -144,6 +152,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                   title: 'Email Notifications',
                   subtitle: 'Receive notifications via email',
                   value: _emailNotifications,
+                  isMobile: isMobile,
                   onChanged: (value) {
                     setState(() {
                       _emailNotifications = value;
@@ -155,6 +164,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                   title: 'All Notifications',
                   subtitle: 'Enable or disable all notifications',
                   value: _notificationsEnabled,
+                  isMobile: isMobile,
                   onChanged: (value) {
                     setState(() {
                       _notificationsEnabled = value;
@@ -173,6 +183,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
             _buildSectionCard(
               title: 'Appearance',
               icon: Icons.palette_outlined,
+              isMobile: isMobile,
               children: [
                 _buildDropdownTile(
                   icon: Icons.language,
@@ -180,6 +191,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                   subtitle: 'Choose your preferred language',
                   value: _selectedLanguage,
                   items: _languages,
+                  isMobile: isMobile,
                   onChanged: (value) {
                     setState(() {
                       _selectedLanguage = value!;
@@ -192,6 +204,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                   subtitle: 'Choose your preferred theme',
                   value: _selectedTheme,
                   items: _themes,
+                  isMobile: isMobile,
                   onChanged: (value) {
                     setState(() {
                       _selectedTheme = value!;
@@ -203,6 +216,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                   title: 'Dark Mode',
                   subtitle: 'Switch between light and dark themes',
                   value: _darkMode,
+                  isMobile: isMobile,
                   onChanged: (value) {
                     setState(() {
                       _darkMode = value;
@@ -217,11 +231,13 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
             _buildSectionCard(
               title: 'App Settings',
               icon: Icons.settings_outlined,
+              isMobile: isMobile,
               children: [
                 _buildSettingsTile(
                   icon: Icons.storage,
                   title: 'Storage',
                   subtitle: 'Manage app storage and cache',
+                  isMobile: isMobile,
                   onTap: () {
                     _showComingSoonDialog('Storage Settings');
                   },
@@ -230,6 +246,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                   icon: Icons.update,
                   title: 'Updates',
                   subtitle: 'Check for app updates',
+                  isMobile: isMobile,
                   onTap: () {
                     _showComingSoonDialog('App Updates');
                   },
@@ -238,10 +255,11 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                   icon: Icons.help_outline,
                   title: 'Help & Support',
                   subtitle: 'Get help and contact support',
+                  isMobile: isMobile,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const CoachCustomerSupportPage(),
+                        builder: (_) => const ClubCustomerSupportPage(),
                       ),
                     );
                   },
@@ -254,11 +272,13 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
             _buildSectionCard(
               title: 'About',
               icon: Icons.info_outline,
+              isMobile: isMobile,
               children: [
                 _buildSettingsTile(
                   icon: Icons.info,
                   title: 'About App',
                   subtitle: 'Version 1.0.0',
+                  isMobile: isMobile,
                   onTap: () {
                     _showAboutDialog();
                   },
@@ -267,6 +287,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                   icon: Icons.description,
                   title: 'Terms of Service',
                   subtitle: 'Read our terms and conditions',
+                  isMobile: isMobile,
                   onTap: () {
                     _showComingSoonDialog('Terms of Service');
                   },
@@ -275,6 +296,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                   icon: Icons.shield,
                   title: 'Privacy Policy',
                   subtitle: 'Read our privacy policy',
+                  isMobile: isMobile,
                   onTap: () {
                     _showComingSoonDialog('Privacy Policy');
                   },
@@ -286,7 +308,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
             // Sign Out Button
             Container(
               width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
+              margin: EdgeInsets.symmetric(horizontal: isMobile ? 0 : 16),
               child: ElevatedButton.icon(
                 onPressed: () {
                   _showSignOutDialog();
@@ -322,6 +344,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
     required String title,
     required IconData icon,
     required List<Widget> children,
+    bool isMobile = false,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -339,7 +362,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             decoration: const BoxDecoration(
               color: Color(0xFFF8FAFC),
               borderRadius: BorderRadius.only(
@@ -349,14 +372,14 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
             ),
             child: Row(
               children: [
-                Icon(icon, color: const Color(0xFF10B981), size: 20),
+                Icon(icon, color: const Color(0xFF1E40AF), size: 20),
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: isMobile ? 14 : 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
+                    color: const Color(0xFF1F2937),
                   ),
                 ),
               ],
@@ -373,20 +396,24 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    bool isMobile = false,
   }) {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 12 : 16,
+          vertical: isMobile ? 10 : 12,
+        ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                color: const Color(0xFF1E40AF).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: const Color(0xFF10B981), size: 20),
+              child: Icon(icon, color: const Color(0xFF1E40AF), size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -395,18 +422,18 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 15,
+                    style: TextStyle(
+                      fontSize: isMobile ? 14 : 15,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2937),
+                      color: const Color(0xFF1F2937),
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF6B7280),
+                    style: TextStyle(
+                      fontSize: isMobile ? 12 : 13,
+                      color: const Color(0xFF6B7280),
                     ),
                   ),
                 ],
@@ -429,18 +456,22 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
     required String subtitle,
     required bool value,
     required ValueChanged<bool> onChanged,
+    bool isMobile = false,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 16,
+        vertical: isMobile ? 10 : 12,
+      ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withValues(alpha: 0.1),
+              color: const Color(0xFF1E40AF).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: const Color(0xFF10B981), size: 20),
+            child: Icon(icon, color: const Color(0xFF1E40AF), size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -449,18 +480,18 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: isMobile ? 14 : 15,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
+                    color: const Color(0xFF1F2937),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF6B7280),
+                  style: TextStyle(
+                    fontSize: isMobile ? 12 : 13,
+                    color: const Color(0xFF6B7280),
                   ),
                 ),
               ],
@@ -469,7 +500,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF10B981),
+            activeColor: const Color(0xFF1E40AF),
           ),
         ],
       ),
@@ -483,18 +514,22 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
     required String value,
     required List<String> items,
     required ValueChanged<String?> onChanged,
+    bool isMobile = false,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 16,
+        vertical: isMobile ? 10 : 12,
+      ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withValues(alpha: 0.1),
+              color: const Color(0xFF1E40AF).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: const Color(0xFF10B981), size: 20),
+            child: Icon(icon, color: const Color(0xFF1E40AF), size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -503,18 +538,18 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: isMobile ? 14 : 15,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
+                    color: const Color(0xFF1F2937),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF6B7280),
+                  style: TextStyle(
+                    fontSize: isMobile ? 12 : 13,
+                    color: const Color(0xFF6B7280),
                   ),
                 ),
               ],
@@ -560,7 +595,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
       applicationIcon: const Icon(
         Icons.sports,
         size: 48,
-        color: Color(0xFF10B981),
+        color: Color(0xFF1E40AF),
       ),
       children: [const Text('A comprehensive sports management platform.')],
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../club/screens/dashboard/club_analytics_dashboard_page.dart';
-import '../coach/screens/dashboard/coach_dashboard_page.dart';
-import '../corporate/screens/dashboard/corporate_dashboard_page.dart';
+import '../club/screens/dashboard/club_analytics_dashboard_page.dart' as club;
+import '../coach/screens/dashboard/coach_analytics_dashboard_page.dart'
+    as coach;
 import '../member/screens/dashboard/member_dashboard_page.dart';
 import '../freelancer/screens/dashboard/freelancer_dashboard_page.dart';
 import '../merchandiser/screens/dashboard/merchandiser_dashboard_page.dart';
@@ -16,11 +16,11 @@ class RoleRouter {
   static Widget dashboardFor(UserRole role) {
     switch (role) {
       case UserRole.club:
-        return const ClubAnalyticsDashboardPage();
+        return const club.ClubAnalyticsDashboardPage();
       case UserRole.coach:
-        return const CoachDashboardPage();
+        return const coach.ClubAnalyticsDashboardPage();
       case UserRole.corporate:
-        return const CorporateDashboardPage();
+        return const club.ClubAnalyticsDashboardPage();
       case UserRole.member:
         return const MemberDashboardPage();
       case UserRole.freelancer:

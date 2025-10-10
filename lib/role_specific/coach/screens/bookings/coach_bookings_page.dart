@@ -1,204 +1,50 @@
 import 'package:flutter/material.dart';
-import '../../../../common/models/booking.dart';
-import '../../../../bookings/widgets/booking_card.dart';
-import '../../../../bookings/screens/booking_detail_page.dart';
-import '../../../../bookings/screens/invoice_preview_page.dart';
+import 'package:smart_sports/bookings/screens/bookings_page.dart';
+import 'package:smart_sports/role_specific/common/role_router.dart';
+import 'package:smart_sports/shared/widgets/role_sidebar.dart';
+import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
+import 'package:smart_sports/role_specific/club/screens/profile/club_profile_page.dart';
 
-class CoachBookingsPage extends StatefulWidget {
-  const CoachBookingsPage({super.key});
-
-  @override
-  State<CoachBookingsPage> createState() => _CoachBookingsPageState();
-}
-
-class _CoachBookingsPageState extends State<CoachBookingsPage>
-    with TickerProviderStateMixin {
-  late List<Booking> _bookings;
-
-  @override
-  void initState() {
-    super.initState();
-    _bookings = mockBookings(); // Use your mock data or real bookings
-  }
+class ClubBookingsPage extends StatelessWidget {
+  const ClubBookingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: [
-          // Wrap TabBar in Material widget to provide Material context
-          Material(
-            child: TabBar(
-              tabs: const [
-                Tab(text: 'Upcoming Bookings'),
-                Tab(text: 'Archived Bookings'),
-              ],
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Bookings'),
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                _buildBookingsList(
-                  (b) =>
-                      b.status == BookingStatus.upcoming ||
-                      b.status == BookingStatus.waiting ||
-                      b.status == BookingStatus.paid,
-                ),
-                _buildBookingsList((b) => b.status == BookingStatus.archived),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBookingsList(bool Function(Booking) filter) {
-    final list = _bookings.where(filter).toList();
-    if (list.isEmpty) return const Center(child: Text('No bookings yet'));
-
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 24),
-      itemCount: list.length,
-      itemBuilder: (context, index) {
-        final booking = list[index];
-        return BookingCard(
-          booking: booking,
-          onTap: () => _openDetails(booking),
-          onCancel: () => _cancelBooking(booking),
-          onPurchaseRepair: () => _openPurchaseRepair(booking),
-          onInvoice: () => _openInvoice(booking),
-          onTooltip: () => _showWaitListInfo(booking),
-        );
-      },
-    );
-  }
-
-  void _cancelBooking(Booking b) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Cancel booking?'),
-        content: Text('Are you sure you want to cancel ${b.id}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('No'),
-          ),
-          FilledButton.tonal(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Yes, cancel'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      setState(() {
-        _bookings = _bookings
-            .map(
-              (x) => x.id == b.id
-                  ? Booking(
-                      id: x.id,
-                      clubName: x.clubName,
-                      location: x.location,
-                      rating: x.rating,
-                      coachName: x.coachName,
-                      players: x.players,
-                      court: x.court,
-                      slots: x.slots,
-                      dateTimeStart: x.dateTimeStart,
-                      dateTimeEnd: x.dateTimeEnd,
-                      status: BookingStatus.cancelled,
-                      paymentStatus: x.paymentStatus,
-                      sportType: x.sportType,
-                      role: x.role,
-                      imageUrl: x.imageUrl,
-                      waitListConfirmed: x.waitListConfirmed,
-                    )
-                  : x,
-            )
-            .toList();
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Booking cancelled')));
-      }
-    }
-  }
-
-  void _openPurchaseRepair(Booking b) {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Actions for ${b.clubName}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ListTile(
-                  leading: const Icon(Icons.shopping_cart_outlined),
-                  title: const Text('Purchase Game Equipment'),
-                  onTap: () => Navigator.pop(ctx),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.build_circle_outlined),
-                  title: const Text('Request Repair / Maintenance'),
-                  onTap: () => Navigator.pop(ctx),
-                ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _openInvoice(Booking b) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => InvoicePreviewPage(booking: b)));
-  }
-
-  void _openDetails(Booking b) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => BookingDetailPage(booking: b)));
-  }
-
-  void _showWaitListInfo(Booking b) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Wait List Confirmed'),
-        content: const Text(
-          'Your wait list is confirmed. Please complete payment before the deadline to avoid cancellation.',
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
-          ),
-        ],
       ),
+      drawer: Drawer(
+        elevation: 0,
+        child: SafeArea(
+          child: RoleSidebar(
+            role: UserRole.club,
+            selectedIndex: 4,
+            edgeToEdge: true,
+            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
+              context,
+              UserRole.club,
+              i,
+            ),
+            onProfileTap: () async {
+              Navigator.of(context).pop();
+              await Future.delayed(const Duration(milliseconds: 160));
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ClubProfilePage()),
+              );
+            },
+          ),
+        ),
+      ),
+      body: const BookingsPage(),
     );
   }
 }
+
+// Navigation from sidebar now centralized via RoleNavigationManager

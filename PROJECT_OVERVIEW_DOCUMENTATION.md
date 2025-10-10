@@ -4,7 +4,8 @@
 
 **Project Name**: Smart Sports Mobile App  
 **Framework**: Flutter  
-**Architecture**: Role-Based Multi-Tenant Architecture  
+**Architecture**: Role-Based Multi-Tenant Architecture  fix this 
+
 **Platform**: Cross-Platform (Android, iOS, Web)  
 **Date**: January 2025  
 

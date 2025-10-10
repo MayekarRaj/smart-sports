@@ -4,14 +4,14 @@ import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 
-class CorporateMyClubsPage extends StatefulWidget {
-  const CorporateMyClubsPage({super.key});
+class ClubOrdersPage extends StatefulWidget {
+  const ClubOrdersPage({super.key});
 
   @override
-  State<CorporateMyClubsPage> createState() => _CorporateMyClubsPageState();
+  State<ClubOrdersPage> createState() => _ClubOrdersPageState();
 }
 
-class _CorporateMyClubsPageState extends State<CorporateMyClubsPage> {
+class _ClubOrdersPageState extends State<ClubOrdersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,18 +20,16 @@ class _CorporateMyClubsPageState extends State<CorporateMyClubsPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.corporate,
-            selectedIndex: 3, // This replaces the generic "Clubs" index
+            role: UserRole.club,
+            selectedIndex: 11, // Orders would be additional index
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.corporate,
+              UserRole.club,
               i,
             ),
-            onProfileTap: () => RoleNavigationManager.navigateToProfile(
-              context,
-              UserRole.corporate,
-            ),
+            onProfileTap: () =>
+                RoleNavigationManager.navigateToProfile(context, UserRole.club),
             onSignOut: () {
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const AuthShell()),
@@ -43,14 +41,14 @@ class _CorporateMyClubsPageState extends State<CorporateMyClubsPage> {
       ),
       appBar: AppBar(
         title: const Text(
-          'My Clubs',
+          'Orders',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFFF59E0B),
+        backgroundColor: const Color(0xFF1E40AF),
         elevation: 0,
         leading: Builder(
           builder: (BuildContext context) {
@@ -67,10 +65,14 @@ class _CorporateMyClubsPageState extends State<CorporateMyClubsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.apartment_outlined, size: 80, color: Color(0xFFF59E0B)),
+            Icon(
+              Icons.shopping_cart_outlined,
+              size: 80,
+              color: Color(0xFF1E40AF),
+            ),
             SizedBox(height: 16),
             Text(
-              'My Clubs',
+              'Orders',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -79,7 +81,7 @@ class _CorporateMyClubsPageState extends State<CorporateMyClubsPage> {
             ),
             SizedBox(height: 8),
             Text(
-              'Access and manage your corporate clubs',
+              'Manage your club orders',
               style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
             ),
             SizedBox(height: 24),
@@ -88,7 +90,7 @@ class _CorporateMyClubsPageState extends State<CorporateMyClubsPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFFF59E0B),
+                color: Color(0xFF1E40AF),
               ),
             ),
           ],

@@ -6,24 +6,24 @@ import 'package:smart_sports/role_specific/club/screens/referrals/referral.dart'
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
-import 'package:smart_sports/role_specific/coach/screens/profile/coach_profile_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_analytics_dashboard_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/transactions/coach_transactions_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/courts/coach_courts_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/bookings/coach_bookings_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/events/coach_events_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/users/coach_users_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/settings/coach_settings_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/customer_support/coach_customer_support_page.dart';
+import 'package:smart_sports/role_specific/club/screens/profile/club_profile_page.dart';
+import 'package:smart_sports/role_specific/club/screens/dashboard/club_analytics_dashboard_page.dart';
+import 'package:smart_sports/role_specific/club/screens/transactions/club_transactions_page.dart';
+import 'package:smart_sports/role_specific/club/screens/courts/courts_page.dart';
+import 'package:smart_sports/role_specific/club/screens/bookings/club_bookings_page.dart';
+import 'package:smart_sports/role_specific/club/screens/events/club_events_page.dart';
+import 'package:smart_sports/role_specific/club/screens/users/club_users_page.dart';
+import 'package:smart_sports/role_specific/club/screens/customer_support/club_customer_support_page.dart';
+import 'package:smart_sports/role_specific/club/screens/settings/club_settings_page.dart';
 
-class CoachReferralsPage extends StatefulWidget {
-  const CoachReferralsPage({super.key});
+class ClubReferralsPage extends StatefulWidget {
+  const ClubReferralsPage({super.key});
 
   @override
-  State<CoachReferralsPage> createState() => _CoachReferralsPageState();
+  State<ClubReferralsPage> createState() => _ClubReferralsPageState();
 }
 
-class _CoachReferralsPageState extends State<CoachReferralsPage> {
+class _ClubReferralsPageState extends State<ClubReferralsPage> {
   List<Referral> _allReferrals = [];
   List<Referral> _filteredReferrals = [];
   String _searchQuery = '';
@@ -33,6 +33,7 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
   // Filter states
   String _selectedStatus = 'Select';
   String _selectedDay = 'Monday';
+  bool _showFilters = false;
 
   @override
   void initState() {
@@ -98,7 +99,7 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.club,
             selectedIndex: 8, // Referrals is index 8
             edgeToEdge: true,
             onSelectIndex: (i) async {
@@ -116,14 +117,37 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
               await Future.delayed(const Duration(milliseconds: 160));
               if (mounted) {
                 navigator.push(
-                  MaterialPageRoute(builder: (_) => const CoachProfilePage()),
+                  MaterialPageRoute(builder: (_) => const ClubProfilePage()),
                 );
               }
             },
             onSignOut: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthShell()),
-                (route) => false,
+              showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop(); // Close dialog
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const AuthShell()),
+                          (route) => false,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
+                ),
               );
             },
           ),
@@ -147,254 +171,203 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
           ),
         ),
         actions: [
+          // Filter Button
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _showFilters = !_showFilters;
+              });
+            },
+            icon: Icon(
+              _showFilters ? Icons.filter_list_off : Icons.filter_list,
+              color: Colors.white,
+            ),
+            tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
+          ),
           // Invite Referral Button
           Container(
             margin: const EdgeInsets.only(right: 8),
-            child: ElevatedButton(
+            child: ElevatedButton.icon(
               onPressed: _showInviteReferralDialog,
+              icon: const Icon(Icons.person_add, size: 18),
+              label: const Text(
+                'Invite',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: const Color(0xFF1E40AF),
-                elevation: 0,
+                elevation: 2,
+                shadowColor: Colors.black26,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                minimumSize: const Size(0, 32),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.person_add, size: 14),
-                  const SizedBox(width: 2),
-                  const Text(
-                    'Invite',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
-                  ),
-                ],
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                minimumSize: const Size(80, 36),
               ),
             ),
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              children: [
-                // Search bar
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                      _applyFilters();
-                    },
-                    decoration: const InputDecoration(
-                      hintText: 'Search Here',
-                      hintStyle: TextStyle(color: Color(0xFF9CA3AF)),
-                      prefixIcon: Icon(Icons.search, color: Color(0xFF6B7280)),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Entries info
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Show $_itemsPerPage Entries',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      '${_filteredReferrals.length} referrals found',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
       body: Column(
         children: [
-          // Filter section - Horizontal layout like web design
+          // Search bar
           Container(
-            color: const Color(0xFF2D3748),
             padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Title filter
-                _buildFilterRow(
-                  label: 'Title',
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: TextField(
-                      decoration: const InputDecoration(
-                        hintText: 'Search',
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: Color(0xFF6B7280),
-                        ),
-                        suffixIcon: Icon(
-                          Icons.filter_list,
-                          color: Color(0xFF6B7280),
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                        _applyFilters();
-                      },
-                    ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                  _applyFilters();
+                },
+                decoration: const InputDecoration(
+                  hintText: 'Search referrals...',
+                  hintStyle: TextStyle(color: Color(0xFF9CA3AF)),
+                  prefixIcon: Icon(Icons.search, color: Color(0xFF6B7280)),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
                   ),
                 ),
-                const SizedBox(height: 12),
-
-                // Date Range filter
-                _buildFilterRow(
-                  label: 'Date Range',
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildDateField(
-                          label: 'From',
-                          value: 'Wed, March 5, 2025',
-                          onTap: () {
-                            // Handle date picker
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildDateField(
-                          label: 'To',
-                          value: 'Wed, March 5, 2025',
-                          onTap: () {
-                            // Handle date picker
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Time filter
-                _buildFilterRow(
-                  label: 'Time',
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildTimeField(
-                          label: 'From',
-                          value: 'HH:MM',
-                          onTap: () {
-                            // Handle time picker
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildTimeField(
-                          label: 'To',
-                          value: 'HH:MM',
-                          onTap: () {
-                            // Handle time picker
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Days and Status filters
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildFilterRow(
-                        label: 'Days',
-                        child: _buildDropdownField(
-                          value: _selectedDay,
-                          items: [
-                            'Select',
-                            'Monday',
-                            'Tuesday',
-                            'Wednesday',
-                            'Thursday',
-                            'Friday',
-                            'Saturday',
-                            'Sunday',
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedDay = value ?? 'Select';
-                            });
-                            _applyFilters();
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildFilterRow(
-                        label: 'Status',
-                        child: _buildDropdownField(
-                          value: _selectedStatus,
-                          items: [
-                            'Select',
-                            'Subscribed',
-                            'Un-Subscribed',
-                            'Pending',
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedStatus = value ?? 'Select';
-                            });
-                            _applyFilters();
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
+
+          // Filter section - Only show when toggled
+          if (_showFilters)
+            Container(
+              color: const Color(0xFF1E40AF),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Date Range filter
+                  _buildFilterRow(
+                    label: 'Date Range',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildDateField(
+                            label: 'From',
+                            value: 'Wed, March 5, 2025',
+                            onTap: () {
+                              // Handle date picker
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildDateField(
+                            label: 'To',
+                            value: 'Wed, March 5, 2025',
+                            onTap: () {
+                              // Handle date picker
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Time filter
+                  _buildFilterRow(
+                    label: 'Time',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildTimeField(
+                            label: 'From',
+                            value: 'HH:MM',
+                            onTap: () {
+                              // Handle time picker
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildTimeField(
+                            label: 'To',
+                            value: 'HH:MM',
+                            onTap: () {
+                              // Handle time picker
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Days and Status filters
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildFilterRow(
+                          label: 'Days',
+                          child: _buildDropdownField(
+                            value: _selectedDay,
+                            items: [
+                              'Select',
+                              'Monday',
+                              'Tuesday',
+                              'Wednesday',
+                              'Thursday',
+                              'Friday',
+                              'Saturday',
+                              'Sunday',
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedDay = value ?? 'Select';
+                              });
+                              _applyFilters();
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildFilterRow(
+                          label: 'Status',
+                          child: _buildDropdownField(
+                            value: _selectedStatus,
+                            items: [
+                              'Select',
+                              'Subscribed',
+                              'Un-Subscribed',
+                              'Pending',
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedStatus = value ?? 'Select';
+                              });
+                              _applyFilters();
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
 
           // Referrals list
           Expanded(
@@ -649,19 +622,17 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
     switch (index) {
       case 0:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const CoachAnalyticsDashboardPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const ClubAnalyticsDashboardPage()),
         );
         break;
       case 1:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachTransactionsPage()),
+          MaterialPageRoute(builder: (_) => const ClubTransactionsPage()),
         );
         break;
       case 2:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachCourtsPage()),
+          MaterialPageRoute(builder: (_) => const ClubCourtsPage()),
         );
         break;
       case 3:
@@ -669,12 +640,12 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
         break;
       case 4:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachBookingsPage()),
+          MaterialPageRoute(builder: (_) => const ClubBookingsPage()),
         );
         break;
       case 5:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachEventsPage()),
+          MaterialPageRoute(builder: (_) => const ClubEventsPage()),
         );
         break;
       case 6:
@@ -682,7 +653,7 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
         break;
       case 7:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachUsersPage()),
+          MaterialPageRoute(builder: (_) => const ClubUsersPage()),
         );
         break;
       case 8:
@@ -690,12 +661,12 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
         break;
       case 9:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachCustomerSupportPage()),
+          MaterialPageRoute(builder: (_) => const ClubCustomerSupportPage()),
         );
         break;
       case 10:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CoachSettingsPage()),
+          MaterialPageRoute(builder: (_) => const ClubSettingsPage()),
         );
         break;
     }

@@ -4,14 +4,14 @@ import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 
-class CoachSponsorshipsPage extends StatefulWidget {
-  const CoachSponsorshipsPage({super.key});
+class ClubSponsorshipsPage extends StatefulWidget {
+  const ClubSponsorshipsPage({super.key});
 
   @override
-  State<CoachSponsorshipsPage> createState() => _CoachSponsorshipsPageState();
+  State<ClubSponsorshipsPage> createState() => _ClubSponsorshipsPageState();
 }
 
-class _CoachSponsorshipsPageState extends State<CoachSponsorshipsPage> {
+class _ClubSponsorshipsPageState extends State<ClubSponsorshipsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,18 +20,16 @@ class _CoachSponsorshipsPageState extends State<CoachSponsorshipsPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.club,
             selectedIndex: 6, // Sponsorships is index 6
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.club,
               i,
             ),
-            onProfileTap: () => RoleNavigationManager.navigateToProfile(
-              context,
-              UserRole.coach,
-            ),
+            onProfileTap: () =>
+                RoleNavigationManager.navigateToProfile(context, UserRole.club),
             onSignOut: () {
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const AuthShell()),
@@ -50,7 +48,7 @@ class _CoachSponsorshipsPageState extends State<CoachSponsorshipsPage> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFF10B981),
+        backgroundColor: const Color(0xFF1E40AF),
         elevation: 0,
         leading: Builder(
           builder: (BuildContext context) {
@@ -67,10 +65,10 @@ class _CoachSponsorshipsPageState extends State<CoachSponsorshipsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.handshake_outlined, size: 80, color: Color(0xFF10B981)),
+            Icon(Icons.handshake_outlined, size: 80, color: Color(0xFF1E40AF)),
             SizedBox(height: 16),
             Text(
-              'Coach Sponsorships',
+              'Sponsorships',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -79,7 +77,7 @@ class _CoachSponsorshipsPageState extends State<CoachSponsorshipsPage> {
             ),
             SizedBox(height: 8),
             Text(
-              'Manage your coaching sponsorship opportunities',
+              'Manage your club sponsorships',
               style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
             ),
             SizedBox(height: 24),
@@ -88,7 +86,7 @@ class _CoachSponsorshipsPageState extends State<CoachSponsorshipsPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF10B981),
+                color: Color(0xFF1E40AF),
               ),
             ),
           ],

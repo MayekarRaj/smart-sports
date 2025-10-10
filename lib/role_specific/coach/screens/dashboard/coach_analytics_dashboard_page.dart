@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
+import 'package:smart_sports/role_specific/club/widgets/club_phone_filters.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 
-class CoachAnalyticsDashboardPage extends StatefulWidget {
-  const CoachAnalyticsDashboardPage({super.key});
+class ClubAnalyticsDashboardPage extends StatefulWidget {
+  const ClubAnalyticsDashboardPage({super.key});
 
   @override
-  State<CoachAnalyticsDashboardPage> createState() =>
-      _CoachAnalyticsDashboardPageState();
+  State<ClubAnalyticsDashboardPage> createState() =>
+      _ClubAnalyticsDashboardPageState();
 }
-
 
 class MediaUtils {
   final BuildContext context;
@@ -18,10 +18,13 @@ class MediaUtils {
   bool get isWide => MediaQuery.of(context).size.width >= 1000;
 }
 
-class _CoachAnalyticsDashboardPageState
-    extends State<CoachAnalyticsDashboardPage>
-    with TickerProviderStateMixin {
+class _ClubAnalyticsDashboardPageState extends State<ClubAnalyticsDashboardPage>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late final TabController _tableTabs;
+  final ScrollController _scrollController = ScrollController();
+  final PageStorageKey<String> _storageKey = const PageStorageKey<String>(
+    'club_dashboard_scroll',
+  );
 
   final TextEditingController _searchController = TextEditingController();
   DateTime? _fromDate;
@@ -44,11 +47,15 @@ class _CoachAnalyticsDashboardPageState
   void dispose() {
     _tableTabs.dispose();
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
+  bool get wantKeepAlive => true;
+  @override
   Widget build(BuildContext context) {
+    super.build(context); // for AutomaticKeepAliveClientMixin
     final isWide = MediaUtils(context).isWide;
 
     return Scaffold(
@@ -84,18 +91,15 @@ class _CoachAnalyticsDashboardPageState
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.club,
             selectedIndex: 0,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.club,
               i,
             ),
-            onClose: null,
-            onProfileTap: () => RoleNavigationManager.navigateToProfile(
-              context,
-              UserRole.coach,
-            ),
+            onProfileTap: () =>
+                RoleNavigationManager.navigateToProfile(context, UserRole.club),
             edgeToEdge: true,
           ),
         ),
@@ -103,6 +107,9 @@ class _CoachAnalyticsDashboardPageState
       body: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
+            key: _storageKey,
+            controller: _scrollController,
+            physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,13 +121,13 @@ class _CoachAnalyticsDashboardPageState
                 ),
                 const SizedBox(height: 16),
                 if (_showFilters)
-                  _FiltersCard(
+                  ClubPhoneFilters(
+                    initiallyExpanded: true,
+                    searchController: _searchController,
                     fromDate: _fromDate,
                     toDate: _toDate,
                     fromTime: _fromTime,
                     toTime: _toTime,
-                    days: _days,
-                    status: _status,
                     onPickFromDate: () async {
                       final result = await showDatePicker(
                         context: context,
@@ -128,6 +135,7 @@ class _CoachAnalyticsDashboardPageState
                         lastDate: DateTime(2100),
                         initialDate: _fromDate ?? DateTime.now(),
                       );
+                      if (!mounted) return;
                       if (result != null) setState(() => _fromDate = result);
                     },
                     onPickToDate: () async {
@@ -137,6 +145,7 @@ class _CoachAnalyticsDashboardPageState
                         lastDate: DateTime(2100),
                         initialDate: _toDate ?? DateTime.now(),
                       );
+                      if (!mounted) return;
                       if (result != null) setState(() => _toDate = result);
                     },
                     onPickFromTime: () async {
@@ -144,6 +153,7 @@ class _CoachAnalyticsDashboardPageState
                         context: context,
                         initialTime: _fromTime ?? TimeOfDay.now(),
                       );
+                      if (!mounted) return;
                       if (result != null) setState(() => _fromTime = result);
                     },
                     onPickToTime: () async {
@@ -151,9 +161,12 @@ class _CoachAnalyticsDashboardPageState
                         context: context,
                         initialTime: _toTime ?? TimeOfDay.now(),
                       );
+                      if (!mounted) return;
                       if (result != null) setState(() => _toTime = result);
                     },
+                    days: _days,
                     onChangeDays: (v) => setState(() => _days = v),
+                    status: _status,
                     onChangeStatus: (v) => setState(() => _status = v),
                   ),
                 if (_showFilters) const SizedBox(height: 16),
@@ -265,7 +278,8 @@ class _ShowAndSearchRow extends StatelessWidget {
   }
 }
 
-class _FiltersCard extends StatelessWidget {
+// NOTE: Replaced by ClubPhoneFilters; keeping implementation commented out
+/* class _FiltersCard extends StatelessWidget {
   final DateTime? fromDate;
   final DateTime? toDate;
   final TimeOfDay? fromTime;
@@ -490,33 +504,10 @@ class _FiltersCard extends StatelessWidget {
       ),
     );
   }
-}
+} */
 
-class _FilterTile extends StatelessWidget {
-  final String title;
-  final Widget child;
-  const _FilterTile({required this.title, required this.child});
-  @override
-  Widget build(BuildContext context) {
-    final isNarrow = MediaQuery.of(context).size.width < 700;
-    return SizedBox(
-      width: isNarrow ? double.infinity : 300,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          child,
-        ],
-      ),
-    );
-  }
-}
+// Obsolete, kept to preserve edit history while we migrate to ClubPhoneFilters
+// class _FilterTile extends StatelessWidget { ... }
 
 class _PeriodChips extends StatelessWidget {
   final String period;
@@ -589,14 +580,23 @@ class _TableTabs extends StatelessWidget {
         child: TabBar(
           controller: controller,
           isScrollable: true,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w700),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+          labelColor: const Color(0xFF1E40AF),
+          unselectedLabelColor: const Color(0xFF4B5563),
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
           indicator: const UnderlineTabIndicator(
-            borderSide: BorderSide(color: Colors.black87, width: 3),
+            borderSide: BorderSide(color: Color(0xFF1E40AF), width: 3),
+            insets: EdgeInsets.symmetric(horizontal: 16),
           ),
           tabs: const [
             Tab(text: 'Slack'),
-            Tab(text: 'Coach Branches'),
+            Tab(text: 'Club Branches'),
             Tab(text: 'Forum'),
             Tab(text: 'Member'),
             Tab(text: 'User'),
@@ -614,6 +614,7 @@ class _TransactionsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isNarrow = MediaQuery.of(context).size.width < 700;
     final columns = [
       DataColumn(
         label: Container(
@@ -622,7 +623,7 @@ class _TransactionsTable extends StatelessWidget {
             'Transaction ID',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -635,7 +636,7 @@ class _TransactionsTable extends StatelessWidget {
             'Start Date',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -648,7 +649,7 @@ class _TransactionsTable extends StatelessWidget {
             'End Date',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -661,7 +662,7 @@ class _TransactionsTable extends StatelessWidget {
             'Amount',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -674,7 +675,7 @@ class _TransactionsTable extends StatelessWidget {
             'Payment Method',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -687,7 +688,7 @@ class _TransactionsTable extends StatelessWidget {
             'Payment Status',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -700,7 +701,7 @@ class _TransactionsTable extends StatelessWidget {
             'Actions',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -722,7 +723,8 @@ class _TransactionsTable extends StatelessWidget {
                 '#${(i + 1).toString().padLeft(4, '0')}',
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF10B981),
+                  fontSize: 14,
+                  color: Color(0xFF1E40AF),
                 ),
               ),
             ),
@@ -734,6 +736,7 @@ class _TransactionsTable extends StatelessWidget {
                 '02-28-2025',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
+                  fontSize: 14,
                   color: Color(0xFF374151),
                 ),
               ),
@@ -746,6 +749,7 @@ class _TransactionsTable extends StatelessWidget {
                 '02-28-2026',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
+                  fontSize: 14,
                   color: Color(0xFF374151),
                 ),
               ),
@@ -758,6 +762,7 @@ class _TransactionsTable extends StatelessWidget {
                 '₹1,000',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
+                  fontSize: 14,
                   color: Color(0xFF059669),
                 ),
               ),
@@ -774,15 +779,15 @@ class _TransactionsTable extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                      color: const Color(0xFF1E40AF).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: const Text(
                       'Bank Transfer',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF10B981),
+                        color: Color(0xFF1E40AF),
                       ),
                     ),
                   ),
@@ -807,7 +812,7 @@ class _TransactionsTable extends StatelessWidget {
                     child: const Text(
                       'Paid',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF059669),
                       ),
@@ -854,8 +859,8 @@ class _TransactionsTable extends StatelessWidget {
       rows: rows,
       headingRowColor: MaterialStateProperty.all(const Color(0xFFF3F4F6)),
       columnSpacing: 24,
-      dataRowMinHeight: 60,
-      dataRowMaxHeight: 60,
+      dataRowMinHeight: 64,
+      dataRowMaxHeight: 64,
       horizontalMargin: 16,
     );
 
@@ -873,19 +878,151 @@ class _TransactionsTable extends StatelessWidget {
         ],
       ),
       padding: const EdgeInsets.all(16),
-      child: SizedBox(
-        height: isWide ? 520 : 420,
-        child: Scrollbar(
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 1000),
-              child: SingleChildScrollView(child: table),
+      child: isNarrow
+          ? ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 20,
+              itemBuilder: (context, i) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '#${(i + 1).toString().padLeft(4, '0')}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E40AF),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF059669,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'Paid',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF059669),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: const [
+                          Icon(Icons.event, size: 16, color: Color(0xFF6B7280)),
+                          SizedBox(width: 6),
+                          Text(
+                            '02-28-2025 → 02-28-2026',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF374151),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF1E40AF,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'Bank Transfer',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF1E40AF),
+                              ),
+                            ),
+                          ),
+                          const Text(
+                            '₹1,000',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF059669),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          _ActionButton(
+                            icon: Icons.receipt,
+                            label: 'Invoice',
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Invoice downloaded'),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _ActionButton(
+                            icon: Icons.download,
+                            label: 'Receipt',
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Receipt downloaded'),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            )
+          : SizedBox(
+              height: isWide ? 520 : 420,
+              child: Scrollbar(
+                thumbVisibility: true,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 1100),
+                    child: SingleChildScrollView(child: table),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -958,7 +1095,7 @@ class _FooterSection extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                color: const Color(0xFF1E40AF).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
@@ -966,7 +1103,7 @@ class _FooterSection extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF10B981),
+                  color: Color(0xFF1E40AF),
                 ),
               ),
             ),

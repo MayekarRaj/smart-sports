@@ -5,10 +5,9 @@ import 'auth/screens/forgot_password_page.dart';
 import 'auth/screens/reset_password_page.dart';
 import 'auth/screens/change_password_page.dart';
 import 'bookings/screens/bookings_page.dart';
-import 'role_specific/club/screens/users/club_users_page.dart';
+import 'role_specific/club/screens/users/club_users_page.dart' as club;
 import 'role_specific/club/screens/users/demo_users_screen.dart';
-import 'role_specific/corporate/screens/users/corporate_users_page.dart';
-import 'role_specific/coach/screens/users/coach_users_page.dart';
+import 'role_specific/coach/screens/users/coach_users_page.dart' as coach;
 import 'role_specific/merchandiser/screens/users/merchandiser_users_page.dart';
 import 'role_specific/club/screens/referrals/club_referrals_page.dart';
 import 'role_specific/club/screens/referrals/demo_referrals_screen.dart';
@@ -41,10 +40,10 @@ class MyApp extends StatelessWidget {
         '/reset': (_) => const ResetPasswordPage(),
         '/change': (_) => const ChangePasswordPage(),
         '/bookings': (_) => const BookingsPage(),
-        '/club-users': (_) => const ClubUsersPage(),
+        '/club-users': (_) => const club.ClubUsersPage(),
         '/demo-users': (_) => const DemoUsersScreen(),
-        '/corporate-users': (_) => const CorporateUsersPage(),
-        '/coach-users': (_) => const CoachUsersPage(),
+        '/corporate-users': (_) => const club.ClubUsersPage(),
+        '/coach-users': (_) => const coach.ClubUsersPage(),
         '/merchandiser-users': (_) => const MerchandiserUsersPage(),
         '/club-referrals': (_) => const ClubReferralsPage(),
         '/demo-referrals': (_) => const DemoReferralsScreen(),

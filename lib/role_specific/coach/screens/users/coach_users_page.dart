@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:smart_sports/common/models/user.dart';
+import 'package:smart_sports/common/models/user.dart' as models;
 import 'package:smart_sports/role_specific/club/screens/users/user_data_service.dart';
 import 'package:smart_sports/role_specific/club/screens/users/user_card.dart';
+import 'package:smart_sports/shared/widgets/role_sidebar.dart';
+import 'package:smart_sports/role_specific/common/role_router.dart';
+import 'package:smart_sports/role_specific/club/screens/profile/club_profile_page.dart';
+import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
+// Navigation to other screens is handled via RoleNavigationManager from the sidebar.
+import 'package:smart_sports/auth/screens/auth_shell.dart';
 
-class CoachUsersPage extends StatefulWidget {
-  const CoachUsersPage({super.key});
+class ClubUsersPage extends StatefulWidget {
+  const ClubUsersPage({super.key});
 
   @override
-  State<CoachUsersPage> createState() => _CoachUsersPageState();
+  State<ClubUsersPage> createState() => _ClubUsersPageState();
 }
 
-class _CoachUsersPageState extends State<CoachUsersPage>
+class _ClubUsersPageState extends State<ClubUsersPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   late AnimationController _filterAnimationController;
   late Animation<double> _filterAnimation;
 
-  List<User> _allUsers = [];
-  List<User> _filteredUsers = [];
+  List<models.User> _allUsers = [];
+  List<models.User> _filteredUsers = [];
   String _searchQuery = '';
   bool _isFilterExpanded = false;
   int _currentPage = 1;
@@ -57,7 +63,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
   }
 
   void _applyFilters() {
-    List<User> users = _allUsers;
+    List<models.User> users = _allUsers;
 
     // Apply tab filter
     if (_tabController.index == 0) {
@@ -106,17 +112,81 @@ class _CoachUsersPageState extends State<CoachUsersPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
+      drawer: Drawer(
+        elevation: 0,
+        child: SafeArea(
+          child: RoleSidebar(
+            role: UserRole.club,
+            selectedIndex: 7, // Users is index 7
+            edgeToEdge: true,
+            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
+              context,
+              UserRole.club,
+              i,
+            ),
+            onProfileTap: () async {
+              final navigator = Navigator.of(context);
+              navigator.pop();
+              await Future.delayed(const Duration(milliseconds: 160));
+              if (mounted) {
+                navigator.push(
+                  MaterialPageRoute(builder: (_) => const ClubProfilePage()),
+                );
+              }
+            },
+            onSignOut: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop(); // Close dialog
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const AuthShell()),
+                          (route) => false,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
       appBar: AppBar(
         title: const Text(
-          'Coach Users',
+          'User Management',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFFF59E0B), // Coach orange
+        backgroundColor: const Color(0xFF1E40AF),
         elevation: 0,
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Container(
@@ -185,7 +255,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
         children: [
           // Filter section
           Container(
-            color: const Color(0xFFD97706), // Darker coach orange
+            color: const Color(0xFF1E40AF),
             child: Column(
               children: [
                 // Filter toggle button
@@ -287,7 +357,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
                   _applyFilters();
                 },
                 indicator: BoxDecoration(
-                  color: const Color(0xFFF59E0B), // Coach orange
+                  color: const Color(0xFF1E40AF),
                   borderRadius: BorderRadius.circular(25),
                 ),
                 labelColor: Colors.white,
@@ -351,7 +421,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Tapped on ${user.userName}'),
-                              backgroundColor: const Color(0xFFF59E0B),
+                              backgroundColor: const Color(0xFF1E40AF),
                             ),
                           );
                         },
@@ -470,7 +540,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: enabled ? const Color(0xFFF59E0B) : const Color(0xFFE5E7EB),
+          color: enabled ? const Color(0xFF1E40AF) : const Color(0xFFE5E7EB),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
@@ -496,7 +566,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFFF59E0B) : Colors.transparent,
+          color: isActive ? const Color(0xFF1E40AF) : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
@@ -510,4 +580,6 @@ class _CoachUsersPageState extends State<CoachUsersPage>
       ),
     );
   }
+
+  // Navigation from sidebar now centralized via RoleNavigationManager
 }
