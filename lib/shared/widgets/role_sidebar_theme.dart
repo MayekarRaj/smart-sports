@@ -35,11 +35,12 @@ class RoleSidebarThemes {
       case UserRole.coach:
         return const SidebarThemeData(
           background: LinearGradient(
-            colors: [Color(0xFF0F2027), Color(0xFF203A43)],
+            colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
+            stops: [0.0, 1.0],
           ),
-          tileBackground: Color(0xFF141922),
+          tileBackground: Color(0xFF1A1B2E),
           iconColor: Colors.white,
           textColor: Colors.white,
           dividerColor: Color(0x33FFFFFF),
@@ -47,11 +48,11 @@ class RoleSidebarThemes {
       case UserRole.corporate:
         return const SidebarThemeData(
           background: LinearGradient(
-            colors: [Color(0xFF1F1C2C), Color(0xFF928DAB)],
+            colors: [Color(0xFF232534), Color(0xFF414384)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          tileBackground: Color(0xFF191825),
+          tileBackground: Color(0xFF1E1F3A),
           iconColor: Colors.white,
           textColor: Colors.white,
           dividerColor: Color(0x33FFFFFF),

@@ -35,6 +35,7 @@ class MyApp extends StatelessWidget {
       home: const AuthShell(),
       // Temporary: Add direct navigation for testing
       // home: const ClubReferralsPage(),
+      // home: const coach.CoachUsersPage(), // Uncomment to test coach directly
       routes: {
         '/forgot': (_) => const ForgotPasswordPage(),
         '/reset': (_) => const ResetPasswordPage(),
@@ -43,7 +44,7 @@ class MyApp extends StatelessWidget {
         '/club-users': (_) => const club.ClubUsersPage(),
         '/demo-users': (_) => const DemoUsersScreen(),
         '/corporate-users': (_) => const club.ClubUsersPage(),
-        '/coach-users': (_) => const coach.ClubUsersPage(),
+        '/coach-users': (_) => const coach.CoachUsersPage(),
         '/merchandiser-users': (_) => const MerchandiserUsersPage(),
         '/club-referrals': (_) => const ClubReferralsPage(),
         '/demo-referrals': (_) => const DemoReferralsScreen(),

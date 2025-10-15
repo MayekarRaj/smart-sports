@@ -27,6 +27,8 @@ import 'package:smart_sports/role_specific/club/screens/sponsorships/club_sponso
     as club_sponsorships;
 import 'package:smart_sports/role_specific/club/screens/clubs/clubs_page.dart'
     as club_clubs;
+import 'package:smart_sports/role_specific/coach/screens/clubs/coach_page.dart'
+    as coach_clubs;
 
 // Coach imports
 import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_analytics_dashboard_page.dart'
@@ -51,6 +53,32 @@ import 'package:smart_sports/role_specific/coach/screens/profile/coach_profile_p
     as coach_profile;
 import 'package:smart_sports/role_specific/coach/screens/sponsorships/coach_sponsorships_page.dart'
     as coach_sponsorships;
+
+// Corporate imports
+import 'package:smart_sports/role_specific/corporate/screens/dashboard/corporate_analytics_dashboard_page.dart'
+    as corporate_dashboard;
+import 'package:smart_sports/role_specific/corporate/screens/transactions/corporate_transactions_page.dart'
+    as corporate_transactions;
+import 'package:smart_sports/role_specific/corporate/screens/courts/courts_page.dart'
+    as corporate_courts;
+import 'package:smart_sports/role_specific/corporate/screens/clubs/corporate_page.dart'
+    as corporate_clubs;
+import 'package:smart_sports/role_specific/corporate/screens/bookings/corporate_bookings_page.dart'
+    as corporate_bookings;
+import 'package:smart_sports/role_specific/corporate/screens/events/corporate_events_page.dart'
+    as corporate_events;
+import 'package:smart_sports/role_specific/corporate/screens/sponsorships/corporate_sponsorships_page.dart'
+    as corporate_sponsorships;
+import 'package:smart_sports/role_specific/corporate/screens/users/corporate_users_page.dart'
+    as corporate_users;
+import 'package:smart_sports/role_specific/corporate/screens/referrals/corporate_referrals_page.dart'
+    as corporate_referrals;
+import 'package:smart_sports/role_specific/corporate/screens/customer_support/corporate_customer_support_page.dart'
+    as corporate_support;
+import 'package:smart_sports/role_specific/corporate/screens/settings/corporate_settings_page.dart'
+    as corporate_settings;
+import 'package:smart_sports/role_specific/corporate/screens/profile/corporate_profile_page.dart'
+    as corporate_profile;
 
 // Merchandiser imports
 import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
@@ -97,7 +125,7 @@ class RoleNavigationManager {
         _navigateCoachScreen(context, index);
         break;
       case UserRole.corporate:
-        _navigateClubScreen(context, index);
+        _navigateCorporateScreen(context, index);
         break;
       case UserRole.merchandiser:
         _navigateMerchandiserScreen(context, index);
@@ -191,14 +219,14 @@ class RoleNavigationManager {
       case 0:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const coach_dashboard.ClubAnalyticsDashboardPage(),
+            builder: (_) => const coach_dashboard.CoachAnalyticsDashboardPage(),
           ),
         );
         break;
       case 1:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const coach_transactions.ClubTransactionsPage(),
+            builder: (_) => const coach_transactions.CoachTransactionsPage(),
           ),
         );
         break;
@@ -211,23 +239,20 @@ class RoleNavigationManager {
         break;
       case 3:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) =>
-                const _CoachPlaceholder(title: 'Clubs', currentIndex: 3),
-          ),
+          MaterialPageRoute(builder: (_) => const coach_clubs.ClubsPage()),
         );
         break;
       case 4:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const coach_bookings.ClubBookingsPage(),
+            builder: (_) => const coach_bookings.CoachBookingsPage(),
           ),
         );
         break;
       case 5:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const coach_events.ClubEventsPage(),
+            builder: (_) => const coach_events.CoachEventsPage(),
           ),
         );
         break;
@@ -240,27 +265,122 @@ class RoleNavigationManager {
         break;
       case 7:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const coach_users.ClubUsersPage()),
+          MaterialPageRoute(builder: (_) => const coach_users.CoachUsersPage()),
         );
         break;
       case 8:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const coach_referrals.ClubReferralsPage(),
+            builder: (_) => const coach_referrals.CoachReferralsPage(),
           ),
         );
         break;
       case 9:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const coach_support.ClubCustomerSupportPage(),
+            builder: (_) => const coach_support.CoachCustomerSupportPage(),
           ),
         );
         break;
       case 10:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const coach_settings.ClubSettingsPage(),
+            builder: (_) => const coach_settings.CoachSettingsPage(),
+          ),
+        );
+        break;
+    }
+  }
+
+  static void _navigateCorporateScreen(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        // Dashboard
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                const corporate_dashboard.CorporateAnalyticsDashboardPage(),
+          ),
+        );
+        break;
+      case 1:
+        // Transactions
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                const corporate_transactions.CorporateTransactionsPage(),
+          ),
+        );
+        break;
+      case 2:
+        // Courts
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const corporate_courts.CourtsPage(),
+          ),
+        );
+        break;
+      case 3:
+        // Clubs
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const corporate_clubs.ClubsPage()),
+        );
+        break;
+      case 4:
+        // Bookings
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const corporate_bookings.CorporateBookingsPage(),
+          ),
+        );
+        break;
+      case 5:
+        // Events
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const corporate_events.CorporateEventsPage(),
+          ),
+        );
+        break;
+      case 6:
+        // Sponsorships
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                const corporate_sponsorships.CorporateSponsorshipsPage(),
+          ),
+        );
+        break;
+      case 7:
+        // Users
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const corporate_users.CorporateUsersPage(),
+          ),
+        );
+        break;
+      case 8:
+        // Referrals
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const corporate_referrals.CorporateReferralsPage(),
+          ),
+        );
+        break;
+      case 9:
+        // Customer Support
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                const corporate_support.CorporateCustomerSupportPage(),
+          ),
+        );
+        break;
+      case 10:
+        // Settings
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const corporate_settings.CorporateSettingsPage(),
           ),
         );
         break;
@@ -362,14 +482,14 @@ class RoleNavigationManager {
         case UserRole.coach:
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => const coach_profile.ClubProfilePage(),
+              builder: (_) => const coach_profile.CoachProfilePage(),
             ),
           );
           break;
         case UserRole.corporate:
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => const club_profile.ClubProfilePage(),
+              builder: (_) => const corporate_profile.CorporateProfilePage(),
             ),
           );
           break;
@@ -394,47 +514,6 @@ class RoleNavigationManager {
 }
 
 // Placeholder widgets for each role
-
-class _CoachPlaceholder extends StatelessWidget {
-  final String title;
-  final int currentIndex;
-  const _CoachPlaceholder({required this.title, required this.currentIndex});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
-      ),
-      drawer: Drawer(
-        elevation: 0,
-        child: SafeArea(
-          child: RoleSidebar(
-            role: UserRole.coach,
-            selectedIndex: currentIndex,
-            edgeToEdge: true,
-            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
-              context,
-              UserRole.coach,
-              i,
-            ),
-            onProfileTap: () => RoleNavigationManager.navigateToProfile(
-              context,
-              UserRole.coach,
-            ),
-          ),
-        ),
-      ),
-      body: Center(child: Text('$title screen coming soon')),
-    );
-  }
-}
 
 class _MerchandiserPlaceholder extends StatelessWidget {
   final String title;
