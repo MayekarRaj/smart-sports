@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
-import 'package:smart_sports/role_specific/coach/widgets/coach_phone_filters.dart';
+import 'package:smart_sports/role_specific/corporate/widgets/corporate_phone_filters.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 
-class CoachAnalyticsDashboardPage extends StatefulWidget {
-  const CoachAnalyticsDashboardPage({super.key});
+class CorporateAnalyticsDashboardPage extends StatefulWidget {
+  const CorporateAnalyticsDashboardPage({super.key});
 
   @override
-  State<CoachAnalyticsDashboardPage> createState() =>
-      _CoachAnalyticsDashboardPageState();
+  State<CorporateAnalyticsDashboardPage> createState() =>
+      _CorporateAnalyticsDashboardPageState();
 }
 
 class MediaUtils {
@@ -18,8 +18,8 @@ class MediaUtils {
   bool get isWide => MediaQuery.of(context).size.width >= 1000;
 }
 
-class _CoachAnalyticsDashboardPageState
-    extends State<CoachAnalyticsDashboardPage>
+class _CorporateAnalyticsDashboardPageState
+    extends State<CorporateAnalyticsDashboardPage>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late final TabController _tableTabs;
   final ScrollController _scrollController = ScrollController();
@@ -62,14 +62,30 @@ class _CoachAnalyticsDashboardPageState
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Dashboard'),
-        backgroundColor: Colors.white,
+        title: const Text(
+          'Dashboard',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        foregroundColor: Colors.black87,
+        foregroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF232534), Color(0xFF414384)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         leading: Builder(
           builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu),
+            icon: const Icon(Icons.menu, color: Colors.white),
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
@@ -82,7 +98,7 @@ class _CoachAnalyticsDashboardPageState
             },
             icon: Icon(
               _showFilters ? Icons.filter_list_off : Icons.filter_list,
-              color: Colors.black87,
+              color: Colors.white,
             ),
             tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
           ),
@@ -92,16 +108,16 @@ class _CoachAnalyticsDashboardPageState
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.corporate,
             selectedIndex: 0,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.corporate,
               i,
             ),
             onProfileTap: () => RoleNavigationManager.navigateToProfile(
               context,
-              UserRole.coach,
+              UserRole.corporate,
             ),
             edgeToEdge: true,
           ),
@@ -124,7 +140,7 @@ class _CoachAnalyticsDashboardPageState
                 ),
                 const SizedBox(height: 16),
                 if (_showFilters)
-                  CoachPhoneFilters(
+                  CorporatePhoneFilters(
                     initiallyExpanded: true,
                     searchController: _searchController,
                     fromDate: _fromDate,

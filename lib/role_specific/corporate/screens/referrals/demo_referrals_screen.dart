@@ -22,7 +22,7 @@ class DemoReferralsScreen extends StatelessWidget {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              colors: [Color(0xFF232534), Color(0xFF414384)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

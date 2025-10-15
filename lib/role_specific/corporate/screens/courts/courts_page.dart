@@ -4,14 +4,14 @@ import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'courts_list_page.dart';
 
-class ClubCourtsPage extends StatefulWidget {
-  const ClubCourtsPage({super.key});
+class CourtsPage extends StatefulWidget {
+  const CourtsPage({super.key});
 
   @override
-  State<ClubCourtsPage> createState() => _ClubCourtsPageState();
+  State<CourtsPage> createState() => _CourtsPageState();
 }
 
-class _ClubCourtsPageState extends State<ClubCourtsPage> {
+class _CourtsPageState extends State<CourtsPage> {
   bool _showFilters = false;
   final ScrollController _scrollController = ScrollController();
 
@@ -41,12 +41,12 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.corporate,
             selectedIndex: 2,
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.corporate,
               i,
             ),
           ),

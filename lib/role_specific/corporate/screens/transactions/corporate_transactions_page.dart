@@ -1,72 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
-import 'package:smart_sports/role_specific/coach/widgets/coach_phone_filters.dart';
-import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
+import 'package:smart_sports/role_specific/corporate/widgets/corporate_phone_filters.dart';
+import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 
-class CoachAnalyticsDashboardPage extends StatefulWidget {
-  const CoachAnalyticsDashboardPage({super.key});
+class CorporateTransactionsPage extends StatefulWidget {
+  const CorporateTransactionsPage({super.key});
 
   @override
-  State<CoachAnalyticsDashboardPage> createState() =>
-      _CoachAnalyticsDashboardPageState();
+  State<CorporateTransactionsPage> createState() =>
+      _CorporateTransactionsPageState();
 }
 
-class MediaUtils {
-  final BuildContext context;
-  MediaUtils(this.context);
-  bool get isWide => MediaQuery.of(context).size.width >= 1000;
-}
+class _CorporateTransactionsPageState extends State<CorporateTransactionsPage>
+    with TickerProviderStateMixin {
+  final TextEditingController _search = TextEditingController();
+  int _showEntries = 10;
+  String _period = 'ALL';
+  // Removed category tabs
+  bool _showFilters = false;
 
-class _CoachAnalyticsDashboardPageState
-    extends State<CoachAnalyticsDashboardPage>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  late final TabController _tableTabs;
-  final ScrollController _scrollController = ScrollController();
-  final PageStorageKey<String> _storageKey = const PageStorageKey<String>(
-    'club_dashboard_scroll',
-  );
-
-  final TextEditingController _searchController = TextEditingController();
   DateTime? _fromDate;
   DateTime? _toDate;
   TimeOfDay? _fromTime;
   TimeOfDay? _toTime;
   String _days = 'Select';
   String _status = 'Select';
-  int _showEntries = 10;
-  String _period = 'ALL'; // ALL, Financial Year, Flexible Duration
-  bool _showFilters = false;
 
   @override
   void initState() {
     super.initState();
-    _tableTabs = TabController(length: 6, vsync: this);
+    // No category tabs to initialize
   }
 
   @override
   void dispose() {
-    _tableTabs.dispose();
-    _searchController.dispose();
-    _scrollController.dispose();
+    // No category tabs to dispose
+    _search.dispose();
     super.dispose();
   }
 
   @override
-  bool get wantKeepAlive => true;
-  @override
   Widget build(BuildContext context) {
-    super.build(context); // for AutomaticKeepAliveClientMixin
-    final isWide = MediaUtils(context).isWide;
-
+    final isWide = MediaQuery.of(context).size.width >= 900;
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Dashboard'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        foregroundColor: Colors.black87,
+        title: const Text('Transactions'),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF232534), Color(0xFF414384)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu),
@@ -82,134 +72,120 @@ class _CoachAnalyticsDashboardPageState
             },
             icon: Icon(
               _showFilters ? Icons.filter_list_off : Icons.filter_list,
-              color: Colors.black87,
+              color: Colors.white,
             ),
             tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
           ),
         ],
+        // Removed pills under AppBar
       ),
       drawer: Drawer(
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
-            selectedIndex: 0,
+            role: UserRole.corporate,
+            selectedIndex: 1,
+            edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.corporate,
               i,
             ),
-            onProfileTap: () => RoleNavigationManager.navigateToProfile(
-              context,
-              UserRole.coach,
-            ),
-            edgeToEdge: true,
           ),
         ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            key: _storageKey,
-            controller: _scrollController,
-            physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _ShowAndSearchRow(
-                  showEntries: _showEntries,
-                  onEntriesChanged: (v) => setState(() => _showEntries = v),
-                  searchController: _searchController,
-                ),
-                const SizedBox(height: 16),
-                if (_showFilters)
-                  CoachPhoneFilters(
-                    initiallyExpanded: true,
-                    searchController: _searchController,
-                    fromDate: _fromDate,
-                    toDate: _toDate,
-                    fromTime: _fromTime,
-                    toTime: _toTime,
-                    onPickFromDate: () async {
-                      final result = await showDatePicker(
-                        context: context,
-                        firstDate: DateTime(2018),
-                        lastDate: DateTime(2100),
-                        initialDate: _fromDate ?? DateTime.now(),
-                      );
-                      if (!mounted) return;
-                      if (result != null) setState(() => _fromDate = result);
-                    },
-                    onPickToDate: () async {
-                      final result = await showDatePicker(
-                        context: context,
-                        firstDate: DateTime(2018),
-                        lastDate: DateTime(2100),
-                        initialDate: _toDate ?? DateTime.now(),
-                      );
-                      if (!mounted) return;
-                      if (result != null) setState(() => _toDate = result);
-                    },
-                    onPickFromTime: () async {
-                      final result = await showTimePicker(
-                        context: context,
-                        initialTime: _fromTime ?? TimeOfDay.now(),
-                      );
-                      if (!mounted) return;
-                      if (result != null) setState(() => _fromTime = result);
-                    },
-                    onPickToTime: () async {
-                      final result = await showTimePicker(
-                        context: context,
-                        initialTime: _toTime ?? TimeOfDay.now(),
-                      );
-                      if (!mounted) return;
-                      if (result != null) setState(() => _toTime = result);
-                    },
-                    days: _days,
-                    onChangeDays: (v) => setState(() => _days = v),
-                    status: _status,
-                    onChangeStatus: (v) => setState(() => _status = v),
-                  ),
-                if (_showFilters) const SizedBox(height: 16),
-                const SizedBox(height: 16),
-                _PeriodChips(
-                  period: _period,
-                  onChanged: (v) => setState(() => _period = v),
-                ),
-                const SizedBox(height: 16),
-                _TableTabs(controller: _tableTabs),
-                const SizedBox(height: 12),
-                _TransactionsTable(isWide: isWide),
-                const SizedBox(height: 24),
-                const _FooterSection(),
-              ],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ShowAndSearch(
+              value: _showEntries,
+              onChanged: (v) => setState(() => _showEntries = v),
+              searchController: _search,
             ),
-          );
-        },
+            const SizedBox(height: 16),
+            if (_showFilters)
+              CorporatePhoneFilters(
+                initiallyExpanded: true,
+                searchController: _search,
+                fromDate: _fromDate,
+                toDate: _toDate,
+                fromTime: _fromTime,
+                toTime: _toTime,
+                onPickFromDate: () async {
+                  final res = await showDatePicker(
+                    context: context,
+                    firstDate: DateTime(2018),
+                    lastDate: DateTime(2100),
+                    initialDate: _fromDate ?? DateTime.now(),
+                  );
+                  if (res != null) setState(() => _fromDate = res);
+                },
+                onPickToDate: () async {
+                  final res = await showDatePicker(
+                    context: context,
+                    firstDate: DateTime(2018),
+                    lastDate: DateTime(2100),
+                    initialDate: _toDate ?? DateTime.now(),
+                  );
+                  if (res != null) setState(() => _toDate = res);
+                },
+                onPickFromTime: () async {
+                  final res = await showTimePicker(
+                    context: context,
+                    initialTime: _fromTime ?? TimeOfDay.now(),
+                  );
+                  if (res != null) setState(() => _fromTime = res);
+                },
+                onPickToTime: () async {
+                  final res = await showTimePicker(
+                    context: context,
+                    initialTime: _toTime ?? TimeOfDay.now(),
+                  );
+                  if (res != null) setState(() => _toTime = res);
+                },
+                days: _days,
+                onChangeDays: (v) => setState(() => _days = v),
+                status: _status,
+                onChangeStatus: (v) => setState(() => _status = v),
+              ),
+            if (_showFilters) const SizedBox(height: 16),
+            const SizedBox(height: 16),
+            _PeriodSelector(
+              period: _period,
+              onChanged: (v) => setState(() => _period = v),
+            ),
+            const SizedBox(height: 16),
+            // Removed category tabs section
+            _TransactionTable(isWide: isWide),
+            const SizedBox(height: 24),
+            const _Footer(),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _ShowAndSearchRow extends StatelessWidget {
-  final int showEntries;
-  final ValueChanged<int> onEntriesChanged;
+// Removed _TopPills (no longer used)
+
+class _ShowAndSearch extends StatelessWidget {
+  final int value;
+  final ValueChanged<int> onChanged;
   final TextEditingController searchController;
-  const _ShowAndSearchRow({
-    required this.showEntries,
-    required this.onEntriesChanged,
+  const _ShowAndSearch({
+    required this.value,
+    required this.onChanged,
     required this.searchController,
   });
   @override
   Widget build(BuildContext context) {
     final valid = const [10, 25, 50, 100];
-    final value = valid.contains(showEntries) ? showEntries : 10;
-    final width = MediaQuery.of(context).size.width;
-    final isNarrow = width < 700;
-    final searchField = _RoundedContainer(
-      child: TextField(
+    final v = valid.contains(value) ? value : 10;
+    final isNarrow = MediaQuery.of(context).size.width < 700;
+    final searchField = _box(
+      TextField(
         controller: searchController,
         decoration: const InputDecoration(
           hintText: 'Search Here',
@@ -229,20 +205,16 @@ class _ShowAndSearchRow extends StatelessWidget {
             children: [
               const Text('Show'),
               const SizedBox(width: 8),
-              _RoundedContainer(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                child: DropdownButtonHideUnderline(
+              _box(
+                DropdownButtonHideUnderline(
                   child: DropdownButton<int>(
-                    value: value,
+                    value: v,
                     items: valid
                         .map(
                           (e) => DropdownMenuItem(value: e, child: Text('$e')),
                         )
                         .toList(),
-                    onChanged: (v) => onEntriesChanged(v ?? value),
+                    onChanged: (nv) => onChanged(nv ?? v),
                   ),
                 ),
               ),
@@ -260,15 +232,14 @@ class _ShowAndSearchRow extends StatelessWidget {
       children: [
         const Text('Show'),
         const SizedBox(width: 8),
-        _RoundedContainer(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: DropdownButtonHideUnderline(
+        _box(
+          DropdownButtonHideUnderline(
             child: DropdownButton<int>(
-              value: value,
+              value: v,
               items: valid
                   .map((e) => DropdownMenuItem(value: e, child: Text('$e')))
                   .toList(),
-              onChanged: (v) => onEntriesChanged(v ?? value),
+              onChanged: (nv) => onChanged(nv ?? v),
             ),
           ),
         ),
@@ -279,10 +250,20 @@ class _ShowAndSearchRow extends StatelessWidget {
       ],
     );
   }
+
+  Widget _box(Widget child) => Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: const Color(0xFFE0E0E0)),
+    ),
+    padding: const EdgeInsets.symmetric(horizontal: 8),
+    child: child,
+  );
 }
 
 // NOTE: Replaced by ClubPhoneFilters; keeping implementation commented out
-/* class _FiltersCard extends StatelessWidget {
+/* class _FilterBar extends StatelessWidget {
   final DateTime? fromDate;
   final DateTime? toDate;
   final TimeOfDay? fromTime;
@@ -295,7 +276,7 @@ class _ShowAndSearchRow extends StatelessWidget {
   final VoidCallback onPickToTime;
   final ValueChanged<String> onChangeDays;
   final ValueChanged<String> onChangeStatus;
-  const _FiltersCard({
+  const _FilterBar({
     required this.fromDate,
     required this.toDate,
     required this.fromTime,
@@ -309,180 +290,98 @@ class _ShowAndSearchRow extends StatelessWidget {
     required this.onChangeDays,
     required this.onChangeStatus,
   });
-
   @override
   Widget build(BuildContext context) {
-    final dateFmt = MaterialLocalizations.of(context);
-    String fmtDate(DateTime? d) =>
-        d == null ? 'Select Date' : dateFmt.formatFullDate(d);
+    String fmtDate(DateTime? d) => d == null
+        ? 'Select Date'
+        : MaterialLocalizations.of(context).formatFullDate(d);
     String fmtTime(TimeOfDay? t) => t == null ? 'HH:MM' : t.format(context);
-
-    final isNarrow = MediaQuery.of(context).size.width < 700;
-
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        color: const Color(0xFF1F1F1F),
+        borderRadius: BorderRadius.circular(14),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Wrap(
         spacing: 12,
-        runSpacing: 16,
+        runSpacing: 12,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          _FilterTile(
-            title: 'Title',
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: const Icon(Icons.tune),
-                filled: true,
-                fillColor: const Color(0xFFF7F7F7),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+          _tile(
+            'Title',
+            _darkBox(
+              const TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search',
+                  hintStyle: TextStyle(color: Colors.white70),
+                  border: InputBorder.none,
+                  prefixIcon: Icon(Icons.search, color: Colors.white),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 14,
-                ),
+                style: TextStyle(color: Colors.white),
               ),
             ),
           ),
-          _FilterTile(
-            title: 'Date Range',
-            child: isNarrow
-                ? Column(
-                    children: [
-                      _dateButton(
-                        fmtDate(fromDate),
-                        Icons.calendar_today,
-                        onPickFromDate,
-                      ),
-                      const SizedBox(height: 8),
-                      _dateButton(
-                        fmtDate(toDate),
-                        Icons.calendar_today,
-                        onPickToDate,
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      Expanded(
-                        child: _dateButton(
-                          fmtDate(fromDate),
-                          Icons.calendar_today,
-                          onPickFromDate,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _dateButton(
-                          fmtDate(toDate),
-                          Icons.calendar_today,
-                          onPickToDate,
-                        ),
-                      ),
-                    ],
+          _tile(
+            'Date Range',
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: _darkBox(
+                    _picker(
+                      fmtDate(fromDate),
+                      Icons.calendar_today,
+                      onPickFromDate,
+                    ),
                   ),
-          ),
-          _FilterTile(
-            title: 'Time',
-            child: isNarrow
-                ? Column(
-                    children: [
-                      _dateButton(
-                        fmtTime(fromTime),
-                        Icons.schedule,
-                        onPickFromTime,
-                      ),
-                      const SizedBox(height: 8),
-                      _dateButton(
-                        fmtTime(toTime),
-                        Icons.schedule,
-                        onPickToTime,
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      Expanded(
-                        child: _dateButton(
-                          fmtTime(fromTime),
-                          Icons.schedule,
-                          onPickFromTime,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _dateButton(
-                          fmtTime(toTime),
-                          Icons.schedule,
-                          onPickToTime,
-                        ),
-                      ),
-                    ],
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _darkBox(
+                    _picker(
+                      fmtDate(toDate),
+                      Icons.calendar_today,
+                      onPickToDate,
+                    ),
                   ),
-          ),
-          _FilterTile(
-            title: 'Days',
-            child: DropdownButtonFormField<String>(
-              value: const ['Select', 'Mon-Fri', 'Sat-Sun'].contains(days)
-                  ? days
-                  : 'Select',
-              items: const [
-                'Select',
-                'Mon-Fri',
-                'Sat-Sun',
-              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-              onChanged: (v) => onChangeDays(v ?? days),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFFF7F7F7),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 14,
-                ),
-              ),
+              ],
             ),
           ),
-          _FilterTile(
-            title: 'Status',
-            child: DropdownButtonFormField<String>(
-              value:
-                  const [
-                    'Select',
-                    'Paid',
-                    'Unpaid',
-                    'Refunded',
-                  ].contains(status)
-                  ? status
-                  : 'Select',
-              items: const [
+          _tile(
+            'Time',
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: _darkBox(
+                    _picker(fmtTime(fromTime), Icons.schedule, onPickFromTime),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _darkBox(
+                    _picker(fmtTime(toTime), Icons.schedule, onPickToTime),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _tile(
+            'Days',
+            _darkBox(
+              _dropdown(days, ['Select', 'Mon-Fri', 'Sat-Sun'], onChangeDays),
+            ),
+          ),
+          _tile(
+            'Status',
+            _darkBox(
+              _dropdown(status, [
                 'Select',
                 'Paid',
                 'Unpaid',
                 'Refunded',
-              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-              onChanged: (v) => onChangeStatus(v ?? status),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFFF7F7F7),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 14,
-                ),
-              ),
+              ], onChangeStatus),
             ),
           ),
         ],
@@ -490,36 +389,75 @@ class _ShowAndSearchRow extends StatelessWidget {
     );
   }
 
-  Widget _dateButton(String label, IconData icon, VoidCallback onTap) {
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 18),
-      label: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(label, overflow: TextOverflow.ellipsis),
+  Widget _tile(String title, Widget child) => SizedBox(
+    width: 300,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        child,
+      ],
+    ),
+  );
+  Widget _picker(String label, IconData icon, VoidCallback onTap) => InkWell(
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(label, style: const TextStyle(color: Colors.white)),
+          ),
+          Icon(icon, color: Colors.white),
+        ],
       ),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.black87,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        side: const BorderSide(color: Color(0xFFE0E0E0)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        backgroundColor: const Color(0xFFF7F7F7),
-      ),
-    );
-  }
+    ),
+  );
+  Widget _dropdown(
+    String v,
+    List<String> options,
+    ValueChanged<String> onChanged,
+  ) => DropdownButtonHideUnderline(
+    child: DropdownButton<String>(
+      value: options.contains(v) ? v : options.first,
+      dropdownColor: const Color(0xFF2B2B2B),
+      iconEnabledColor: Colors.white,
+      items: options
+          .map(
+            (e) => DropdownMenuItem(
+              value: e,
+              child: Text(e, style: const TextStyle(color: Colors.white)),
+            ),
+          )
+          .toList(),
+      onChanged: (nv) => onChanged(nv ?? v),
+    ),
+  );
+  Widget _darkBox(Widget child) => Container(
+    decoration: BoxDecoration(
+      color: const Color(0xFF2B2B2B),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    child: child,
+  );
 } */
 
-// Obsolete, kept to preserve edit history while we migrate to ClubPhoneFilters
-// class _FilterTile extends StatelessWidget { ... }
-
-class _PeriodChips extends StatelessWidget {
+class _PeriodSelector extends StatelessWidget {
   final String period;
   final ValueChanged<String> onChanged;
-  const _PeriodChips({required this.period, required this.onChanged});
+  const _PeriodSelector({required this.period, required this.onChanged});
   @override
   Widget build(BuildContext context) {
     Widget chip(String v) {
-      final active = period == v;
+      final active = v == period;
       return Material(
         color: Colors.transparent,
         child: InkWell(
@@ -567,57 +505,11 @@ class _PeriodChips extends StatelessWidget {
   }
 }
 
-class _TableTabs extends StatelessWidget {
-  final TabController controller;
-  const _TableTabs({required this.controller});
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 0,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.black26),
-        ),
-        child: TabBar(
-          controller: controller,
-          isScrollable: true,
-          labelColor: const Color(0xFF232534), // Coach gradient start
-          unselectedLabelColor: const Color(0xFF4B5563),
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
-          indicator: const UnderlineTabIndicator(
-            borderSide: BorderSide(
-              color: Color(0xFF232534),
-              width: 3,
-            ), // Coach gradient start
-            insets: EdgeInsets.symmetric(horizontal: 16),
-          ),
-          tabs: const [
-            Tab(text: 'Slack'),
-            Tab(text: 'Club Branches'),
-            Tab(text: 'Forum'),
-            Tab(text: 'Member'),
-            Tab(text: 'User'),
-            Tab(text: 'Event'),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// Removed _CategoryTabs (no longer used)
 
-class _TransactionsTable extends StatelessWidget {
+class _TransactionTable extends StatelessWidget {
   final bool isWide;
-  const _TransactionsTable({required this.isWide});
-
+  const _TransactionTable({required this.isWide});
   @override
   Widget build(BuildContext context) {
     final isNarrow = MediaQuery.of(context).size.width < 700;
@@ -715,7 +607,7 @@ class _TransactionsTable extends StatelessWidget {
       ),
     ];
 
-    final rows = List<DataRow>.generate(20, (i) {
+    final rows = List<DataRow>.generate(25, (i) {
       final odd = i % 2 == 1;
       return DataRow(
         color: MaterialStatePropertyAll(
@@ -864,7 +756,7 @@ class _TransactionsTable extends StatelessWidget {
       columns: columns,
       rows: rows,
       headingRowColor: MaterialStateProperty.all(const Color(0xFFF3F4F6)),
-      columnSpacing: 24,
+      columnSpacing: 28,
       dataRowMinHeight: 64,
       dataRowMaxHeight: 64,
       horizontalMargin: 16,
@@ -888,7 +780,7 @@ class _TransactionsTable extends StatelessWidget {
           ? ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: 20,
+              itemCount: 25,
               itemBuilder: (context, i) {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -1017,7 +909,7 @@ class _TransactionsTable extends StatelessWidget {
               },
             )
           : SizedBox(
-              height: isWide ? 520 : 420,
+              height: isWide ? 540 : 440,
               child: Scrollbar(
                 thumbVisibility: true,
                 child: SingleChildScrollView(
@@ -1075,8 +967,8 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
-class _FooterSection extends StatelessWidget {
-  const _FooterSection();
+class _Footer extends StatelessWidget {
+  const _Footer();
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -1129,20 +1021,6 @@ class _FooterSection extends StatelessWidget {
   }
 }
 
-class _RoundedContainer extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-  const _RoundedContainer({required this.child, this.padding});
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      padding: padding ?? const EdgeInsets.symmetric(horizontal: 8),
-      child: child,
-    );
-  }
-}
+// Removed unused _Link widget
+
+// Navigation from sidebar now centralized via RoleNavigationManager

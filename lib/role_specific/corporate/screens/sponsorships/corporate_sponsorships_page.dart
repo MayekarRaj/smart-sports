@@ -4,14 +4,15 @@ import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 
-class ClubOrdersPage extends StatefulWidget {
-  const ClubOrdersPage({super.key});
+class CorporateSponsorshipsPage extends StatefulWidget {
+  const CorporateSponsorshipsPage({super.key});
 
   @override
-  State<ClubOrdersPage> createState() => _ClubOrdersPageState();
+  State<CorporateSponsorshipsPage> createState() =>
+      _CorporateSponsorshipsPageState();
 }
 
-class _ClubOrdersPageState extends State<ClubOrdersPage> {
+class _CorporateSponsorshipsPageState extends State<CorporateSponsorshipsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,17 +21,17 @@ class _ClubOrdersPageState extends State<ClubOrdersPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
-            selectedIndex: 11, // Orders would be additional index
+            role: UserRole.corporate,
+            selectedIndex: 6, // Sponsorships is index 6
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.corporate,
               i,
             ),
             onProfileTap: () => RoleNavigationManager.navigateToProfile(
               context,
-              UserRole.coach,
+              UserRole.corporate,
             ),
             onSignOut: () {
               Navigator.of(context).pushAndRemoveUntil(
@@ -43,7 +44,7 @@ class _ClubOrdersPageState extends State<ClubOrdersPage> {
       ),
       appBar: AppBar(
         title: const Text(
-          'Orders',
+          'Sponsorships',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -55,7 +56,7 @@ class _ClubOrdersPageState extends State<ClubOrdersPage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              colors: [Color(0xFF232534), Color(0xFF414384)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -76,14 +77,10 @@ class _ClubOrdersPageState extends State<ClubOrdersPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.shopping_cart_outlined,
-              size: 80,
-              color: Color(0xFF1E40AF),
-            ),
+            Icon(Icons.handshake_outlined, size: 80, color: Color(0xFF1E40AF)),
             SizedBox(height: 16),
             Text(
-              'Orders',
+              'Sponsorships',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -92,7 +89,7 @@ class _ClubOrdersPageState extends State<ClubOrdersPage> {
             ),
             SizedBox(height: 8),
             Text(
-              'Manage your club orders',
+              'Manage your club sponsorships',
               style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
             ),
             SizedBox(height: 24),

@@ -20,16 +20,18 @@ class _ClubSponsorshipsPageState extends State<ClubSponsorshipsPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.club,
+            role: UserRole.coach,
             selectedIndex: 6, // Sponsorships is index 6
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.club,
+              UserRole.coach,
               i,
             ),
-            onProfileTap: () =>
-                RoleNavigationManager.navigateToProfile(context, UserRole.club),
+            onProfileTap: () => RoleNavigationManager.navigateToProfile(
+              context,
+              UserRole.coach,
+            ),
             onSignOut: () {
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const AuthShell()),
@@ -48,8 +50,17 @@ class _ClubSponsorshipsPageState extends State<ClubSponsorshipsPage> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFF1E40AF),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(

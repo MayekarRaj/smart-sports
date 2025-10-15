@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../club/screens/dashboard/club_analytics_dashboard_page.dart' as club;
 import '../coach/screens/dashboard/coach_analytics_dashboard_page.dart'
     as coach;
+import '../corporate/screens/dashboard/corporate_analytics_dashboard_page.dart'
+    as corporate;
 import '../member/screens/dashboard/member_dashboard_page.dart';
 import '../freelancer/screens/dashboard/freelancer_dashboard_page.dart';
 import '../merchandiser/screens/dashboard/merchandiser_dashboard_page.dart';
@@ -18,9 +20,9 @@ class RoleRouter {
       case UserRole.club:
         return const club.ClubAnalyticsDashboardPage();
       case UserRole.coach:
-        return const coach.ClubAnalyticsDashboardPage();
+        return const coach.CoachAnalyticsDashboardPage();
       case UserRole.corporate:
-        return const club.ClubAnalyticsDashboardPage();
+        return const corporate.CorporateAnalyticsDashboardPage();
       case UserRole.member:
         return const MemberDashboardPage();
       case UserRole.freelancer:

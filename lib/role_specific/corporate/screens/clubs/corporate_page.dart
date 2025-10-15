@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
-import 'coach_details_page.dart';
+import 'corporate_details_page.dart';
 
 class ClubsPage extends StatefulWidget {
   const ClubsPage({super.key});
@@ -89,7 +89,7 @@ class _ClubsPageState extends State<ClubsPage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              colors: [Color(0xFF232534), Color(0xFF414384)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -116,12 +116,12 @@ class _ClubsPageState extends State<ClubsPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.corporate,
             selectedIndex: 3, // Clubs is at index 3
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.corporate,
               i,
             ),
           ),
@@ -215,20 +215,20 @@ class _ClubsPageState extends State<ClubsPage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) =>
-            CoachDetailsPage(coach: _convertClubToCoach(club)),
+            CorporateDetailsPage(corporate: _convertClubToCorporate(club)),
       ),
     );
   }
 
-  CoachData _convertClubToCoach(ClubData club) {
-    return CoachData(
+  CorporateData _convertClubToCorporate(ClubData club) {
+    return CorporateData(
       name: club.name,
       rating: club.rating,
       location: club.location,
       specializations: club.availableSports,
       experience: 5, // Default experience
-      students: 25, // Default student count
-      hourlyRate: 50, // Default hourly rate
+      employees: 25, // Default employee count
+      budget: 50000, // Default budget
     );
   }
 }

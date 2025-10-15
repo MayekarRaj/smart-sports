@@ -57,12 +57,12 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.corporate,
             selectedIndex: 5,
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.corporate,
               i,
             ),
             onProfileTap: () async {

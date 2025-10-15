@@ -12,15 +12,16 @@ import 'package:smart_sports/role_specific/coach/screens/users/coach_users_page.
 import 'package:smart_sports/role_specific/coach/screens/referrals/coach_referrals_page.dart';
 import 'package:smart_sports/role_specific/coach/screens/settings/coach_settings_page.dart';
 
-class CoachCustomerSupportPage extends StatefulWidget {
-  const CoachCustomerSupportPage({super.key});
+class CorporateCustomerSupportPage extends StatefulWidget {
+  const CorporateCustomerSupportPage({super.key});
 
   @override
-  State<CoachCustomerSupportPage> createState() =>
-      _CoachCustomerSupportPageState();
+  State<CorporateCustomerSupportPage> createState() =>
+      _CorporateCustomerSupportPageState();
 }
 
-class _CoachCustomerSupportPageState extends State<CoachCustomerSupportPage> {
+class _CorporateCustomerSupportPageState
+    extends State<CorporateCustomerSupportPage> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _titleSearchController = TextEditingController();
   String _selectedStatus = 'Select';
@@ -121,7 +122,7 @@ class _CoachCustomerSupportPageState extends State<CoachCustomerSupportPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.corporate,
             selectedIndex: 9, // Customer Support is index 9
             edgeToEdge: true,
             onSelectIndex: (i) async {
@@ -189,7 +190,7 @@ class _CoachCustomerSupportPageState extends State<CoachCustomerSupportPage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              colors: [Color(0xFF232534), Color(0xFF414384)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

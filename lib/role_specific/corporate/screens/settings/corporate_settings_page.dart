@@ -6,14 +6,14 @@ import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/coach/screens/profile/coach_profile_page.dart';
 import 'package:smart_sports/role_specific/coach/screens/customer_support/coach_customer_support_page.dart';
 
-class CoachSettingsPage extends StatefulWidget {
-  const CoachSettingsPage({super.key});
+class CorporateSettingsPage extends StatefulWidget {
+  const CorporateSettingsPage({super.key});
 
   @override
-  State<CoachSettingsPage> createState() => _CoachSettingsPageState();
+  State<CorporateSettingsPage> createState() => _CorporateSettingsPageState();
 }
 
-class _CoachSettingsPageState extends State<CoachSettingsPage> {
+class _CorporateSettingsPageState extends State<CorporateSettingsPage> {
   bool _notificationsEnabled = true;
   bool _emailNotifications = true;
   bool _pushNotifications = true;
@@ -41,17 +41,17 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.corporate,
             selectedIndex: 10, // Settings is index 10
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.corporate,
               i,
             ),
             onProfileTap: () => RoleNavigationManager.navigateToProfile(
               context,
-              UserRole.coach,
+              UserRole.corporate,
             ),
             onSignOut: () {
               Navigator.of(context).pushAndRemoveUntil(
@@ -76,7 +76,7 @@ class _CoachSettingsPageState extends State<CoachSettingsPage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              colors: [Color(0xFF232534), Color(0xFF414384)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

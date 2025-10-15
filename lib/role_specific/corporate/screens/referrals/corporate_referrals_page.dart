@@ -16,14 +16,14 @@ import 'package:smart_sports/role_specific/coach/screens/users/coach_users_page.
 import 'package:smart_sports/role_specific/coach/screens/customer_support/coach_customer_support_page.dart';
 import 'package:smart_sports/role_specific/coach/screens/settings/coach_settings_page.dart';
 
-class CoachReferralsPage extends StatefulWidget {
-  const CoachReferralsPage({super.key});
+class CorporateReferralsPage extends StatefulWidget {
+  const CorporateReferralsPage({super.key});
 
   @override
-  State<CoachReferralsPage> createState() => _CoachReferralsPageState();
+  State<CorporateReferralsPage> createState() => _CorporateReferralsPageState();
 }
 
-class _CoachReferralsPageState extends State<CoachReferralsPage> {
+class _CorporateReferralsPageState extends State<CorporateReferralsPage> {
   List<Referral> _allReferrals = [];
   List<Referral> _filteredReferrals = [];
   String _searchQuery = '';
@@ -99,7 +99,7 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.corporate,
             selectedIndex: 8, // Referrals is index 8
             edgeToEdge: true,
             onSelectIndex: (i) async {
@@ -167,7 +167,7 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              colors: [Color(0xFF232534), Color(0xFF414384)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

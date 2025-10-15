@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
-import 'package:smart_sports/role_specific/club/widgets/club_phone_filters.dart';
+import 'package:smart_sports/role_specific/coach/widgets/coach_phone_filters.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 
-class ClubTransactionsPage extends StatefulWidget {
-  const ClubTransactionsPage({super.key});
+class CoachTransactionsPage extends StatefulWidget {
+  const CoachTransactionsPage({super.key});
 
   @override
-  State<ClubTransactionsPage> createState() => _ClubTransactionsPageState();
+  State<CoachTransactionsPage> createState() => _CoachTransactionsPageState();
 }
 
-class _ClubTransactionsPageState extends State<ClubTransactionsPage>
+class _CoachTransactionsPageState extends State<CoachTransactionsPage>
     with TickerProviderStateMixin {
   final TextEditingController _search = TextEditingController();
   int _showEntries = 10;
@@ -45,8 +45,17 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transactions'),
-        backgroundColor: const Color(0xFF1E40AF), // Club blue
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu),
@@ -73,12 +82,12 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.club,
+            role: UserRole.coach,
             selectedIndex: 1,
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.club,
+              UserRole.coach,
               i,
             ),
           ),
@@ -96,7 +105,7 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
             ),
             const SizedBox(height: 16),
             if (_showFilters)
-              ClubPhoneFilters(
+              CoachPhoneFilters(
                 initiallyExpanded: true,
                 searchController: _search,
                 fromDate: _fromDate,

@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/common/models/user.dart' as models;
-import 'package:smart_sports/role_specific/coach/screens/users/user_data_service.dart';
-import 'package:smart_sports/role_specific/coach/screens/users/user_card.dart';
+import 'package:smart_sports/role_specific/corporate/screens/users/user_data_service.dart';
+import 'package:smart_sports/role_specific/corporate/screens/users/user_card.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
-import 'package:smart_sports/role_specific/coach/screens/profile/coach_profile_page.dart';
+import 'package:smart_sports/role_specific/corporate/screens/profile/corporate_profile_page.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 // Navigation to other screens is handled via RoleNavigationManager from the sidebar.
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 
-class CoachUsersPage extends StatefulWidget {
-  const CoachUsersPage({super.key});
+class CorporateUsersPage extends StatefulWidget {
+  const CorporateUsersPage({super.key});
 
   @override
-  State<CoachUsersPage> createState() => _CoachUsersPageState();
+  State<CorporateUsersPage> createState() => _CorporateUsersPageState();
 }
 
-class _CoachUsersPageState extends State<CoachUsersPage>
+class _CorporateUsersPageState extends State<CorporateUsersPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   late AnimationController _filterAnimationController;
@@ -116,12 +116,12 @@ class _CoachUsersPageState extends State<CoachUsersPage>
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.corporate,
             selectedIndex: 7, // Users is index 7
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.corporate,
               i,
             ),
             onProfileTap: () async {
@@ -130,7 +130,9 @@ class _CoachUsersPageState extends State<CoachUsersPage>
               await Future.delayed(const Duration(milliseconds: 160));
               if (mounted) {
                 navigator.push(
-                  MaterialPageRoute(builder: (_) => const CoachProfilePage()),
+                  MaterialPageRoute(
+                    builder: (_) => const CorporateProfilePage(),
+                  ),
                 );
               }
             },
@@ -180,7 +182,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              colors: [Color(0xFF232534), Color(0xFF414384)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

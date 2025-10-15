@@ -5,11 +5,11 @@ import 'package:smart_sports/role_specific/coach/screens/courts/courts_page.dart
 import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_analytics_dashboard_page.dart';
 import 'package:smart_sports/role_specific/coach/screens/users/coach_users_page.dart';
 
-class CoachProfilePage extends StatefulWidget {
-  const CoachProfilePage({super.key});
+class CorporateProfilePage extends StatefulWidget {
+  const CorporateProfilePage({super.key});
 
   @override
-  State<CoachProfilePage> createState() => _CoachProfilePageState();
+  State<CorporateProfilePage> createState() => _CorporateProfilePageState();
 }
 
 void _navigateFromCoachSidebar(BuildContext context, int index) {
@@ -97,7 +97,7 @@ class _ClubProfilePlaceholder extends StatelessWidget {
   }
 }
 
-class _CoachProfilePageState extends State<CoachProfilePage>
+class _CorporateProfilePageState extends State<CorporateProfilePage>
     with TickerProviderStateMixin {
   late final TabController _tabController;
 
@@ -130,7 +130,7 @@ class _CoachProfilePageState extends State<CoachProfilePage>
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              colors: [Color(0xFF232534), Color(0xFF414384)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -147,7 +147,7 @@ class _CoachProfilePageState extends State<CoachProfilePage>
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.corporate,
             selectedIndex: 0,
             edgeToEdge: true,
             onSelectIndex: (i) async {

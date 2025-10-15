@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
-import 'package:smart_sports/role_specific/coach/screens/profile/coach_profile_page.dart';
-import 'package:smart_sports/role_specific/coach/screens/events/tournament_details_page.dart';
+import 'package:smart_sports/role_specific/corporate/screens/profile/corporate_profile_page.dart';
+import 'package:smart_sports/role_specific/corporate/screens/events/tournament_details_page.dart';
 
-class CoachEventsPage extends StatefulWidget {
-  const CoachEventsPage({super.key});
+class CorporateEventsPage extends StatefulWidget {
+  const CorporateEventsPage({super.key});
 
   @override
-  State<CoachEventsPage> createState() => _CoachEventsPageState();
+  State<CorporateEventsPage> createState() => _CorporateEventsPageState();
 }
 
-class _CoachEventsPageState extends State<CoachEventsPage> {
+class _CorporateEventsPageState extends State<CorporateEventsPage> {
   int _selectedTabIndex = 0;
   String _selectedSport = 'Cricket';
 
@@ -41,7 +41,7 @@ class _CoachEventsPageState extends State<CoachEventsPage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              colors: [Color(0xFF232534), Color(0xFF414384)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -58,19 +58,19 @@ class _CoachEventsPageState extends State<CoachEventsPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.corporate,
             selectedIndex: 5,
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.corporate,
               i,
             ),
             onProfileTap: () async {
               Navigator.of(context).pop();
               await Future.delayed(const Duration(milliseconds: 160));
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CoachProfilePage()),
+                MaterialPageRoute(builder: (_) => const CorporateProfilePage()),
               );
             },
           ),

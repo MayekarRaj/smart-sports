@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-class CoachDetailsPage extends StatefulWidget {
-  final CoachData coach;
+class CorporateDetailsPage extends StatefulWidget {
+  final CorporateData corporate;
 
-  const CoachDetailsPage({super.key, required this.coach});
+  const CorporateDetailsPage({super.key, required this.corporate});
 
   @override
-  State<CoachDetailsPage> createState() => _CoachDetailsPageState();
+  State<CorporateDetailsPage> createState() => _CorporateDetailsPageState();
 }
 
-class _CoachDetailsPageState extends State<CoachDetailsPage> {
+class _CorporateDetailsPageState extends State<CorporateDetailsPage> {
   int _selectedSpecializationIndex = 0;
   int _selectedExperienceIndex = 0;
   bool _showMoreDetails = false;
@@ -28,14 +28,14 @@ class _CoachDetailsPageState extends State<CoachDetailsPage> {
     'Expert (10+ years)',
   ];
 
-  final List<TrainingSessionData> _sessions = [
-    TrainingSessionData(
+  final List<CorporateProjectData> _sessions = [
+    CorporateProjectData(
       name: 'Morning Training',
       status: 'Available',
-      maxStudents: 15,
+      maxParticipants: 15,
       duration: '1 hour',
       level: 'Beginner',
-      price: 25,
+      budget: 25000,
       schedule: {
         'weekdays': '06:00 - 07:00',
         'saturday': '07:00 - 08:00',
@@ -43,13 +43,13 @@ class _CoachDetailsPageState extends State<CoachDetailsPage> {
       },
       imageUrl: 'assets/images/training1.jpg',
     ),
-    TrainingSessionData(
+    CorporateProjectData(
       name: 'Evening Training',
       status: 'Available',
-      maxStudents: 20,
+      maxParticipants: 20,
       duration: '1.5 hours',
       level: 'Intermediate',
-      price: 35,
+      budget: 35000,
       schedule: {
         'weekdays': '18:00 - 19:30',
         'saturday': '16:00 - 17:30',
@@ -57,13 +57,13 @@ class _CoachDetailsPageState extends State<CoachDetailsPage> {
       },
       imageUrl: 'assets/images/training2.jpg',
     ),
-    TrainingSessionData(
+    CorporateProjectData(
       name: 'Advanced Training',
       status: 'Available',
-      maxStudents: 10,
+      maxParticipants: 10,
       duration: '2 hours',
       level: 'Advanced',
-      price: 50,
+      budget: 50000,
       schedule: {
         'weekdays': '19:30 - 21:30',
         'saturday': '18:00 - 20:00',
@@ -77,14 +77,14 @@ class _CoachDetailsPageState extends State<CoachDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.coach.name),
+        title: Text(widget.corporate.name),
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              colors: [Color(0xFF232534), Color(0xFF414384)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -111,8 +111,8 @@ class _CoachDetailsPageState extends State<CoachDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Coach Header
-            MobileCoachHeader(coach: widget.coach),
+            // Corporate Header
+            MobileCorporateHeader(corporate: widget.corporate),
 
             // Specialization Selection
             MobileSpecializationSelector(
@@ -146,11 +146,11 @@ class _CoachDetailsPageState extends State<CoachDetailsPage> {
   }
 }
 
-// Mobile Coach Header Component
-class MobileCoachHeader extends StatelessWidget {
-  final CoachData coach;
+// Mobile Corporate Header Component
+class MobileCorporateHeader extends StatelessWidget {
+  final CorporateData corporate;
 
-  const MobileCoachHeader({super.key, required this.coach});
+  const MobileCorporateHeader({super.key, required this.corporate});
 
   @override
   Widget build(BuildContext context) {
@@ -171,12 +171,12 @@ class MobileCoachHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Coach Name and Rating
+          // Corporate Name and Rating
           Row(
             children: [
               Expanded(
                 child: Text(
-                  coach.name,
+                  corporate.name,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -188,7 +188,7 @@ class MobileCoachHeader extends StatelessWidget {
                   const Icon(Icons.star, color: Colors.amber, size: 20),
                   const SizedBox(width: 4),
                   Text(
-                    '${coach.rating}',
+                    '${corporate.rating}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -207,7 +207,7 @@ class MobileCoachHeader extends StatelessWidget {
               const Icon(Icons.location_on, size: 16, color: Colors.grey),
               const SizedBox(width: 4),
               Text(
-                coach.location,
+                corporate.location,
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
               ),
             ],
@@ -224,7 +224,7 @@ class MobileCoachHeader extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: coach.specializations
+            children: corporate.specializations
                 .map(
                   (specialization) => Container(
                     padding: const EdgeInsets.symmetric(
@@ -253,11 +253,14 @@ class MobileCoachHeader extends StatelessWidget {
           // Stats
           Row(
             children: [
-              _buildStatChip('Experience', '${coach.experience} years'),
+              _buildStatChip('Experience', '${corporate.experience} years'),
               const SizedBox(width: 8),
-              _buildStatChip('Students', '${coach.students}'),
+              _buildStatChip('Employees', '${corporate.employees}'),
               const SizedBox(width: 8),
-              _buildStatChip('Rate', '\$${coach.hourlyRate}/hr'),
+              _buildStatChip(
+                'Budget',
+                '\$${corporate.budget.toStringAsFixed(0)}',
+              ),
             ],
           ),
         ],
@@ -403,12 +406,12 @@ class MobileExperienceSelector extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFF2C3BC5)
+                            ? const Color(0xFF414384)
                             : Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF2C3BC5)
+                              ? const Color(0xFF414384)
                               : Colors.grey.shade300,
                         ),
                       ),
@@ -433,7 +436,7 @@ class MobileExperienceSelector extends StatelessWidget {
 
 // Mobile Training Sessions List Component
 class MobileTrainingSessionsList extends StatelessWidget {
-  final List<TrainingSessionData> sessions;
+  final List<CorporateProjectData> sessions;
 
   const MobileTrainingSessionsList({super.key, required this.sessions});
 
@@ -460,7 +463,7 @@ class MobileTrainingSessionsList extends StatelessWidget {
 
 // Mobile Training Session Card Component
 class MobileTrainingSessionCard extends StatelessWidget {
-  final TrainingSessionData session;
+  final CorporateProjectData session;
 
   const MobileTrainingSessionCard({super.key, required this.session});
 
@@ -561,7 +564,7 @@ class MobileTrainingSessionCard extends StatelessWidget {
                     Expanded(
                       child: _buildMetricCard(
                         'MAX STUDENTS',
-                        '${session.maxStudents}',
+                        '${session.maxParticipants}',
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -595,7 +598,7 @@ class MobileTrainingSessionCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '\$${session.price}',
+                    '\$${session.budget.toStringAsFixed(0)}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -753,8 +756,8 @@ class MobileMoreDetailsSection extends StatelessWidget {
           if (showMoreDetails) ...[
             const SizedBox(height: 16),
 
-            // Coaches Section
-            MobileCoachesSection(),
+            // Corporate Projects Section
+            MobileCorporateProjectsSection(),
 
             const SizedBox(height: 16),
 
@@ -777,9 +780,9 @@ class MobileMoreDetailsSection extends StatelessWidget {
   }
 }
 
-// Mobile Coaches Section Component
-class MobileCoachesSection extends StatelessWidget {
-  const MobileCoachesSection({super.key});
+// Mobile Corporate Projects Section Component
+class MobileCorporateProjectsSection extends StatelessWidget {
+  const MobileCorporateProjectsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -802,7 +805,7 @@ class MobileCoachesSection extends StatelessWidget {
           Row(
             children: [
               const Text(
-                'Coaches',
+                'Corporate Projects',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
@@ -816,7 +819,7 @@ class MobileCoachesSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
-                  'Upgrade To Unlock Coach Ratings And Reviews',
+                  'Upgrade To Unlock Corporate Project Ratings And Reviews',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -828,15 +831,15 @@ class MobileCoachesSection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Coach Cards
+          // Corporate Project Cards
           ...List.generate(
             3,
-            (index) => MobileCoachCard(
-              name: 'Riya Mehra',
-              rating: 3.8,
-              specialization: 'Football (U17), Tennis, Strength & Conditioning',
-              experience: '5+ Years, Former National Player',
-              certification: 'AIFF D-License, NASM CPT, First-Aid Certified',
+            (index) => MobileCorporateProjectCard(
+              name: 'TechCorp Solutions',
+              rating: 4.2,
+              specialization: 'Software Development, AI/ML, Cloud Computing',
+              experience: '8+ Years, Fortune 500 Experience',
+              certification: 'AWS Certified, Microsoft Azure, Google Cloud',
               availability: 'Weekdays 6-9 PM, Weekends Full Day',
               distance: '5 Miles From Event Venue',
               rate: 'USD 50',
@@ -849,8 +852,8 @@ class MobileCoachesSection extends StatelessWidget {
   }
 }
 
-// Mobile Coach Card Component
-class MobileCoachCard extends StatelessWidget {
+// Mobile Corporate Project Card Component
+class MobileCorporateProjectCard extends StatelessWidget {
   final String name;
   final double rating;
   final String specialization;
@@ -861,7 +864,7 @@ class MobileCoachCard extends StatelessWidget {
   final String rate;
   final bool isBlocked;
 
-  const MobileCoachCard({
+  const MobileCorporateProjectCard({
     super.key,
     required this.name,
     required this.rating,
@@ -1190,43 +1193,43 @@ class MobileSponsorshipSection extends StatelessWidget {
 }
 
 // Data models
-class CoachData {
+class CorporateData {
   final String name;
   final double rating;
   final String location;
   final List<String> specializations;
   final int experience;
-  final int students;
-  final int hourlyRate;
+  final int employees;
+  final double budget;
 
-  CoachData({
+  CorporateData({
     required this.name,
     required this.rating,
     required this.location,
     required this.specializations,
     required this.experience,
-    required this.students,
-    required this.hourlyRate,
+    required this.employees,
+    required this.budget,
   });
 }
 
-class TrainingSessionData {
+class CorporateProjectData {
   final String name;
   final String status;
-  final int maxStudents;
+  final int maxParticipants;
   final String duration;
   final String level;
-  final int price;
+  final double budget;
   final Map<String, String> schedule;
   final String imageUrl;
 
-  TrainingSessionData({
+  CorporateProjectData({
     required this.name,
     required this.status,
-    required this.maxStudents,
+    required this.maxParticipants,
     required this.duration,
     required this.level,
-    required this.price,
+    required this.budget,
     required this.schedule,
     required this.imageUrl,
   });
