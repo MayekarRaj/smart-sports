@@ -26,14 +26,26 @@ class _SignUpPageState extends State<SignUpPage> {
   final state = TextEditingController();
   final zipCode = TextEditingController();
   final country = TextEditingController();
-  
+
   bool _isLoading = false;
   final ApiService _apiService = ApiService();
   // OTP UI removed from the form; we show a dedicated Verify Email page after register
 
   @override
   void dispose() {
-    for (final c in [firstName, lastName, email, pass, confirm, phone, address, city, state, zipCode, country]) {
+    for (final c in [
+      firstName,
+      lastName,
+      email,
+      pass,
+      confirm,
+      phone,
+      address,
+      city,
+      state,
+      zipCode,
+      country,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -41,7 +53,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   void _register() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -67,19 +79,21 @@ class _SignUpPageState extends State<SignUpPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Welcome ${response.data!.user.name}! Registration successful!'),
+              content: Text(
+                'Welcome ${response.data!.user.name}! Registration successful!',
+              ),
               backgroundColor: Colors.green,
             ),
           );
-          
+
           // Get role from API response and navigate to appropriate dashboard
           final userRole = response.data!.user.role;
           final apiRole = _getUserRoleFromString(userRole);
           final target = RoleRouter.dashboardFor(apiRole);
-          
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => target),
-          );
+
+          Navigator.of(
+            context,
+          ).pushReplacement(MaterialPageRoute(builder: (_) => target));
         }
       } else {
         // Show error message
@@ -113,7 +127,7 @@ class _SignUpPageState extends State<SignUpPage> {
   // Helper method to convert API role string to UserRole enum
   UserRole _getUserRoleFromString(String? roleString) {
     if (roleString == null) return UserRole.member;
-    
+
     switch (roleString.toLowerCase()) {
       case 'club':
         return UserRole.club;
@@ -192,25 +206,16 @@ class _SignUpPageState extends State<SignUpPage> {
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-            RoundedTextField(
-              controller: address,
-              hint: 'Address',
-            ),
+            RoundedTextField(controller: address, hint: 'Address'),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
-                  child: RoundedTextField(
-                    controller: city,
-                    hint: 'City',
-                  ),
+                  child: RoundedTextField(controller: city, hint: 'City'),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: RoundedTextField(
-                    controller: state,
-                    hint: 'State',
-                  ),
+                  child: RoundedTextField(controller: state, hint: 'State'),
                 ),
               ],
             ),
@@ -226,10 +231,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: RoundedTextField(
-                    controller: country,
-                    hint: 'Country',
-                  ),
+                  child: RoundedTextField(controller: country, hint: 'Country'),
                 ),
               ],
             ),
@@ -249,7 +251,7 @@ class _SignUpPageState extends State<SignUpPage> {
               height: 56,
               child: ElevatedButton.icon(
                 onPressed: _isLoading ? null : _register,
-                icon: _isLoading 
+                icon: _isLoading
                     ? const SizedBox(
                         width: 20,
                         height: 20,

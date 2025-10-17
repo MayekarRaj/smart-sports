@@ -42,6 +42,12 @@ class ApiService {
     try {
       http.Response response;
 
+      // Debug logging
+      print('🚀 API Request: $method $url');
+      if (body != null) {
+        print('📤 Request Body: ${json.encode(body)}');
+      }
+
       switch (method.toUpperCase()) {
         case 'GET':
           response = await http.get(Uri.parse(url), headers: ApiConfig.headers);
@@ -70,6 +76,10 @@ class ApiService {
           throw Exception('Unsupported HTTP method: $method');
       }
 
+      // Debug logging
+      print('📥 Response Status: ${response.statusCode}');
+      print('📥 Response Body: ${response.body}');
+
       final responseData = json.decode(response.body);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -87,6 +97,7 @@ class ApiService {
         );
       }
     } catch (e) {
+      print('❌ API Error: $e');
       return ApiResponse<T>(
         success: false,
         message: 'Network error: ${e.toString()}',
@@ -112,18 +123,26 @@ class ApiService {
   }
 
   Future<ApiResponse<SignInResponse>> signUp(SignUpRequest request) async {
-    final response = await _makeRequest<SignInResponse>(
-      ApiEndpoints.getSignUpUrl(),
-      'POST',
-      body: request.toJson(),
-      fromJson: (data) => SignInResponse.fromJson(data),
-    );
+    try {
+      final response = await _makeRequest<SignInResponse>(
+        ApiEndpoints.getSignUpUrl(),
+        'POST',
+        body: request.toJson(),
+        fromJson: (data) => SignInResponse.fromJson(data),
+      );
 
-    if (response.success && response.data != null) {
-      await saveAuthToken(response.data!.token);
+      if (response.success && response.data != null) {
+        await saveAuthToken(response.data!.token);
+      }
+
+      return response;
+    } catch (e) {
+      return ApiResponse<SignInResponse>(
+        success: false,
+        message: 'Signup failed: ${e.toString()}',
+        statusCode: 0,
+      );
     }
-
-    return response;
   }
 
   Future<ApiResponse<UserProfile>> getProfile(int userId) async {
