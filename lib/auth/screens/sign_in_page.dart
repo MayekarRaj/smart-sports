@@ -46,17 +46,21 @@ class _SignInPageState extends State<SignInPage> {
       final response = await _apiService.signIn(request);
 
       if (response.success && response.data != null) {
-        // Successfully signed in
+        // Successfully signed in - use role from API response
         if (mounted) {
+          // Get role from API response
+          final userRole = response.data!.user.role;
+          final apiRole = _getUserRoleFromString(userRole);
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Welcome back, ${response.data!.user.name}!'),
+              content: Text('Welcome back, ${response.data!.user.name}! Role: $userRole'),
               backgroundColor: Colors.green,
             ),
           );
 
-          // Navigate to role-based dashboard
-          final target = RoleRouter.dashboardFor(role);
+          // Navigate to role-based dashboard using API role
+          final target = RoleRouter.dashboardFor(apiRole);
           Navigator.of(
             context,
           ).pushReplacement(MaterialPageRoute(builder: (_) => target));
@@ -87,6 +91,25 @@ class _SignInPageState extends State<SignInPage> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  // Helper method to convert API role string to UserRole enum
+  UserRole _getUserRoleFromString(String? roleString) {
+    if (roleString == null) return UserRole.member;
+    
+    switch (roleString.toLowerCase()) {
+      case 'club':
+        return UserRole.club;
+      case 'coach':
+        return UserRole.coach;
+      case 'corporate':
+        return UserRole.corporate;
+      case 'merchandiser':
+        return UserRole.merchandiser;
+      case 'member':
+      default:
+        return UserRole.member;
     }
   }
 
@@ -132,7 +155,7 @@ class _SignInPageState extends State<SignInPage> {
           const SizedBox(height: 12),
           // Role Dropdown - TEMPORARILY DISABLED FOR API TESTING
           // Current role is set to: ${role.label} (default: Member)
-          
+
           // Temporary role indicator for API testing
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -146,7 +169,7 @@ class _SignInPageState extends State<SignInPage> {
                 Icon(Icons.info, color: Colors.blue.shade600, size: 16),
                 const SizedBox(width: 8),
                 Text(
-                  'Testing with role: ${role.label}',
+                  'Role will be determined by API response',
                   style: TextStyle(
                     color: Colors.blue.shade700,
                     fontSize: 14,
