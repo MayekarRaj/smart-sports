@@ -84,11 +84,11 @@ class RoleSidebarThemes {
       case UserRole.merchandiser:
         return const SidebarThemeData(
           background: LinearGradient(
-            colors: [Color(0xFF3C3B3F), Color(0xFF605C3C)],
+            colors: [Color(0xFF009A69), Color(0xFF232534)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          tileBackground: Color(0xFF222024),
+          tileBackground: Color(0xFF232534),
           iconColor: Colors.white,
           textColor: Colors.white,
           dividerColor: Color(0x33FFFFFF),

@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/courts/merchandiser_courts_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/bookings/merchandiser_bookings_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/events/merchandiser_events_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/users/merchandiser_users_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/referrals/merchandiser_referrals_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/customer_support/merchandiser_customer_support_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/settings/merchandiser_settings_page.dart';
+import 'package:smart_sports/role_specific/merchandiser/widgets/merchandiser_phone_filters.dart';
+import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 
 class MerchandiserTransactionsPage extends StatefulWidget {
   const MerchandiserTransactionsPage({super.key});
@@ -24,7 +18,7 @@ class _MerchandiserTransactionsPageState
   final TextEditingController _search = TextEditingController();
   int _showEntries = 10;
   String _period = 'ALL';
-  late final TabController _tabs;
+  // Removed category tabs
   bool _showFilters = false;
 
   DateTime? _fromDate;
@@ -37,12 +31,12 @@ class _MerchandiserTransactionsPageState
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 3, vsync: this);
+    // No category tabs to initialize
   }
 
   @override
   void dispose() {
-    _tabs.dispose();
+    // No category tabs to dispose
     _search.dispose();
     super.dispose();
   }
@@ -52,9 +46,18 @@ class _MerchandiserTransactionsPageState
     final isWide = MediaQuery.of(context).size.width >= 900;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transactions'),
-        backgroundColor: const Color(0xFF8B5CF6), // Merchandiser purple
+        title: const Text('Merchandise Transactions'),
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu),
@@ -75,29 +78,20 @@ class _MerchandiserTransactionsPageState
             tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(46),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: _TopPills(
-              tabs: _tabs,
-              labels: const ['Overview', 'Payouts', 'Refunds'],
-            ),
-          ),
-        ),
+        // Removed pills under AppBar
       ),
       drawer: Drawer(
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.merchandiser,
+            role: UserRole.coach,
             selectedIndex: 1,
             edgeToEdge: true,
-            onSelectIndex: (i) async {
-              Navigator.of(context).pop();
-              await Future.delayed(const Duration(milliseconds: 160));
-              _navigateFromSidebar(context, i);
-            },
+            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
+              context,
+              UserRole.coach,
+              i,
+            ),
           ),
         ),
       ),
@@ -113,13 +107,13 @@ class _MerchandiserTransactionsPageState
             ),
             const SizedBox(height: 16),
             if (_showFilters)
-              _FilterBar(
+              MerchandiserPhoneFilters(
+                initiallyExpanded: true,
+                searchController: _search,
                 fromDate: _fromDate,
                 toDate: _toDate,
                 fromTime: _fromTime,
                 toTime: _toTime,
-                days: _days,
-                status: _status,
                 onPickFromDate: () async {
                   final res = await showDatePicker(
                     context: context,
@@ -152,7 +146,9 @@ class _MerchandiserTransactionsPageState
                   );
                   if (res != null) setState(() => _toTime = res);
                 },
+                days: _days,
                 onChangeDays: (v) => setState(() => _days = v),
+                status: _status,
                 onChangeStatus: (v) => setState(() => _status = v),
               ),
             if (_showFilters) const SizedBox(height: 16),
@@ -162,8 +158,7 @@ class _MerchandiserTransactionsPageState
               onChanged: (v) => setState(() => _period = v),
             ),
             const SizedBox(height: 16),
-            _CategoryTabs(controller: _tabs),
-            const SizedBox(height: 12),
+            // Removed category tabs section
             _TransactionTable(isWide: isWide),
             const SizedBox(height: 24),
             const _Footer(),
@@ -174,53 +169,7 @@ class _MerchandiserTransactionsPageState
   }
 }
 
-class _TopPills extends StatelessWidget {
-  final TabController tabs;
-  final List<String> labels;
-  const _TopPills({required this.tabs, required this.labels});
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: TabBar(
-        controller: tabs,
-        isScrollable: true,
-        indicator: const BoxDecoration(),
-        labelPadding: const EdgeInsets.symmetric(horizontal: 6),
-        tabs: labels.map((t) => _pill(t)).toList(),
-      ),
-    );
-  }
-
-  Widget _pill(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () {},
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE0E0E0)),
-            boxShadow: const [
-              BoxShadow(
-                blurRadius: 6,
-                color: Color(0x14000000),
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Text(
-            text,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// Removed _TopPills (no longer used)
 
 class _ShowAndSearch extends StatelessWidget {
   final int value;
@@ -314,7 +263,8 @@ class _ShowAndSearch extends StatelessWidget {
   );
 }
 
-class _FilterBar extends StatelessWidget {
+// NOTE: Replaced by ClubPhoneFilters; keeping implementation commented out
+/* class _FilterBar extends StatelessWidget {
   final DateTime? fromDate;
   final DateTime? toDate;
   final TimeOfDay? fromTime;
@@ -499,7 +449,7 @@ class _FilterBar extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 12),
     child: child,
   );
-}
+} */
 
 class _PeriodSelector extends StatelessWidget {
   final String period;
@@ -556,43 +506,14 @@ class _PeriodSelector extends StatelessWidget {
   }
 }
 
-class _CategoryTabs extends StatelessWidget {
-  final TabController controller;
-  const _CategoryTabs({required this.controller});
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 0,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.black26),
-        ),
-        child: TabBar(
-          controller: controller,
-          isScrollable: true,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w700),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-          indicator: const UnderlineTabIndicator(
-            borderSide: BorderSide(color: Colors.black87, width: 3),
-          ),
-          tabs: const [
-            Tab(text: 'Slack'),
-            Tab(text: 'Merchandiser Branches'),
-            Tab(text: 'Forum'),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// Removed _CategoryTabs (no longer used)
 
 class _TransactionTable extends StatelessWidget {
   final bool isWide;
   const _TransactionTable({required this.isWide});
   @override
   Widget build(BuildContext context) {
+    final isNarrow = MediaQuery.of(context).size.width < 700;
     final columns = [
       DataColumn(
         label: Container(
@@ -601,7 +522,7 @@ class _TransactionTable extends StatelessWidget {
             'Transaction ID',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -614,7 +535,7 @@ class _TransactionTable extends StatelessWidget {
             'Start Date',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -627,7 +548,7 @@ class _TransactionTable extends StatelessWidget {
             'End Date',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -640,7 +561,7 @@ class _TransactionTable extends StatelessWidget {
             'Amount',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -653,7 +574,7 @@ class _TransactionTable extends StatelessWidget {
             'Payment Method',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -666,7 +587,7 @@ class _TransactionTable extends StatelessWidget {
             'Payment Status',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -679,7 +600,7 @@ class _TransactionTable extends StatelessWidget {
             'Actions',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: 16,
               color: Color(0xFF1F2937),
             ),
           ),
@@ -701,7 +622,8 @@ class _TransactionTable extends StatelessWidget {
                 '#${(i + 1).toString().padLeft(4, '0')}',
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF8B5CF6),
+                  fontSize: 14,
+                  color: Color(0xFF1E40AF),
                 ),
               ),
             ),
@@ -713,6 +635,7 @@ class _TransactionTable extends StatelessWidget {
                 '02-28-2025',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
+                  fontSize: 14,
                   color: Color(0xFF374151),
                 ),
               ),
@@ -725,6 +648,7 @@ class _TransactionTable extends StatelessWidget {
                 '02-28-2026',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
+                  fontSize: 14,
                   color: Color(0xFF374151),
                 ),
               ),
@@ -737,6 +661,7 @@ class _TransactionTable extends StatelessWidget {
                 '₹1,000',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
+                  fontSize: 14,
                   color: Color(0xFF059669),
                 ),
               ),
@@ -753,15 +678,15 @@ class _TransactionTable extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                      color: const Color(0xFF1E40AF).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: const Text(
                       'Bank Transfer',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF8B5CF6),
+                        color: Color(0xFF1E40AF),
                       ),
                     ),
                   ),
@@ -786,7 +711,7 @@ class _TransactionTable extends StatelessWidget {
                     child: const Text(
                       'Paid',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF059669),
                       ),
@@ -832,9 +757,9 @@ class _TransactionTable extends StatelessWidget {
       columns: columns,
       rows: rows,
       headingRowColor: MaterialStateProperty.all(const Color(0xFFF3F4F6)),
-      columnSpacing: 24,
-      dataRowMinHeight: 60,
-      dataRowMaxHeight: 60,
+      columnSpacing: 28,
+      dataRowMinHeight: 64,
+      dataRowMaxHeight: 64,
       horizontalMargin: 16,
     );
 
@@ -852,19 +777,151 @@ class _TransactionTable extends StatelessWidget {
         ],
       ),
       padding: const EdgeInsets.all(16),
-      child: SizedBox(
-        height: isWide ? 520 : 420,
-        child: Scrollbar(
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 1000),
-              child: SingleChildScrollView(child: table),
+      child: isNarrow
+          ? ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 25,
+              itemBuilder: (context, i) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '#${(i + 1).toString().padLeft(4, '0')}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E40AF),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF059669,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'Paid',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF059669),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: const [
+                          Icon(Icons.event, size: 16, color: Color(0xFF6B7280)),
+                          SizedBox(width: 6),
+                          Text(
+                            '02-28-2025 → 02-28-2026',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF374151),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF1E40AF,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'Bank Transfer',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF1E40AF),
+                              ),
+                            ),
+                          ),
+                          const Text(
+                            '₹1,000',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF059669),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          _ActionButton(
+                            icon: Icons.receipt,
+                            label: 'Invoice',
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Invoice downloaded'),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _ActionButton(
+                            icon: Icons.download,
+                            label: 'Receipt',
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Receipt downloaded'),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            )
+          : SizedBox(
+              height: isWide ? 540 : 440,
+              child: Scrollbar(
+                thumbVisibility: true,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 1100),
+                    child: SingleChildScrollView(child: table),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -937,7 +994,7 @@ class _Footer extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                color: const Color(0xFF1E40AF).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
@@ -945,7 +1002,7 @@ class _Footer extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF8B5CF6),
+                  color: Color(0xFF1E40AF),
                 ),
               ),
             ),
@@ -965,81 +1022,6 @@ class _Footer extends StatelessWidget {
   }
 }
 
-class _Link extends StatelessWidget {
-  final String text;
-  final VoidCallback onTap;
-  const _Link(this.text, this.onTap);
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.blue,
-          decoration: TextDecoration.underline,
-        ),
-      ),
-    );
-  }
-}
+// Removed unused _Link widget
 
-void _navigateFromSidebar(BuildContext context, int index) {
-  switch (index) {
-    case 0:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => const MerchandiserAnalyticsDashboardPage(),
-        ),
-      );
-      break;
-    case 1:
-      // already on transactions
-      break;
-    case 2:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MerchandiserCourtsPage()),
-      );
-      break;
-    case 3:
-      // Clubs - placeholder
-      break;
-    case 4:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MerchandiserBookingsPage()),
-      );
-      break;
-    case 5:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MerchandiserEventsPage()),
-      );
-      break;
-    case 6:
-      // Sponsorships - placeholder
-      break;
-    case 7:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MerchandiserUsersPage()),
-      );
-      break;
-    case 8:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MerchandiserReferralsPage()),
-      );
-      break;
-    case 9:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => const MerchandiserCustomerSupportPage(),
-        ),
-      );
-      break;
-    case 10:
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MerchandiserSettingsPage()),
-      );
-      break;
-    default:
-      break;
-  }
-}
+// Navigation from sidebar now centralized via RoleNavigationManager

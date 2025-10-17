@@ -83,7 +83,7 @@ import 'package:smart_sports/role_specific/corporate/screens/profile/corporate_p
 // Merchandiser imports
 import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/transactions/merchandiser_transactions_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/courts/merchandiser_courts_page.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/courts/courts_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/bookings/merchandiser_bookings_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/events/merchandiser_events_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/users/merchandiser_users_page.dart';

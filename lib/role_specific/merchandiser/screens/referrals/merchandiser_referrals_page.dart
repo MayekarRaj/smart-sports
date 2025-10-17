@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:smart_sports/role_specific/club/screens/referrals/referral_data_service.dart';
-import 'package:smart_sports/role_specific/club/screens/referrals/referral_card.dart';
-import 'package:smart_sports/role_specific/club/screens/referrals/invite_referral_dialog.dart';
-import 'package:smart_sports/role_specific/club/screens/referrals/referral.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/referrals/referral_data_service.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/referrals/referral_card.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/referrals/invite_referral_dialog.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/referrals/referral.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/profile/merchandiser_profile_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/transactions/merchandiser_transactions_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/courts/merchandiser_courts_page.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/courts/courts_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/bookings/merchandiser_bookings_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/events/merchandiser_events_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/users/merchandiser_users_page.dart';
@@ -125,9 +125,32 @@ class _MerchandiserReferralsPageState extends State<MerchandiserReferralsPage> {
               }
             },
             onSignOut: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthShell()),
-                (route) => false,
+              showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop(); // Close dialog
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const AuthShell()),
+                          (route) => false,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
+                ),
               );
             },
           ),
@@ -142,8 +165,17 @@ class _MerchandiserReferralsPageState extends State<MerchandiserReferralsPage> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFF1E40AF),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu, color: Colors.white),
@@ -151,105 +183,91 @@ class _MerchandiserReferralsPageState extends State<MerchandiserReferralsPage> {
           ),
         ),
         actions: [
+          // Filter Button
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _showFilters = !_showFilters;
+              });
+            },
+            icon: Icon(
+              _showFilters ? Icons.filter_list_off : Icons.filter_list,
+              color: Colors.white,
+            ),
+            tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
+          ),
           // Invite Referral Button
           Container(
             margin: const EdgeInsets.only(right: 8),
-            child: ElevatedButton(
+            child: ElevatedButton.icon(
               onPressed: _showInviteReferralDialog,
+              icon: const Icon(Icons.person_add, size: 18),
+              label: const Text(
+                'Invite',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF1E40AF),
-                elevation: 0,
+                foregroundColor: const Color(
+                  0xFF232534,
+                ), // Coach gradient start
+                elevation: 2,
+                shadowColor: Colors.black26,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                minimumSize: const Size(0, 32),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.person_add, size: 14),
-                  const SizedBox(width: 2),
-                  const Text(
-                    'Invite',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
-                  ),
-                ],
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                minimumSize: const Size(80, 36),
               ),
             ),
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              children: [
-                // Search bar
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                      _applyFilters();
-                    },
-                    decoration: const InputDecoration(
-                      hintText: 'Search Here',
-                      hintStyle: TextStyle(color: Color(0xFF9CA3AF)),
-                      prefixIcon: Icon(Icons.search, color: Color(0xFF6B7280)),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Entries info
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Show $_itemsPerPage Entries',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      '${_filteredReferrals.length} referrals found',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
       body: Column(
         children: [
+          // Search bar
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                  _applyFilters();
+                },
+                decoration: const InputDecoration(
+                  hintText: 'Search referrals...',
+                  hintStyle: TextStyle(color: Color(0xFF9CA3AF)),
+                  prefixIcon: Icon(Icons.search, color: Color(0xFF6B7280)),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           // Filter section - Only show when toggled
           if (_showFilters)
             Container(
-              color: const Color(0xFF2D3748),
+              color: const Color(0xFF1E40AF),
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
@@ -410,7 +428,9 @@ class _MerchandiserReferralsPageState extends State<MerchandiserReferralsPage> {
                               content: Text(
                                 'Tapped on ${referral.referralName}',
                               ),
-                              backgroundColor: const Color(0xFF1E40AF),
+                              backgroundColor: const Color(
+                                0xFF232534,
+                              ), // Coach gradient start
                             ),
                           );
                         },
@@ -573,7 +593,9 @@ class _MerchandiserReferralsPageState extends State<MerchandiserReferralsPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: enabled ? const Color(0xFF1E40AF) : const Color(0xFFE5E7EB),
+          color: enabled
+              ? const Color(0xFF232534)
+              : const Color(0xFFE5E7EB), // Coach gradient start
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
@@ -599,7 +621,9 @@ class _MerchandiserReferralsPageState extends State<MerchandiserReferralsPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF1E40AF) : Colors.transparent,
+          color: isActive
+              ? const Color(0xFF232534)
+              : Colors.transparent, // Coach gradient start
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(

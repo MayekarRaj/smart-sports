@@ -6,7 +6,7 @@ import '../corporate/screens/dashboard/corporate_analytics_dashboard_page.dart'
     as corporate;
 import '../member/screens/dashboard/member_dashboard_page.dart';
 import '../freelancer/screens/dashboard/freelancer_dashboard_page.dart';
-import '../merchandiser/screens/dashboard/merchandiser_dashboard_page.dart';
+import '../merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
 
 enum UserRole { club, coach, corporate, member, freelancer, merchandiser }
 
@@ -28,7 +28,7 @@ class RoleRouter {
       case UserRole.freelancer:
         return const FreelancerDashboardPage();
       case UserRole.merchandiser:
-        return const MerchandiserDashboardPage();
+        return const MerchandiserAnalyticsDashboardPage();
     }
   }
 }

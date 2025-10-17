@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/utils/validators.dart';
+import '../../core/services/api_service.dart';
+import '../../core/models/api_models.dart';
 import '../widgets/rounded_text_field.dart';
 import '../widgets/password_field.dart';
 import '../widgets/social_row.dart';
@@ -18,6 +20,8 @@ class _SignInPageState extends State<SignInPage> {
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
   UserRole role = UserRole.member;
+  bool _isLoading = false;
+  final ApiService _apiService = ApiService();
 
   @override
   void dispose() {
@@ -28,10 +32,62 @@ class _SignInPageState extends State<SignInPage> {
 
   void _onSignIn() async {
     if (!_formKey.currentState!.validate()) return;
-    // Mock role-based routing after sign in
-    final target = RoleRouter.dashboardFor(role);
-    // ignore: use_build_context_synchronously
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => target));
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final request = SignInRequest(
+        email: emailCtrl.text.trim(),
+        password: passCtrl.text,
+      );
+
+      final response = await _apiService.signIn(request);
+
+      if (response.success && response.data != null) {
+        // Successfully signed in
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Welcome back, ${response.data!.user.name}!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate to role-based dashboard
+          final target = RoleRouter.dashboardFor(role);
+          Navigator.of(
+            context,
+          ).pushReplacement(MaterialPageRoute(builder: (_) => target));
+        }
+      } else {
+        // Show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sign in failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -48,12 +104,18 @@ class _SignInPageState extends State<SignInPage> {
             validator: Validators.email,
           ),
           const SizedBox(height: 10),
-          PasswordField(controller: passCtrl, hint: 'Password', validator: Validators.password),
+          PasswordField(
+            controller: passCtrl,
+            hint: 'Password',
+            validator: Validators.password,
+          ),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ForgotPasswordPage())),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
+              ),
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
               ),
@@ -91,16 +153,21 @@ class _SignInPageState extends State<SignInPage> {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<UserRole>(
                       value: role,
-                      onChanged: (v) => setState(() => role = v ?? UserRole.member),
+                      onChanged: (v) =>
+                          setState(() => role = v ?? UserRole.member),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: Colors.black87,
                       ),
-                      items: UserRole.values.map((r) => DropdownMenuItem(
-                        value: r,
-                        child: Text(r.label),
-                      )).toList(),
+                      items: UserRole.values
+                          .map(
+                            (r) => DropdownMenuItem(
+                              value: r,
+                              child: Text(r.label),
+                            ),
+                          )
+                          .toList(),
                     ),
                   ),
                 ),
@@ -127,30 +194,47 @@ class _SignInPageState extends State<SignInPage> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: _onSignIn,
+                onTap: _isLoading ? null : _onSignIn,
                 borderRadius: BorderRadius.circular(16),
-                child: const Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.login, color: Colors.white),
-                      SizedBox(width: 12),
-                      Text(
-                        'Sign In',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                child: Center(
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.login, color: Colors.white),
+                            SizedBox(width: 12),
+                            Text(
+                              'Sign In',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ),
           ),
           const SizedBox(height: 20),
-          Row(children: const [Expanded(child: Divider()), SizedBox(width: 12), Text('Or continue with'), SizedBox(width: 12), Expanded(child: Divider())]),
+          Row(
+            children: const [
+              Expanded(child: Divider()),
+              SizedBox(width: 12),
+              Text('Or continue with'),
+              SizedBox(width: 12),
+              Expanded(child: Divider()),
+            ],
+          ),
           const SizedBox(height: 10),
           const SocialRow(),
         ],

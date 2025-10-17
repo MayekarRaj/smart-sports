@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/services/api_service.dart';
+import '../../core/models/api_models.dart';
 import 'membership_plan_page.dart';
 
 class ClubRegistrationPage extends StatefulWidget {
@@ -11,12 +13,18 @@ class ClubRegistrationPage extends StatefulWidget {
 class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
+  final ApiService _apiService = ApiService();
+  bool _isLoading = false;
+  int? _currentUserId;
 
   // Club Details Controllers
-  final _branchesController = TextEditingController(text: '2');
+  final _branchesController = TextEditingController(text: '1');
   bool _allSportsSameForBranches = false;
 
-  // Branch Data
+  // Branch Data - Dynamic list to store all branches
+  List<Map<String, dynamic>> _branches = [];
+
+  // Sports data
   final List<String> _selectedSports = [
     'Tennis',
     'Baseball',
@@ -24,41 +32,315 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     'Basketball',
   ];
 
-  // Address Controllers
-  final _address1Controller = TextEditingController(text: 'Xyz');
-  final _address2Controller = TextEditingController(text: 'Xyz');
-  final _cityController = TextEditingController(text: 'Xyz');
-  final _stateController = TextEditingController(text: 'Xyz');
-  final _zipController = TextEditingController(text: 'Xyz');
-  final _countryController = TextEditingController(text: 'Xyz');
+  // Default Address Controllers (for signup address)
+  final _defaultAddress1Controller = TextEditingController(text: 'Xyz');
+  final _defaultAddress2Controller = TextEditingController(text: 'Xyz');
+  final _defaultCityController = TextEditingController(text: 'Xyz');
+  final _defaultStateController = TextEditingController(text: 'Xyz');
+  final _defaultZipController = TextEditingController(text: 'Xyz');
+  final _defaultCountryController = TextEditingController(text: 'Xyz');
 
-  // Contact Details Controllers
-  final _designationController = TextEditingController();
-  final _departmentController = TextEditingController();
-  final _officeNumberController = TextEditingController(
+  // Default Contact Details Controllers (for signup contact)
+  final _defaultDesignationController = TextEditingController();
+  final _defaultDepartmentController = TextEditingController();
+  final _defaultOfficeNumberController = TextEditingController(
     text: '+91 - 9876543210',
   );
-  final _mobileNumberController = TextEditingController(
+  final _defaultMobileNumberController = TextEditingController(
     text: '+91 - 9876543210',
   );
-  final _websiteController = TextEditingController(text: 'https://abc.com');
+  final _defaultWebsiteController = TextEditingController(
+    text: 'https://abc.com',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeBranches();
+    _branchesController.addListener(_onBranchesChanged);
+    _getCurrentUserId();
+  }
+
+  void _getCurrentUserId() {
+    // For now, using a mock user ID. In a real app, this would come from the authenticated user
+    _currentUserId =
+        20; // This should be retrieved from the authenticated user session
+  }
 
   @override
   void dispose() {
     _branchesController.dispose();
-    _address1Controller.dispose();
-    _address2Controller.dispose();
-    _cityController.dispose();
-    _stateController.dispose();
-    _zipController.dispose();
-    _countryController.dispose();
-    _designationController.dispose();
-    _departmentController.dispose();
-    _officeNumberController.dispose();
-    _mobileNumberController.dispose();
-    _websiteController.dispose();
+    _defaultAddress1Controller.dispose();
+    _defaultAddress2Controller.dispose();
+    _defaultCityController.dispose();
+    _defaultStateController.dispose();
+    _defaultZipController.dispose();
+    _defaultCountryController.dispose();
+    _defaultDesignationController.dispose();
+    _defaultDepartmentController.dispose();
+    _defaultOfficeNumberController.dispose();
+    _defaultMobileNumberController.dispose();
+    _defaultWebsiteController.dispose();
+
+    // Dispose all branch controllers
+    for (var branch in _branches) {
+      if (branch['addressControllers'] != null) {
+        for (var controller in branch['addressControllers']) {
+          controller.dispose();
+        }
+      }
+      if (branch['contactControllers'] != null) {
+        for (var controller in branch['contactControllers']) {
+          controller.dispose();
+        }
+      }
+    }
+
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _initializeBranches() {
+    final numberOfBranches = int.tryParse(_branchesController.text) ?? 1;
+    _branches.clear();
+
+    for (int i = 0; i < numberOfBranches; i++) {
+      _branches.add(_createBranchData(i + 1));
+    }
+  }
+
+  Map<String, dynamic> _createBranchData(int branchNumber) {
+    return {
+      'branchNumber': branchNumber,
+      'name': 'Branch $branchNumber',
+      'users': branchNumber == 1 ? 1 : 2,
+      'addressSameAsSignup': branchNumber == 1,
+      'contactSameAsSignup': branchNumber == 1,
+      'addressControllers': {
+        'address1': TextEditingController(text: 'Xyz'),
+        'address2': TextEditingController(text: 'Xyz'),
+        'city': TextEditingController(text: 'Xyz'),
+        'state': TextEditingController(text: 'Xyz'),
+        'zip': TextEditingController(text: 'Xyz'),
+        'country': TextEditingController(text: 'Xyz'),
+      },
+      'contactControllers': {
+        'designation': TextEditingController(),
+        'department': TextEditingController(),
+        'officeNumber': TextEditingController(text: '+91 - 9876543210'),
+        'mobileNumber': TextEditingController(text: '+91 - 9876543210'),
+        'website': TextEditingController(text: 'https://abc.com'),
+      },
+      'operationalTimes': [
+        {'days': 'Weekdays', 'startTime': '00:00', 'endTime': '00:00'},
+        if (branchNumber > 1)
+          {'days': 'Weekend', 'startTime': '00:00', 'endTime': '00:00'},
+      ],
+      'sports': List<String>.from(_selectedSports),
+    };
+  }
+
+  void _onBranchesChanged() {
+    final numberOfBranches = int.tryParse(_branchesController.text) ?? 1;
+
+    if (numberOfBranches != _branches.length) {
+      setState(() {
+        if (numberOfBranches > _branches.length) {
+          // Add new branches
+          for (int i = _branches.length; i < numberOfBranches; i++) {
+            _branches.add(_createBranchData(i + 1));
+          }
+        } else {
+          // Remove excess branches
+          for (int i = _branches.length - 1; i >= numberOfBranches; i--) {
+            // Dispose controllers before removing
+            var branch = _branches[i];
+            if (branch['addressControllers'] != null) {
+              for (var controller in branch['addressControllers'].values) {
+                controller.dispose();
+              }
+            }
+            if (branch['contactControllers'] != null) {
+              for (var controller in branch['contactControllers'].values) {
+                controller.dispose();
+              }
+            }
+            _branches.removeAt(i);
+          }
+        }
+      });
+    }
+  }
+
+  Future<void> _submitClubRegistration() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_currentUserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User not authenticated'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Step 1: Club Registration
+      final step1Request = _buildStep1Request();
+      final step1Response = await _apiService.clubSignupStep1(step1Request);
+
+      if (!step1Response.success) {
+        throw Exception(step1Response.message);
+      }
+
+      // Step 2: Club Branches Registration
+      final step2Request = _buildStep2Request(step1Response.data!.clubId);
+      final step2Response = await _apiService.clubSignupStep2(step2Request);
+
+      if (step2Response.success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Club registration successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate to membership plan page
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MembershipPlanPage()),
+          );
+        }
+      } else {
+        throw Exception(step2Response.message);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Registration failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  ClubSignupStep1Request _buildStep1Request() {
+    // Use the first branch data for step 1
+    final firstBranch = _branches.first;
+    final addressControllers =
+        firstBranch['addressControllers'] as Map<String, TextEditingController>;
+    final contactControllers =
+        firstBranch['contactControllers'] as Map<String, TextEditingController>;
+
+    return ClubSignupStep1Request(
+      userId: _currentUserId!,
+      userRole: 'club',
+      clubName: firstBranch['name'] as String,
+      noOfUsers: firstBranch['users'] as int,
+      isAddressIsSameAsUser: (firstBranch['addressSameAsSignup'] as bool)
+          ? 1
+          : 0,
+      addressLine1: addressControllers['address1']!.text,
+      addressLine2: addressControllers['address2']!.text,
+      city: addressControllers['city']!.text,
+      state: addressControllers['state']!.text,
+      zipcode: addressControllers['zip']!.text,
+      country: addressControllers['country']!.text,
+      isContactDetailsIsSameUser: (firstBranch['contactSameAsSignup'] as bool)
+          ? 1
+          : 0,
+      officePhoneExt: '001', // Extract from phone number if needed
+      officePhone: contactControllers['officeNumber']!.text,
+      mobilePhoneExt: '91', // Extract from phone number if needed
+      mobilePhone: contactControllers['mobileNumber']!.text,
+      companyWebsite: contactControllers['website']!.text,
+      sportsIsSameAsUser: _allSportsSameForBranches ? 1 : 0,
+      sportsNames: _selectedSports,
+      operationalDetails:
+          (firstBranch['operationalTimes'] as List<Map<String, String>>)
+              .map(
+                (time) => OperationalDetail(
+                  openDays: time['days']!,
+                  clubStartTime: time['startTime']!,
+                  clubEndTime: time['endTime']!,
+                ),
+              )
+              .toList(),
+    );
+  }
+
+  ClubSignupStep2Request _buildStep2Request(int clubId) {
+    final branches = _branches.map((branch) {
+      final addressControllers =
+          branch['addressControllers'] as Map<String, TextEditingController>;
+      final contactControllers =
+          branch['contactControllers'] as Map<String, TextEditingController>;
+
+      return ClubBranch(
+        clubName: branch['name'] as String,
+        numberOfUsers: branch['users'] as int,
+        isAddressSameAsUser: (branch['addressSameAsSignup'] as bool) ? 1 : 0,
+        addressLine1: (branch['addressSameAsSignup'] as bool)
+            ? null
+            : addressControllers['address1']!.text,
+        addressLine2: (branch['addressSameAsSignup'] as bool)
+            ? null
+            : addressControllers['address2']!.text,
+        city: (branch['addressSameAsSignup'] as bool)
+            ? null
+            : addressControllers['city']!.text,
+        state: (branch['addressSameAsSignup'] as bool)
+            ? null
+            : addressControllers['state']!.text,
+        zipCode: (branch['addressSameAsSignup'] as bool)
+            ? null
+            : addressControllers['zip']!.text,
+        country: (branch['addressSameAsSignup'] as bool)
+            ? null
+            : addressControllers['country']!.text,
+        isContactSameAsUser: (branch['contactSameAsSignup'] as bool) ? 1 : 0,
+        officePhoneExt: (branch['contactSameAsSignup'] as bool) ? null : '001',
+        officePhone: (branch['contactSameAsSignup'] as bool)
+            ? null
+            : contactControllers['officeNumber']!.text,
+        mobilePhoneExt: (branch['contactSameAsSignup'] as bool) ? null : '91',
+        mobilePhone: (branch['contactSameAsSignup'] as bool)
+            ? null
+            : contactControllers['mobileNumber']!.text,
+        companyWebsite: (branch['contactSameAsSignup'] as bool)
+            ? null
+            : contactControllers['website']!.text,
+        operationalDetails:
+            (branch['operationalTimes'] as List<Map<String, String>>)
+                .map(
+                  (time) => OperationalDetail(
+                    openDays: time['days']!,
+                    clubStartTime: time['startTime']!,
+                    clubEndTime: time['endTime']!,
+                  ),
+                )
+                .toList(),
+      );
+    }).toList();
+
+    return ClubSignupStep2Request(
+      userId: _currentUserId!,
+      clubId: clubId,
+      branches: branches,
+    );
   }
 
   @override
@@ -126,17 +408,18 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
               ),
               const SizedBox(height: 16),
 
-              // Branch 1 Details Section
-              _buildBranchSection(1),
-              const SizedBox(height: 16),
-
-              // Branch 2 Details Section (if multiple branches)
-              if (int.tryParse(_branchesController.text) != null &&
-                  int.parse(_branchesController.text) > 1)
-                _buildBranchSection(2),
-              if (int.tryParse(_branchesController.text) != null &&
-                  int.parse(_branchesController.text) > 1)
-                const SizedBox(height: 16),
+              // Dynamic Branch Sections
+              ..._branches.asMap().entries.map((entry) {
+                final index = entry.key;
+                final branch = entry.value;
+                return Column(
+                  children: [
+                    _buildBranchSection(branch),
+                    if (index < _branches.length - 1)
+                      const SizedBox(height: 16),
+                  ],
+                );
+              }).toList(),
 
               const SizedBox(height: 32),
 
@@ -320,13 +603,12 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     );
   }
 
-  Widget _buildBranchSection(int branchNumber) {
-    final branchData = {
-      'name': 'Xyz',
-      'users': branchNumber == 1 ? 1 : 2,
-      'addressSameAsSignup': branchNumber == 1 ? true : false,
-      'contactSameAsSignup': branchNumber == 1 ? true : false,
-    };
+  Widget _buildBranchSection(Map<String, dynamic> branchData) {
+    final branchNumber = branchData['branchNumber'] as int;
+    final addressControllers =
+        branchData['addressControllers'] as Map<String, TextEditingController>;
+    final contactControllers =
+        branchData['contactControllers'] as Map<String, TextEditingController>;
 
     return _buildSectionCard(
       title: 'Branch $branchNumber Details',
@@ -350,7 +632,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             label: 'Number Of Users',
             hint: 'Enter number of users',
             keyboardType: TextInputType.number,
-            suffixText: branchNumber == 2
+            suffixText: branchNumber > 1
                 ? '(It Is A Paid Service For More Than 1 User/Branch. You Will Be Allowed To Add Users From Your Admin Panel After Subscription.)'
                 : null,
           ),
@@ -359,14 +641,14 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             'Address Is Same As Sign Up Address?',
             branchData['addressSameAsSignup'] as bool,
             (value) => setState(() {
-              // Handle checkbox change if needed
+              branchData['addressSameAsSignup'] = value!;
             }),
           ),
 
           // Address Section (if not same as signup)
           if (!(branchData['addressSameAsSignup'] as bool)) ...[
             const SizedBox(height: 16),
-            _buildAddressSubSection(),
+            _buildAddressSubSection(addressControllers),
           ],
 
           const SizedBox(height: 16),
@@ -374,26 +656,28 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             'Contact Details Is Same As Sign Up Contact Details?',
             branchData['contactSameAsSignup'] as bool,
             (value) => setState(() {
-              // Handle checkbox change if needed
+              branchData['contactSameAsSignup'] = value!;
             }),
           ),
 
           // Contact Details Section (if not same as signup)
           if (!(branchData['contactSameAsSignup'] as bool)) ...[
             const SizedBox(height: 16),
-            _buildContactDetailsSubSection(),
+            _buildContactDetailsSubSection(contactControllers),
           ],
 
           const SizedBox(height: 16),
-          _buildClubOperationalDetailsSubSection(branchNumber),
+          _buildClubOperationalDetailsSubSection(branchData),
           const SizedBox(height: 16),
-          _buildSportsSubSection(),
+          _buildSportsSubSection(branchData),
         ],
       ),
     );
   }
 
-  Widget _buildAddressSubSection() {
+  Widget _buildAddressSubSection(
+    Map<String, TextEditingController> controllers,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -414,13 +698,13 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          controller: _address1Controller,
+          controller: controllers['address1']!,
           label: 'Address 1',
           hint: 'Enter address line 1',
         ),
         const SizedBox(height: 16),
         _buildTextField(
-          controller: _address2Controller,
+          controller: controllers['address2']!,
           label: 'Address 2',
           hint: 'Enter address line 2',
         ),
@@ -430,18 +714,18 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             Expanded(
               child: _buildDropdownField(
                 label: 'City',
-                value: _cityController.text,
+                value: controllers['city']!.text,
                 items: ['Xyz', 'City 1', 'City 2'],
-                onChanged: (value) => _cityController.text = value!,
+                onChanged: (value) => controllers['city']!.text = value!,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildDropdownField(
                 label: 'State',
-                value: _stateController.text,
+                value: controllers['state']!.text,
                 items: ['Xyz', 'State 1', 'State 2'],
-                onChanged: (value) => _stateController.text = value!,
+                onChanged: (value) => controllers['state']!.text = value!,
               ),
             ),
           ],
@@ -451,7 +735,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           children: [
             Expanded(
               child: _buildTextField(
-                controller: _zipController,
+                controller: controllers['zip']!,
                 label: 'Zip Code',
                 hint: 'Enter zip code',
                 keyboardType: TextInputType.number,
@@ -461,9 +745,9 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             Expanded(
               child: _buildDropdownField(
                 label: 'Country',
-                value: _countryController.text,
+                value: controllers['country']!.text,
                 items: ['Xyz', 'Country 1', 'Country 2'],
-                onChanged: (value) => _countryController.text = value!,
+                onChanged: (value) => controllers['country']!.text = value!,
               ),
             ),
           ],
@@ -472,7 +756,9 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     );
   }
 
-  Widget _buildContactDetailsSubSection() {
+  Widget _buildContactDetailsSubSection(
+    Map<String, TextEditingController> controllers,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -496,7 +782,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           children: [
             Expanded(
               child: _buildTextField(
-                controller: _designationController,
+                controller: controllers['designation']!,
                 label: 'Designation',
                 hint: 'Enter designation',
               ),
@@ -504,7 +790,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildTextField(
-                controller: _departmentController,
+                controller: controllers['department']!,
                 label: 'Department',
                 hint: 'Enter department',
               ),
@@ -516,7 +802,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           children: [
             Expanded(
               child: _buildTextField(
-                controller: _officeNumberController,
+                controller: controllers['officeNumber']!,
                 label: 'Office Number',
                 hint: 'Enter office number',
                 keyboardType: TextInputType.phone,
@@ -525,7 +811,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildTextField(
-                controller: _mobileNumberController,
+                controller: controllers['mobileNumber']!,
                 label: 'Mobile Number',
                 hint: 'Enter mobile number',
                 keyboardType: TextInputType.phone,
@@ -535,7 +821,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         ),
         const SizedBox(height: 16),
         _buildTextField(
-          controller: _websiteController,
+          controller: controllers['website']!,
           label: 'Company Website',
           hint: 'Enter website URL',
           keyboardType: TextInputType.url,
@@ -544,7 +830,12 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     );
   }
 
-  Widget _buildClubOperationalDetailsSubSection(int branchNumber) {
+  Widget _buildClubOperationalDetailsSubSection(
+    Map<String, dynamic> branchData,
+  ) {
+    final operationalTimes =
+        branchData['operationalTimes'] as List<Map<String, String>>;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -585,12 +876,22 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         ),
         const SizedBox(height: 16),
         // Time slots
-        _buildTimeSlotCard('Time 1', 'Weekdays', '00:00', '00:00'),
-        const SizedBox(height: 12),
-        if (branchNumber == 2) ...[
-          _buildTimeSlotCard('Time 2', 'Weekend', '00:00', '00:00'),
-          const SizedBox(height: 12),
-        ],
+        ...operationalTimes.asMap().entries.map((entry) {
+          final index = entry.key;
+          final timeSlot = entry.value;
+          return Column(
+            children: [
+              _buildTimeSlotCard(
+                'Time ${index + 1}',
+                timeSlot['days']!,
+                timeSlot['startTime']!,
+                timeSlot['endTime']!,
+              ),
+              if (index < operationalTimes.length - 1)
+                const SizedBox(height: 12),
+            ],
+          );
+        }).toList(),
       ],
     );
   }
@@ -745,7 +1046,9 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     );
   }
 
-  Widget _buildSportsSubSection() {
+  Widget _buildSportsSubSection(Map<String, dynamic> branchData) {
+    final sports = branchData['sports'] as List<String>;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -771,7 +1074,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: _selectedSports.map((sport) {
+                  children: sports.map((sport) {
                     return Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -933,16 +1236,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MembershipPlanPage(),
-                    ),
-                  );
-                }
-              },
+              onPressed: _isLoading ? null : _submitClubRegistration,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1E40AF),
                 foregroundColor: Colors.white,
@@ -953,21 +1247,34 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                 elevation: 2,
                 shadowColor: Colors.black26,
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Next',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Next',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, color: Colors.white, size: 20),
-                ],
-              ),
             ),
           ),
         ],

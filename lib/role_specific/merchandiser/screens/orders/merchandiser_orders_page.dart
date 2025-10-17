@@ -4,16 +4,14 @@ import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 
-class MerchandiserSponsorshipsPage extends StatefulWidget {
-  const MerchandiserSponsorshipsPage({super.key});
+class ClubOrdersPage extends StatefulWidget {
+  const ClubOrdersPage({super.key});
 
   @override
-  State<MerchandiserSponsorshipsPage> createState() =>
-      _MerchandiserSponsorshipsPageState();
+  State<ClubOrdersPage> createState() => _ClubOrdersPageState();
 }
 
-class _MerchandiserSponsorshipsPageState
-    extends State<MerchandiserSponsorshipsPage> {
+class _ClubOrdersPageState extends State<ClubOrdersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,17 +20,17 @@ class _MerchandiserSponsorshipsPageState
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.merchandiser,
-            selectedIndex: 6, // Sponsorships is index 6
+            role: UserRole.coach,
+            selectedIndex: 11, // Orders would be additional index
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.merchandiser,
+              UserRole.coach,
               i,
             ),
             onProfileTap: () => RoleNavigationManager.navigateToProfile(
               context,
-              UserRole.merchandiser,
+              UserRole.coach,
             ),
             onSignOut: () {
               Navigator.of(context).pushAndRemoveUntil(
@@ -45,7 +43,7 @@ class _MerchandiserSponsorshipsPageState
       ),
       appBar: AppBar(
         title: const Text(
-          'Sponsorships',
+          'Orders',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -78,10 +76,14 @@ class _MerchandiserSponsorshipsPageState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.handshake_outlined, size: 80, color: Color(0xFF1E40AF)),
+            Icon(
+              Icons.shopping_cart_outlined,
+              size: 80,
+              color: Color(0xFF1E40AF),
+            ),
             SizedBox(height: 16),
             Text(
-              'Sponsorships',
+              'Orders',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -90,7 +92,7 @@ class _MerchandiserSponsorshipsPageState
             ),
             SizedBox(height: 8),
             Text(
-              'Manage your club sponsorships',
+              'Manage your club orders',
               style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
             ),
             SizedBox(height: 24),

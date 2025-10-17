@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/common/models/user.dart' as models;
-import 'package:smart_sports/role_specific/club/screens/users/user_data_service.dart';
-import 'package:smart_sports/role_specific/club/screens/users/user_card.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/users/user_data_service.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/users/user_card.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/profile/merchandiser_profile_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/transactions/merchandiser_transactions_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/courts/merchandiser_courts_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/bookings/merchandiser_bookings_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/events/merchandiser_events_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/referrals/merchandiser_referrals_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/customer_support/merchandiser_customer_support_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/settings/merchandiser_settings_page.dart';
+import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
+// Navigation to other screens is handled via RoleNavigationManager from the sidebar.
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 
 class MerchandiserUsersPage extends StatefulWidget {
@@ -118,42 +112,82 @@ class _MerchandiserUsersPageState extends State<MerchandiserUsersPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
-      drawer: RoleSidebar(
-        role: UserRole.merchandiser,
-        onSelectIndex: (index) {
-          final currentContext = context;
-          _navigateFromSidebar(currentContext, index);
-        },
-        onProfileTap: () async {
-          final navigator = Navigator.of(context);
-          navigator.pop();
-          await Future.delayed(const Duration(milliseconds: 160));
-          if (mounted) {
-            navigator.push(
-              MaterialPageRoute(
-                builder: (_) => const MerchandiserProfilePage(),
-              ),
-            );
-          }
-        },
-        onSignOut: () {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const AuthShell()),
-            (route) => false,
-          );
-        },
+      drawer: Drawer(
+        elevation: 0,
+        child: SafeArea(
+          child: RoleSidebar(
+            role: UserRole.coach,
+            selectedIndex: 7, // Users is index 7
+            edgeToEdge: true,
+            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
+              context,
+              UserRole.coach,
+              i,
+            ),
+            onProfileTap: () async {
+              final navigator = Navigator.of(context);
+              navigator.pop();
+              await Future.delayed(const Duration(milliseconds: 160));
+              if (mounted) {
+                navigator.push(
+                  MaterialPageRoute(
+                    builder: (_) => const MerchandiserProfilePage(),
+                  ),
+                );
+              }
+            },
+            onSignOut: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop(); // Close dialog
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const AuthShell()),
+                          (route) => false,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ),
       appBar: AppBar(
         title: const Text(
-          'Merchandiser Users',
+          'Merchandise Users',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFF8B5CF6), // Merchandiser purple
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(
@@ -232,7 +266,7 @@ class _MerchandiserUsersPageState extends State<MerchandiserUsersPage>
         children: [
           // Filter section
           Container(
-            color: const Color(0xFF7C3AED), // Darker merchandiser purple
+            color: const Color(0xFF232534), // Coach gradient start
             child: Column(
               children: [
                 // Filter toggle button
@@ -334,7 +368,7 @@ class _MerchandiserUsersPageState extends State<MerchandiserUsersPage>
                   _applyFilters();
                 },
                 indicator: BoxDecoration(
-                  color: const Color(0xFF8B5CF6), // Merchandiser purple
+                  color: const Color(0xFF232534), // Coach gradient start
                   borderRadius: BorderRadius.circular(25),
                 ),
                 labelColor: Colors.white,
@@ -398,7 +432,9 @@ class _MerchandiserUsersPageState extends State<MerchandiserUsersPage>
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Tapped on ${user.userName}'),
-                              backgroundColor: const Color(0xFF8B5CF6),
+                              backgroundColor: const Color(
+                                0xFF232534,
+                              ), // Coach gradient start
                             ),
                           );
                         },
@@ -517,7 +553,9 @@ class _MerchandiserUsersPageState extends State<MerchandiserUsersPage>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: enabled ? const Color(0xFF8B5CF6) : const Color(0xFFE5E7EB),
+          color: enabled
+              ? const Color(0xFF232534)
+              : const Color(0xFFE5E7EB), // Coach gradient start
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
@@ -543,7 +581,9 @@ class _MerchandiserUsersPageState extends State<MerchandiserUsersPage>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF8B5CF6) : Colors.transparent,
+          color: isActive
+              ? const Color(0xFF232534)
+              : Colors.transparent, // Coach gradient start
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
@@ -558,63 +598,5 @@ class _MerchandiserUsersPageState extends State<MerchandiserUsersPage>
     );
   }
 
-  void _navigateFromSidebar(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MerchandiserAnalyticsDashboardPage(),
-          ),
-        );
-        break;
-      case 1:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MerchandiserTransactionsPage(),
-          ),
-        );
-        break;
-      case 2:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MerchandiserCourtsPage()),
-        );
-        break;
-      case 3:
-        // Clubs - placeholder
-        break;
-      case 4:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MerchandiserBookingsPage()),
-        );
-        break;
-      case 5:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MerchandiserEventsPage()),
-        );
-        break;
-      case 6:
-        // Sponsorships - placeholder
-        break;
-      case 7:
-        // Already on users
-        break;
-      case 8:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MerchandiserReferralsPage()),
-        );
-        break;
-      case 9:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MerchandiserCustomerSupportPage(),
-          ),
-        );
-        break;
-      case 10:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MerchandiserSettingsPage()),
-        );
-        break;
-    }
-  }
+  // Navigation from sidebar now centralized via RoleNavigationManager
 }
