@@ -67,11 +67,11 @@ class SignUpRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      'first_name': firstName,
-      'last_name': lastName,
+      'firstname': firstName,
+      'lastname': lastName,
       'email': email,
       'password': password,
-      if (phone != null) 'phone': phone,
+      if (phone != null) 'mobile_phone': phone,
       if (address != null) 'address': address,
       if (city != null) 'city': city,
       if (state != null) 'state': state,
