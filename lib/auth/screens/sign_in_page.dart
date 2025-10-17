@@ -130,50 +130,75 @@ class _SignInPageState extends State<SignInPage> {
             ),
           ),
           const SizedBox(height: 12),
-          // Role Dropdown
+          // Role Dropdown - TEMPORARILY DISABLED FOR API TESTING
+          // Current role is set to: ${role.label} (default: Member)
+          
+          // Temporary role indicator for API testing
           Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.shade200),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             child: Row(
               children: [
+                Icon(Icons.info, color: Colors.blue.shade600, size: 16),
+                const SizedBox(width: 8),
                 Text(
-                  'Role: ',
+                  'Testing with role: ${role.label}',
                   style: TextStyle(
-                    fontSize: 16,
+                    color: Colors.blue.shade700,
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<UserRole>(
-                      value: role,
-                      onChanged: (v) =>
-                          setState(() => role = v ?? UserRole.member),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                      items: UserRole.values
-                          .map(
-                            (r) => DropdownMenuItem(
-                              value: r,
-                              child: Text(r.label),
-                            ),
-                          )
-                          .toList(),
-                    ),
                   ),
                 ),
               ],
             ),
           ),
+          // Container(
+          //   decoration: BoxDecoration(
+          //     color: Colors.grey.shade50,
+          //     borderRadius: BorderRadius.circular(16),
+          //     border: Border.all(color: Colors.grey.shade200),
+          //   ),
+          //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          //   child: Row(
+          //     children: [
+          //       Text(
+          //         'Role: ',
+          //         style: TextStyle(
+          //           fontSize: 16,
+          //           fontWeight: FontWeight.w500,
+          //           color: Colors.grey.shade700,
+          //         ),
+          //       ),
+          //       const SizedBox(width: 12),
+          //       Expanded(
+          //         child: DropdownButtonHideUnderline(
+          //           child: DropdownButton<UserRole>(
+          //             value: role,
+          //             onChanged: (v) =>
+          //                 setState(() => role = v ?? UserRole.member),
+          //             style: const TextStyle(
+          //               fontSize: 16,
+          //               fontWeight: FontWeight.w500,
+          //               color: Colors.black87,
+          //             ),
+          //             items: UserRole.values
+          //                 .map(
+          //                   (r) => DropdownMenuItem(
+          //                     value: r,
+          //                     child: Text(r.label),
+          //                   ),
+          //                 )
+          //                 .toList(),
+          //           ),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
           const SizedBox(height: 20),
           // Sign In Button
           Container(
