@@ -33,6 +33,7 @@ class ApiEndpoints {
 
   // Helper methods to get full URLs
   static String getSignInUrl() => '${ApiConfig.apiBaseUrl}$signIn';
+  static String getSignUpUrl() => '${ApiConfig.apiBaseUrl}$signUp';
   static String getProfileUrl(int userId) =>
       '${ApiConfig.apiBaseUrl}$profile/$userId';
   static String getClubSignupStep1Url() =>

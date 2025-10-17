@@ -111,6 +111,21 @@ class ApiService {
     return response;
   }
 
+  Future<ApiResponse<SignInResponse>> signUp(SignUpRequest request) async {
+    final response = await _makeRequest<SignInResponse>(
+      ApiEndpoints.getSignUpUrl(),
+      'POST',
+      body: request.toJson(),
+      fromJson: (data) => SignInResponse.fromJson(data),
+    );
+
+    if (response.success && response.data != null) {
+      await saveAuthToken(response.data!.token);
+    }
+
+    return response;
+  }
+
   Future<ApiResponse<UserProfile>> getProfile(int userId) async {
     return await _makeRequest<UserProfile>(
       ApiEndpoints.getProfileUrl(userId),

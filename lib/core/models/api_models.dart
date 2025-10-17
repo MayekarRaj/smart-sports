@@ -40,6 +40,47 @@ class SignInRequest {
   }
 }
 
+class SignUpRequest {
+  final String firstName;
+  final String lastName;
+  final String email;
+  final String password;
+  final String? phone;
+  final String? address;
+  final String? city;
+  final String? state;
+  final String? zipCode;
+  final String? country;
+
+  SignUpRequest({
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    required this.password,
+    this.phone,
+    this.address,
+    this.city,
+    this.state,
+    this.zipCode,
+    this.country,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'first_name': firstName,
+      'last_name': lastName,
+      'email': email,
+      'password': password,
+      if (phone != null) 'phone': phone,
+      if (address != null) 'address': address,
+      if (city != null) 'city': city,
+      if (state != null) 'state': state,
+      if (zipCode != null) 'zip_code': zipCode,
+      if (country != null) 'country': country,
+    };
+  }
+}
+
 class SignInResponse {
   final String token;
   final UserProfile user;
