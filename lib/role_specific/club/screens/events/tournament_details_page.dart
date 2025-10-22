@@ -78,17 +78,17 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
             // Tournament Header Card
             _buildTournamentHeaderCard(),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
 
             // Subscriptions Section
             _buildSubscriptionsSection(),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
 
             // Navigation Buttons
             _buildNavigationButtons(),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
 
             // Content based on selected button
             _buildContentSection(),
@@ -100,24 +100,24 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
 
   Widget _buildTournamentHeaderCard() {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.grey.withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
             // Background Image
             Container(
-              height: 300,
+              height: 160,
               decoration: BoxDecoration(
                 image: const DecorationImage(
                   image: AssetImage(
@@ -141,7 +141,7 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
                     ],
                   ),
                 ),
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -391,19 +391,19 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
           const Text(
             'Subscriptions',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.2,
+            crossAxisSpacing: 3,
+            mainAxisSpacing: 3,
+            childAspectRatio: 3.0,
             children: [
               _buildSubscriptionCard('Cricket', 120, 200, 10, 12, 20),
               _buildSubscriptionCard('Tennis', 80, 150, 8, 10, 18),
@@ -425,30 +425,32 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
     int maxCoaches,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(4),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 1,
+            offset: const Offset(0, 1),
           ),
         ],
+        border: Border.all(color: Colors.grey.shade200, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             sport,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 10,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 3),
 
           // Players Progress
           _buildProgressSection(
@@ -459,32 +461,10 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
             true,
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 2),
 
           // Sponsors
           _buildSponsorsSection(sponsors),
-
-          const SizedBox(height: 12),
-
-          // Coaches
-          _buildProgressSection(
-            'Coach\'s',
-            coaches,
-            maxCoaches,
-            Colors.green,
-            false,
-          ),
-
-          const SizedBox(height: 8),
-
-          // Teams
-          _buildProgressSection(
-            'Teams',
-            coaches,
-            maxCoaches,
-            Colors.blue,
-            false,
-          ),
         ],
       ),
     );
@@ -505,23 +485,23 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
         Text(
           title,
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: 7,
             fontWeight: FontWeight.w600,
             color: Colors.black54,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 1),
         if (isCircular)
           Row(
             children: [
               SizedBox(
-                width: 40,
-                height: 40,
+                width: 16,
+                height: 16,
                 child: Stack(
                   children: [
                     CircularProgressIndicator(
                       value: progress,
-                      strokeWidth: 4,
+                      strokeWidth: 1,
                       backgroundColor: Colors.grey.shade300,
                       valueColor: AlwaysStoppedAnimation<Color>(color),
                     ),
@@ -529,7 +509,7 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
                       child: Text(
                         '$current/$max',
                         style: const TextStyle(
-                          fontSize: 8,
+                          fontSize: 3,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -543,25 +523,25 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
           Column(
             children: [
               Row(
-                children: List.generate(10, (index) {
+                children: List.generate(2, (index) {
                   return Container(
-                    width: 8,
-                    height: 8,
-                    margin: const EdgeInsets.only(right: 2),
+                    width: 2,
+                    height: 2,
+                    margin: const EdgeInsets.only(right: 1),
                     decoration: BoxDecoration(
-                      color: index < (progress * 10).round()
+                      color: index < (progress * 2).round()
                           ? color
                           : Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius: BorderRadius.circular(1),
                     ),
                   );
                 }),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 1),
               Text(
                 '$current/$max',
                 style: const TextStyle(
-                  fontSize: 10,
+                  fontSize: 5,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
                 ),
@@ -579,39 +559,35 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
         const Text(
           'Sponsors',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 7,
             fontWeight: FontWeight.w600,
             color: Colors.black54,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 1),
         Row(
           children: [
             Text(
               sponsorCount.toString(),
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 7,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 1),
             Row(
               children: List.generate(
-                sponsorCount > 4 ? 4 : sponsorCount,
+                sponsorCount > 1 ? 1 : sponsorCount,
                 (index) => Container(
-                  width: 16,
-                  height: 16,
-                  margin: const EdgeInsets.only(right: 4),
+                  width: 3,
+                  height: 3,
+                  margin: const EdgeInsets.only(right: 1),
                   decoration: BoxDecoration(
                     color: Colors.blue.shade300,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.person,
-                    size: 10,
-                    color: Colors.white,
-                  ),
+                  child: const Icon(Icons.person, size: 2, color: Colors.white),
                 ),
               ),
             ),
@@ -630,19 +606,19 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
           const Text(
             'Quick Actions',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 2.5,
+            crossAxisSpacing: 6,
+            mainAxisSpacing: 6,
+            childAspectRatio: 4.0,
             children: _navigationButtons.asMap().entries.map((entry) {
               final index = entry.key;
               final button = entry.value;
@@ -650,24 +626,28 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
 
               return InkWell(
                 onTap: () => setState(() => _selectedButtonIndex = index),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+                    horizontal: 8,
+                    vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.blue : Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                    color: isSelected ? Colors.blue.shade600 : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected ? Colors.blue : Colors.grey.shade300,
-                      width: 1.5,
+                      color: isSelected
+                          ? Colors.blue.shade600
+                          : Colors.grey.shade300,
+                      width: isSelected ? 2 : 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        color: isSelected
+                            ? Colors.blue.withOpacity(0.3)
+                            : Colors.grey.withOpacity(0.15),
+                        blurRadius: isSelected ? 8.0 : 4.0,
+                        offset: Offset(0, isSelected ? 4.0 : 2.0),
                       ),
                     ],
                   ),
@@ -675,16 +655,16 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
                     children: [
                       Icon(
                         button['icon'],
-                        color: isSelected ? Colors.white : Colors.blue,
-                        size: 20,
+                        color: isSelected ? Colors.white : Colors.blue.shade600,
+                        size: 14,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           button['title'],
                           style: TextStyle(
                             color: isSelected ? Colors.white : Colors.black87,
-                            fontSize: 12,
+                            fontSize: 9,
                             fontWeight: FontWeight.w600,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -703,33 +683,36 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
 
   Widget _buildContentSection() {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.grey.withOpacity(0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(color: Colors.grey.shade200, width: 1),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _navigationButtons[_selectedButtonIndex]['title'],
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _navigationButtons[_selectedButtonIndex]['title'],
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          _buildContentForSelectedButton(),
-        ],
+            const SizedBox(height: 6),
+            _buildContentForSelectedButton(),
+          ],
+        ),
       ),
     );
   }

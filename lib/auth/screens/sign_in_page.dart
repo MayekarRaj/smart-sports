@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/utils/validators.dart';
-import '../../core/services/api_service.dart';
-import '../../core/models/api_models.dart';
 import '../widgets/rounded_text_field.dart';
 import '../widgets/password_field.dart';
 import '../widgets/social_row.dart';
@@ -21,7 +19,6 @@ class _SignInPageState extends State<SignInPage> {
   final passCtrl = TextEditingController();
   UserRole role = UserRole.member;
   bool _isLoading = false;
-  final ApiService _apiService = ApiService();
 
   @override
   void dispose() {
@@ -37,80 +34,27 @@ class _SignInPageState extends State<SignInPage> {
       _isLoading = true;
     });
 
-    try {
-      final request = SignInRequest(
-        email: emailCtrl.text.trim(),
-        password: passCtrl.text,
+    // Simulate loading for better UX
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Welcome! Signed in as ${role.label}'),
+          backgroundColor: Colors.green,
+        ),
       );
 
-      final response = await _apiService.signIn(request);
-
-      if (response.success && response.data != null) {
-        // Successfully signed in - use role from API response
-        if (mounted) {
-          // Get role from API response
-          final userRole = response.data!.user.role;
-          final apiRole = _getUserRoleFromString(userRole);
-          
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Welcome back, ${response.data!.user.name}! Role: $userRole'),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          // Navigate to role-based dashboard using API role
-          final target = RoleRouter.dashboardFor(apiRole);
-          Navigator.of(
-            context,
-          ).pushReplacement(MaterialPageRoute(builder: (_) => target));
-        }
-      } else {
-        // Show error message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response.message),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Sign in failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      // Navigate to role-based dashboard
+      final target = RoleRouter.dashboardFor(role);
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => target));
     }
-  }
 
-  // Helper method to convert API role string to UserRole enum
-  UserRole _getUserRoleFromString(String? roleString) {
-    if (roleString == null) return UserRole.member;
-    
-    switch (roleString.toLowerCase()) {
-      case 'club':
-        return UserRole.club;
-      case 'coach':
-        return UserRole.coach;
-      case 'corporate':
-        return UserRole.corporate;
-      case 'merchandiser':
-        return UserRole.merchandiser;
-      case 'member':
-      default:
-        return UserRole.member;
-    }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -153,75 +97,50 @@ class _SignInPageState extends State<SignInPage> {
             ),
           ),
           const SizedBox(height: 12),
-          // Role Dropdown - TEMPORARILY DISABLED FOR API TESTING
-          // Current role is set to: ${role.label} (default: Member)
-
-          // Temporary role indicator for API testing
+          // Role Selection Dropdown
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue.shade200),
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade200),
             ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             child: Row(
               children: [
-                Icon(Icons.info, color: Colors.blue.shade600, size: 16),
-                const SizedBox(width: 8),
                 Text(
-                  'Role will be determined by API response',
+                  'Role: ',
                   style: TextStyle(
-                    color: Colors.blue.shade700,
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<UserRole>(
+                      value: role,
+                      onChanged: (v) =>
+                          setState(() => role = v ?? UserRole.member),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                      items: UserRole.values
+                          .map(
+                            (r) => DropdownMenuItem(
+                              value: r,
+                              child: Text(r.label),
+                            ),
+                          )
+                          .toList(),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          // Container(
-          //   decoration: BoxDecoration(
-          //     color: Colors.grey.shade50,
-          //     borderRadius: BorderRadius.circular(16),
-          //     border: Border.all(color: Colors.grey.shade200),
-          //   ),
-          //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-          //   child: Row(
-          //     children: [
-          //       Text(
-          //         'Role: ',
-          //         style: TextStyle(
-          //           fontSize: 16,
-          //           fontWeight: FontWeight.w500,
-          //           color: Colors.grey.shade700,
-          //         ),
-          //       ),
-          //       const SizedBox(width: 12),
-          //       Expanded(
-          //         child: DropdownButtonHideUnderline(
-          //           child: DropdownButton<UserRole>(
-          //             value: role,
-          //             onChanged: (v) =>
-          //                 setState(() => role = v ?? UserRole.member),
-          //             style: const TextStyle(
-          //               fontSize: 16,
-          //               fontWeight: FontWeight.w500,
-          //               color: Colors.black87,
-          //             ),
-          //             items: UserRole.values
-          //                 .map(
-          //                   (r) => DropdownMenuItem(
-          //                     value: r,
-          //                     child: Text(r.label),
-          //                   ),
-          //                 )
-          //                 .toList(),
-          //           ),
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ),
           const SizedBox(height: 20),
           // Sign In Button
           Container(

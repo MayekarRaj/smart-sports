@@ -116,12 +116,12 @@ class _MerchandiserUsersPageState extends State<MerchandiserUsersPage>
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.merchandiser,
             selectedIndex: 7, // Users is index 7
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.merchandiser,
               i,
             ),
             onProfileTap: () async {

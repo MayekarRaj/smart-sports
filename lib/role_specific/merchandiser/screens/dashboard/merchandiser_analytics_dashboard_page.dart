@@ -108,16 +108,16 @@ class _MerchandiserAnalyticsDashboardPageState
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.merchandiser,
             selectedIndex: 0,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.merchandiser,
               i,
             ),
             onProfileTap: () => RoleNavigationManager.navigateToProfile(
               context,
-              UserRole.coach,
+              UserRole.merchandiser,
             ),
             edgeToEdge: true,
           ),

@@ -9,7 +9,7 @@ import '../models/api_models.dart';
 class ApiDebug {
   static Future<void> testSignupAPI() async {
     print('🔍 Testing Signup API...');
-    
+
     final testRequest = SignUpRequest(
       firstName: 'Test',
       lastName: 'User',
@@ -17,26 +17,26 @@ class ApiDebug {
       password: 'password123',
       phone: '1234567890',
     );
-    
+
     final url = ApiEndpoints.getSignUpUrl();
     final headers = ApiConfig.headers;
     final body = json.encode(testRequest.toJson());
-    
+
     print('📤 URL: $url');
     print('📤 Headers: $headers');
     print('📤 Body: $body');
-    
+
     try {
       final response = await http.post(
         Uri.parse(url),
         headers: headers,
         body: body,
       );
-      
+
       print('📥 Status Code: ${response.statusCode}');
       print('📥 Response Headers: ${response.headers}');
       print('📥 Response Body: ${response.body}');
-      
+
       if (response.statusCode == 200) {
         print('✅ API is working!');
       } else {
@@ -46,34 +46,34 @@ class ApiDebug {
       print('❌ Network error: $e');
     }
   }
-  
+
   static Future<void> testSignInAPI() async {
     print('🔍 Testing Sign In API...');
-    
+
     final testRequest = SignInRequest(
       email: 'test@example.com',
       password: 'password123',
     );
-    
+
     final url = ApiEndpoints.getSignInUrl();
     final headers = ApiConfig.headers;
     final body = json.encode(testRequest.toJson());
-    
+
     print('📤 URL: $url');
     print('📤 Headers: $headers');
     print('📤 Body: $body');
-    
+
     try {
       final response = await http.post(
         Uri.parse(url),
         headers: headers,
         body: body,
       );
-      
+
       print('📥 Status Code: ${response.statusCode}');
       print('📥 Response Headers: ${response.headers}');
       print('📥 Response Body: ${response.body}');
-      
+
       if (response.statusCode == 200) {
         print('✅ Sign In API is working!');
       } else {

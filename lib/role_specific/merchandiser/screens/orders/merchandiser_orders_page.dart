@@ -20,17 +20,17 @@ class _ClubOrdersPageState extends State<ClubOrdersPage> {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.merchandiser,
             selectedIndex: 11, // Orders would be additional index
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.merchandiser,
               i,
             ),
             onProfileTap: () => RoleNavigationManager.navigateToProfile(
               context,
-              UserRole.coach,
+              UserRole.merchandiser,
             ),
             onSignOut: () {
               Navigator.of(context).pushAndRemoveUntil(

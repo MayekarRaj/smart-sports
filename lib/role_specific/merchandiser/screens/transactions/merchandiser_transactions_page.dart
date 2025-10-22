@@ -84,12 +84,12 @@ class _MerchandiserTransactionsPageState
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.coach,
+            role: UserRole.merchandiser,
             selectedIndex: 1,
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.coach,
+              UserRole.merchandiser,
               i,
             ),
           ),
