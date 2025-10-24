@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/utils/validators.dart';
-import '../../core/services/api_service.dart';
-import '../../core/models/api_models.dart';
 import '../widgets/rounded_text_field.dart';
 import '../widgets/password_field.dart';
-import '../../role_specific/common/role_router.dart';
+import 'role_selection_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -27,8 +25,6 @@ class _SignUpPageState extends State<SignUpPage> {
   final zipCode = TextEditingController();
   final country = TextEditingController();
 
-  bool _isLoading = false;
-  final ApiService _apiService = ApiService();
   // OTP UI removed from the form; we show a dedicated Verify Email page after register
 
   @override
@@ -51,96 +47,14 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
-  void _register() async {
+  void _register() {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final request = SignUpRequest(
-        firstName: firstName.text.trim(),
-        lastName: lastName.text.trim(),
-        email: email.text.trim(),
-        password: pass.text,
-        phone: phone.text.trim().isNotEmpty ? phone.text.trim() : null,
-        address: address.text.trim().isNotEmpty ? address.text.trim() : null,
-        city: city.text.trim().isNotEmpty ? city.text.trim() : null,
-        state: state.text.trim().isNotEmpty ? state.text.trim() : null,
-        zipCode: zipCode.text.trim().isNotEmpty ? zipCode.text.trim() : null,
-        country: country.text.trim().isNotEmpty ? country.text.trim() : null,
-      );
-
-      final response = await _apiService.signUp(request);
-
-      if (response.success && response.data != null) {
-        // Successfully registered
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Welcome ${response.data!.user.name}! Registration successful!',
-              ),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          // Get role from API response and navigate to appropriate dashboard
-          final userRole = response.data!.user.role;
-          final apiRole = _getUserRoleFromString(userRole);
-          final target = RoleRouter.dashboardFor(apiRole);
-
-          Navigator.of(
-            context,
-          ).pushReplacement(MaterialPageRoute(builder: (_) => target));
-        }
-      } else {
-        // Show error message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response.message),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Registration failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  // Helper method to convert API role string to UserRole enum
-  UserRole _getUserRoleFromString(String? roleString) {
-    if (roleString == null) return UserRole.member;
-
-    switch (roleString.toLowerCase()) {
-      case 'club':
-        return UserRole.club;
-      case 'coach':
-        return UserRole.coach;
-      case 'corporate':
-        return UserRole.corporate;
-      case 'merchandiser':
-        return UserRole.merchandiser;
-      case 'member':
-      default:
-        return UserRole.member;
-    }
+    // Navigate directly to role selection page
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const RoleSelectionPage()),
+    );
   }
 
   @override
@@ -250,18 +164,9 @@ class _SignUpPageState extends State<SignUpPage> {
             SizedBox(
               height: 56,
               child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : _register,
-                icon: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Icon(Icons.person_add),
-                label: Text(_isLoading ? 'Registering...' : 'Register'),
+                onPressed: _register,
+                icon: const Icon(Icons.person_add),
+                label: const Text('Register'),
               ),
             ),
           ],

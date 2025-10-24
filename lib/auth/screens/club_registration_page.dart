@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/services/api_service.dart';
-import '../../core/models/api_models.dart';
 import 'membership_plan_page.dart';
 
 class ClubRegistrationPage extends StatefulWidget {
@@ -13,9 +11,6 @@ class ClubRegistrationPage extends StatefulWidget {
 class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
-  final ApiService _apiService = ApiService();
-  bool _isLoading = false;
-  int? _currentUserId;
 
   // Club Details Controllers
   final _branchesController = TextEditingController(text: '1');
@@ -58,13 +53,6 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     super.initState();
     _initializeBranches();
     _branchesController.addListener(_onBranchesChanged);
-    _getCurrentUserId();
-  }
-
-  void _getCurrentUserId() {
-    // For now, using a mock user ID. In a real app, this would come from the authenticated user
-    _currentUserId =
-        20; // This should be retrieved from the authenticated user session
   }
 
   @override
@@ -172,174 +160,13 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     }
   }
 
-  Future<void> _submitClubRegistration() async {
+  void _submitClubRegistration() {
     if (!_formKey.currentState!.validate()) return;
-    if (_currentUserId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User not authenticated'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // Step 1: Club Registration
-      final step1Request = _buildStep1Request();
-      final step1Response = await _apiService.clubSignupStep1(step1Request);
-
-      if (!step1Response.success) {
-        throw Exception(step1Response.message);
-      }
-
-      // Step 2: Club Branches Registration
-      final step2Request = _buildStep2Request(step1Response.data!.clubId);
-      final step2Response = await _apiService.clubSignupStep2(step2Request);
-
-      if (step2Response.success) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Club registration successful!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          // Navigate to membership plan page
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MembershipPlanPage()),
-          );
-        }
-      } else {
-        throw Exception(step2Response.message);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Registration failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  ClubSignupStep1Request _buildStep1Request() {
-    // Use the first branch data for step 1
-    final firstBranch = _branches.first;
-    final addressControllers =
-        firstBranch['addressControllers'] as Map<String, TextEditingController>;
-    final contactControllers =
-        firstBranch['contactControllers'] as Map<String, TextEditingController>;
-
-    return ClubSignupStep1Request(
-      userId: _currentUserId!,
-      userRole: 'club',
-      clubName: firstBranch['name'] as String,
-      noOfUsers: firstBranch['users'] as int,
-      isAddressIsSameAsUser: (firstBranch['addressSameAsSignup'] as bool)
-          ? 1
-          : 0,
-      addressLine1: addressControllers['address1']!.text,
-      addressLine2: addressControllers['address2']!.text,
-      city: addressControllers['city']!.text,
-      state: addressControllers['state']!.text,
-      zipcode: addressControllers['zip']!.text,
-      country: addressControllers['country']!.text,
-      isContactDetailsIsSameUser: (firstBranch['contactSameAsSignup'] as bool)
-          ? 1
-          : 0,
-      officePhoneExt: '001', // Extract from phone number if needed
-      officePhone: contactControllers['officeNumber']!.text,
-      mobilePhoneExt: '91', // Extract from phone number if needed
-      mobilePhone: contactControllers['mobileNumber']!.text,
-      companyWebsite: contactControllers['website']!.text,
-      sportsIsSameAsUser: _allSportsSameForBranches ? 1 : 0,
-      sportsNames: _selectedSports,
-      operationalDetails:
-          (firstBranch['operationalTimes'] as List<Map<String, String>>)
-              .map(
-                (time) => OperationalDetail(
-                  openDays: time['days']!,
-                  clubStartTime: time['startTime']!,
-                  clubEndTime: time['endTime']!,
-                ),
-              )
-              .toList(),
-    );
-  }
-
-  ClubSignupStep2Request _buildStep2Request(int clubId) {
-    final branches = _branches.map((branch) {
-      final addressControllers =
-          branch['addressControllers'] as Map<String, TextEditingController>;
-      final contactControllers =
-          branch['contactControllers'] as Map<String, TextEditingController>;
-
-      return ClubBranch(
-        clubName: branch['name'] as String,
-        numberOfUsers: branch['users'] as int,
-        isAddressSameAsUser: (branch['addressSameAsSignup'] as bool) ? 1 : 0,
-        addressLine1: (branch['addressSameAsSignup'] as bool)
-            ? null
-            : addressControllers['address1']!.text,
-        addressLine2: (branch['addressSameAsSignup'] as bool)
-            ? null
-            : addressControllers['address2']!.text,
-        city: (branch['addressSameAsSignup'] as bool)
-            ? null
-            : addressControllers['city']!.text,
-        state: (branch['addressSameAsSignup'] as bool)
-            ? null
-            : addressControllers['state']!.text,
-        zipCode: (branch['addressSameAsSignup'] as bool)
-            ? null
-            : addressControllers['zip']!.text,
-        country: (branch['addressSameAsSignup'] as bool)
-            ? null
-            : addressControllers['country']!.text,
-        isContactSameAsUser: (branch['contactSameAsSignup'] as bool) ? 1 : 0,
-        officePhoneExt: (branch['contactSameAsSignup'] as bool) ? null : '001',
-        officePhone: (branch['contactSameAsSignup'] as bool)
-            ? null
-            : contactControllers['officeNumber']!.text,
-        mobilePhoneExt: (branch['contactSameAsSignup'] as bool) ? null : '91',
-        mobilePhone: (branch['contactSameAsSignup'] as bool)
-            ? null
-            : contactControllers['mobileNumber']!.text,
-        companyWebsite: (branch['contactSameAsSignup'] as bool)
-            ? null
-            : contactControllers['website']!.text,
-        operationalDetails:
-            (branch['operationalTimes'] as List<Map<String, String>>)
-                .map(
-                  (time) => OperationalDetail(
-                    openDays: time['days']!,
-                    clubStartTime: time['startTime']!,
-                    clubEndTime: time['endTime']!,
-                  ),
-                )
-                .toList(),
-      );
-    }).toList();
-
-    return ClubSignupStep2Request(
-      userId: _currentUserId!,
-      clubId: clubId,
-      branches: branches,
+    // Navigate directly to membership plan page
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MembershipPlanPage()),
     );
   }
 
@@ -1236,7 +1063,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _submitClubRegistration,
+              onPressed: _submitClubRegistration,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1E40AF),
                 foregroundColor: Colors.white,
@@ -1247,34 +1074,21 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                 elevation: 2,
                 shadowColor: Colors.black26,
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Next',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(
-                          Icons.arrow_forward,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ],
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Next',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                ],
+              ),
             ),
           ),
         ],
