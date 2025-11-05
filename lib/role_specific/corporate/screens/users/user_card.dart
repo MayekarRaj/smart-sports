@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/common/models/user.dart' as models;
+import 'package:smart_sports/role_specific/corporate/screens/users/view_user_screen.dart';
 
 class UserCard extends StatelessWidget {
   final models.User user;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onView;
   final bool showActions;
 
   const UserCard({
@@ -14,45 +16,40 @@ class UserCard extends StatelessWidget {
     this.onTap,
     this.onEdit,
     this.onDelete,
+    this.onView,
     this.showActions = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: onTap,
+        onTap: onTap, // Existing tap for edit
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header with avatar and basic info
               Row(
                 children: [
                   CircleAvatar(
-                    radius: 25,
-                    backgroundColor: user.status == models.UserStatus.active
-                        ? const Color(0xFF232534).withOpacity(0.1)
-                        : Colors.grey.withOpacity(0.1),
-                    backgroundImage: user.avatarUrl != null
-                        ? AssetImage(user.avatarUrl!)
-                        : null,
-                    child: user.avatarUrl == null
-                        ? Text(
-                            user.userName.split(' ').map((n) => n[0]).join(),
-                            style: TextStyle(
-                              color: user.status == models.UserStatus.active
-                                  ? const Color(0xFF232534)
-                                  : Colors.grey,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          )
-                        : null,
+                    radius: 24,
+                    backgroundColor: user.role.color,
+                    child: Text(
+                      user.userName.isNotEmpty
+                          ? user.userName[0].toUpperCase()
+                          : 'U',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -63,133 +60,197 @@ class UserCard extends StatelessWidget {
                           user.userName,
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF1F2937),
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          user.designation,
-                          style: TextStyle(
+                          user.companyName,
+                          style: const TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: Color(0xFF6B7280),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.business,
-                              size: 14,
-                              color: Colors.grey[500],
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              user.companyName,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[500],
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),
                   ),
-                  if (showActions) ...[
-                    PopupMenuButton<String>(
-                      onSelected: (value) {
-                        switch (value) {
-                          case 'edit':
-                            onEdit?.call();
-                            break;
-                          case 'delete':
-                            onDelete?.call();
-                            break;
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              Icon(Icons.edit, size: 16),
-                              SizedBox(width: 8),
-                              Text('Edit'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete, size: 16, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text(
-                                'Delete',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  _buildInfoChip('Department', user.department.label),
-                  const SizedBox(width: 8),
-                  _buildInfoChip('Role', user.role.label),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  _buildInfoChip('Status', user.status.label),
-                  const SizedBox(width: 8),
-                  _buildInfoChip('Mobile', user.mobile),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: user.status == models.UserStatus.active
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.grey.withOpacity(0.1),
+                      color: user.status.color.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: user.status == models.UserStatus.active
-                            ? Colors.green
-                            : Colors.grey,
+                        color: user.status.color.withOpacity(0.3),
                         width: 1,
                       ),
                     ),
                     child: Text(
                       user.status.label,
                       style: TextStyle(
+                        color: user.status.color,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: user.status == models.UserStatus.active
-                            ? Colors.green[700]
-                            : Colors.grey[600],
                       ),
                     ),
                   ),
-                  const Spacer(),
-                  Text(
-                    'Email: ${user.email}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                  ),
                 ],
+              ),
+              const SizedBox(height: 16),
+
+              // User details
+              _buildDetailRow(
+                icon: Icons.business,
+                label: 'Department',
+                value: user.department.label,
+              ),
+              const SizedBox(height: 8),
+              _buildDetailRow(
+                icon: Icons.work,
+                label: 'Designation',
+                value: user.designation,
+              ),
+              const SizedBox(height: 8),
+              _buildDetailRow(
+                icon: Icons.badge,
+                label: 'Role',
+                value: user.role.label,
+                valueColor: user.role.color,
+              ),
+              const SizedBox(height: 12),
+
+              // Contact info - Mobile responsive
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 600) {
+                    // Mobile layout: Stack contact info vertically
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildContactInfo(
+                          icon: Icons.phone,
+                          value: user.mobile,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildContactInfo(icon: Icons.email, value: user.email),
+                      ],
+                    );
+                  } else {
+                    // Desktop layout: Display contact info in a row
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: _buildContactInfo(
+                            icon: Icons.phone,
+                            value: user.mobile,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildContactInfo(
+                            icon: Icons.email,
+                            value: user.email,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Action Buttons - Mobile responsive
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 600) {
+                    // Mobile layout - full width buttons
+                    return Column(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              print('Mobile View button pressed');
+                              _handleViewUser(context);
+                            },
+                            icon: const Icon(Icons.visibility, size: 18),
+                            label: const Text('View Details'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF232534),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: onTap,
+                            icon: const Icon(Icons.edit, size: 18),
+                            label: const Text('Edit User'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF232534),
+                              side: const BorderSide(color: Color(0xFF232534)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Desktop layout - horizontal buttons
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              print('Desktop View button pressed');
+                              _handleViewUser(context);
+                            },
+                            icon: const Icon(Icons.visibility, size: 18),
+                            label: const Text('View Details'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF232534),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: onTap,
+                            icon: const Icon(Icons.edit, size: 18),
+                            label: const Text('Edit User'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF232534),
+                              side: const BorderSide(color: Color(0xFF232534)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
               ),
             ],
           ),
@@ -198,22 +259,94 @@ class UserCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoChip(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF232534).withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF232534).withOpacity(0.2)),
-      ),
-      child: Text(
-        '$label: $value',
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF232534),
+  void _handleViewUser(BuildContext context) {
+    print('View button clicked for user: ${user.userName}');
+
+    // Convert User model to Map for ViewUserScreen
+    final userData = {
+      'firstName': user.userName.split(' ').first,
+      'lastName': user.userName.split(' ').length > 1
+          ? user.userName.split(' ').last
+          : '',
+      'role': user.role.label,
+      'email': user.email,
+      'password': '**********',
+      'profilePicture': null,
+      'addressLine1': '',
+      'addressLine2': '',
+      'city': '',
+      'state': '',
+      'zipCode': '',
+      'country': '',
+      'companyName': user.companyName,
+      'designation': user.designation,
+      'department': user.department.label,
+      'telephone': user.mobile,
+      'fax': '',
+      'mobile': user.mobile,
+      'website': '',
+    };
+
+    print('Navigating to ViewUserScreen with data: $userData');
+
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (context) => ViewUserScreen(userData: userData),
+          ),
+        )
+        .then((_) {
+          print('ViewUserScreen closed');
+        })
+        .catchError((error) {
+          print('Error navigating to ViewUserScreen: $error');
+        });
+  }
+
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    Color? valueColor,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFF6B7280)),
+        const SizedBox(width: 8),
+        Text(
+          '$label: ',
+          style: const TextStyle(
+            fontSize: 14,
+            color: Color(0xFF6B7280),
+            fontWeight: FontWeight.w500,
+          ),
         ),
-      ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              color: valueColor ?? const Color(0xFF1F2937),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContactInfo({required IconData icon, required String value}) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFF6B7280)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF1F2937)),
+          ),
+        ),
+      ],
     );
   }
 }

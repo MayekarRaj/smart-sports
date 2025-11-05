@@ -73,12 +73,12 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     // Dispose all branch controllers
     for (var branch in _branches) {
       if (branch['addressControllers'] != null) {
-        for (var controller in branch['addressControllers']) {
+        for (var controller in branch['addressControllers'].values) {
           controller.dispose();
         }
       }
       if (branch['contactControllers'] != null) {
-        for (var controller in branch['contactControllers']) {
+        for (var controller in branch['contactControllers'].values) {
           controller.dispose();
         }
       }
@@ -464,6 +464,12 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                 : null,
           ),
           const SizedBox(height: 16),
+          if (branchNumber == 1) ...[
+            const SizedBox(height: 10),
+            _buildAddressSubSection(addressControllers),
+            const SizedBox(height: 16),
+            _buildContactDetailsSubSection(contactControllers),
+          ] else ...[
           _buildCheckboxOption(
             'Address Is Same As Sign Up Address?',
             branchData['addressSameAsSignup'] as bool,
@@ -471,13 +477,10 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
               branchData['addressSameAsSignup'] = value!;
             }),
           ),
-
-          // Address Section (if not same as signup)
           if (!(branchData['addressSameAsSignup'] as bool)) ...[
             const SizedBox(height: 16),
             _buildAddressSubSection(addressControllers),
           ],
-
           const SizedBox(height: 16),
           _buildCheckboxOption(
             'Contact Details Is Same As Sign Up Contact Details?',
@@ -486,13 +489,11 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
               branchData['contactSameAsSignup'] = value!;
             }),
           ),
-
-          // Contact Details Section (if not same as signup)
           if (!(branchData['contactSameAsSignup'] as bool)) ...[
             const SizedBox(height: 16),
             _buildContactDetailsSubSection(contactControllers),
           ],
-
+          ],
           const SizedBox(height: 16),
           _buildClubOperationalDetailsSubSection(branchData),
           const SizedBox(height: 16),
@@ -689,12 +690,20 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      (branchData['operationalTimes'] as List<Map<String, String>>)
+                        .add({'days': 'Weekdays', 'startTime': '00:00', 'endTime': '00:00'});
+                    });
+                  },
                 child: const Text(
                   '+ Days & Time',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),

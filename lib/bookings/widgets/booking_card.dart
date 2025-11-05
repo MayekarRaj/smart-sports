@@ -1,379 +1,571 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../../common/models/booking.dart';
-import '../../core/theme/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../models/booking_model.dart';
+import 'coach_tile.dart';
+import 'player_avatar_row.dart';
 
-class BookingCard extends StatelessWidget {
-  final Booking booking;
-  final VoidCallback onTap;
-  final VoidCallback onCancel;
-  final VoidCallback onPurchaseRepair;
-  final VoidCallback onInvoice;
-  final VoidCallback? onTooltip;
+class BookingCard extends StatefulWidget {
+  final BookingModel booking;
+  final VoidCallback? onCancelBooking;
+  final VoidCallback? onPurchase;
+  final VoidCallback? onRepair;
 
   const BookingCard({
-    super.key,
+    Key? key,
     required this.booking,
-    required this.onTap,
-    required this.onCancel,
-    required this.onPurchaseRepair,
-    required this.onInvoice,
-    this.onTooltip,
-  });
+    this.onCancelBooking,
+    this.onPurchase,
+    this.onRepair,
+  }) : super(key: key);
+
+  @override
+  State<BookingCard> createState() => _BookingCardState();
+}
+
+class _BookingCardState extends State<BookingCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  bool _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final dateFmt = DateFormat('EEE, MMM d, yyyy');
-    final timeFmt = DateFormat('HH:mm');
+    return AnimatedBuilder(
+      animation: _scaleAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: GestureDetector(
+            onTapDown: (_) => _animationController.forward(),
+            onTapUp: (_) => _animationController.reverse(),
+            onTapCancel: () => _animationController.reverse(),
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Main content
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        // Header with status badges
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.booking.venueName,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Booking ID ${widget.booking.bookingId}',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: const Color(0xFF007BFF),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            _buildStatusBadges(),
+                          ],
+                        ),
 
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image with status badge
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: Image.network(
-                          booking.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: Colors.grey.shade200,
-                            child: const Center(
-                              child: Icon(Icons.image, size: 48),
+                        const SizedBox(height: 12),
+
+                        // Location and rating
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF007BFF).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(
+                                    0xFF007BFF,
+                                  ).withOpacity(0.3),
+                                ),
+                              ),
+                              child: Text(
+                                widget.booking.location,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: const Color(0xFF007BFF),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Row(
+                              children: [
+                                Text(
+                                  widget.booking.rating.toString(),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                ...List.generate(5, (index) {
+                                  return Icon(
+                                    index < widget.booking.rating.floor()
+                                        ? Icons.star
+                                        : Icons.star_border,
+                                    size: 16,
+                                    color: Colors.amber,
+                                  );
+                                }),
+                              ],
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Coach details
+                        CoachTile(
+                          name: widget.booking.coach.name,
+                          email: widget.booking.coach.email,
+                          imageUrl: widget.booking.coach.imageUrl,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Players
+                        Row(
+                          children: [
+                            Text(
+                              'Players:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            PlayerAvatarRow(
+                              players: widget.booking.players,
+                              maxVisible: 4,
+                              avatarSize: 28,
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Equipment actions
+                        Row(
+                          children: widget.booking.equipmentActions.map((
+                            action,
+                          ) {
+                            return Expanded(
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                child: ElevatedButton(
+                                  onPressed: action.type == 'purchase'
+                                      ? widget.onPurchase
+                                      : widget.onRepair,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: action.type == 'purchase'
+                                        ? const Color(0xFF007BFF)
+                                        : Colors.white,
+                                    foregroundColor: action.type == 'purchase'
+                                        ? Colors.white
+                                        : const Color(0xFF007BFF),
+                                    side: BorderSide(
+                                      color: const Color(0xFF007BFF),
+                                      width: 1,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    action.label,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Reserved by
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Text(
+                            'Reserved By: ${widget.booking.reservedBy}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.grey.shade700,
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
+
+                        // Expandable content
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          height: _isExpanded ? null : 0,
+                          child: _isExpanded
+                              ? Column(
+                                  children: [
+                                    const SizedBox(height: 16),
+                                    _buildBookingSchedule(),
+                                    const SizedBox(height: 12),
+                                    _buildChips(),
+                                  ],
+                                )
+                              : const SizedBox.shrink(),
                         ),
-                        decoration: BoxDecoration(
-                          color: _statusColor(booking.status),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          booking.status.label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Title and id row
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            booking.clubName,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 8,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              _locationChip(booking.location),
-                              _ratingRow(booking.rating),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      booking.id,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Coach and players
-                Row(
-                  children: [
-                    const Icon(Icons.person, size: 18, color: Colors.black87),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        booking.coachName,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    // tiny players avatars as initials
-                    Row(
-                      children: booking.players
-                          .take(4)
-                          .map((p) => _avatar(p))
-                          .toList(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Schedule
-                _scheduleTile(
-                  title: 'Booking Schedule',
-                  values: [
-                    booking.court,
-                    '${booking.slots} Slots',
-                    dateFmt.format(booking.dateTimeStart),
-                    '${timeFmt.format(booking.dateTimeStart)} - ${timeFmt.format(booking.dateTimeEnd)}',
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Chips row
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  children: [
-                    _chip(label: booking.role.label, icon: Icons.verified_user),
-                    _chip(
-                      label: booking.sportType.label,
-                      icon: Icons.sports_tennis,
-                    ),
-                    _chip(
-                      label: booking.paymentStatus.label,
-                      icon: Icons.payment,
-                      background: booking.paymentStatus.color,
-                      foreground: Colors.black,
-                    ),
-                    if (booking.waitListConfirmed)
-                      GestureDetector(
-                        onTap: onTooltip,
-                        child: _chip(
-                          label: 'Wait List Confirmed',
-                          icon: Icons.hourglass_bottom,
-                          background: Colors.yellow.shade700,
-                          foreground: Colors.white,
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Actions
-                Row(
-                  children: [
-                    _smallOutlinedButton(
-                      context,
-                      label: 'Cancel',
-                      onPressed: onCancel,
-                      icon: Icons.cancel_outlined,
-                    ),
-                    const SizedBox(width: 8),
-                    _smallFilledButton(
-                      context,
-                      label: 'Purchase / Repair',
-                      onPressed: onPurchaseRepair,
-                      icon: Icons.shopping_bag_outlined,
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: onInvoice,
-                      child: const Text('Invoice / Receipt'),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatusBadges() {
+    List<Widget> badges = [];
+
+    // Cancel Booking button
+    badges.add(
+      Container(
+        margin: const EdgeInsets.only(bottom: 4),
+        child: ElevatedButton(
+          onPressed: widget.onCancelBooking,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            minimumSize: Size.zero,
+          ),
+          child: Text(
+            'Cancel Booking',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
       ),
     );
-  }
 
-  Color _statusColor(BookingStatus s) {
-    switch (s) {
-      case BookingStatus.upcoming:
-        return AppTheme.primary;
+    // Status badge
+    Color statusColor;
+    String statusText;
+    Color textColor = Colors.white;
+
+    switch (widget.booking.status) {
       case BookingStatus.waiting:
-        return Colors.orange;
-      case BookingStatus.paid:
-        return AppTheme.success;
-      case BookingStatus.archived:
-        return Colors.grey.shade700;
+        statusColor = const Color(0xFFFF9800);
+        statusText = 'Waiting';
+        break;
+      case BookingStatus.waitListConfirmed:
+        statusColor = const Color(0xFFFFD600);
+        statusText = 'Wait List Confirmed';
+        textColor = Colors.black;
+        break;
+      case BookingStatus.confirmed:
+        statusColor = const Color(0xFF4CAF50);
+        statusText = 'Confirmed';
+        break;
       case BookingStatus.cancelled:
-        return AppTheme.error;
+        statusColor = Colors.red;
+        statusText = 'Cancelled';
+        break;
     }
-  }
 
-  Widget _locationChip(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFF3F8),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.location_on_outlined, size: 14),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _ratingRow(double rating) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          rating.toStringAsFixed(1),
-          style: const TextStyle(fontWeight: FontWeight.w700),
+    badges.add(
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: statusColor,
+          borderRadius: BorderRadius.circular(6),
         ),
-        const SizedBox(width: 4),
-        const Icon(Icons.star, color: Colors.amber, size: 16),
-      ],
-    );
-  }
-
-  Widget _avatar(String initial) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: CircleAvatar(
-        radius: 12,
-        backgroundColor: Colors.grey.shade300,
         child: Text(
-          initial,
-          style: const TextStyle(fontSize: 12, color: Colors.black),
+          statusText,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: textColor,
+          ),
         ),
       ),
     );
+
+    // Wait List payment warning
+    if (widget.booking.status == BookingStatus.waitListConfirmed) {
+      badges.add(
+        Container(
+          margin: const EdgeInsets.only(top: 4),
+          child: Text(
+            'Pay by Wed, 23 Apr 2025 or wait list will be canceled.',
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              color: Colors.red,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.end, children: badges);
   }
 
-  Widget _scheduleTile({required String title, required List<String> values}) {
+  Widget _buildBookingSchedule() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F5F8),
+        color: Colors.blue.shade50,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey.shade700,
-              fontWeight: FontWeight.w700,
+            'Booking Schedule',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.blue.shade800,
             ),
           ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildScheduleItem(
+                  'Court',
+                  widget.booking.schedule.court,
+                  Icons.sports,
+                ),
+              ),
+              Expanded(
+                child: _buildScheduleItem(
+                  'Slots',
+                  '${widget.booking.schedule.slots}',
+                  Icons.schedule,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 12,
-            runSpacing: 6,
-            children: values.map((v) => _pill(v)).toList(),
+          Row(
+            children: [
+              Expanded(
+                child: _buildScheduleItem(
+                  'Date',
+                  widget.booking.schedule.date,
+                  Icons.calendar_today,
+                ),
+              ),
+              Expanded(
+                child: _buildScheduleItem(
+                  'Time',
+                  widget.booking.schedule.time,
+                  Icons.access_time,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _pill(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFDFE3E8)),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-      ),
+  Widget _buildScheduleItem(String label, String value, IconData icon) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 16, color: Colors.blue.shade600),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: Colors.blue.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _chip({
-    required String label,
-    required IconData icon,
-    Color? background,
-    Color? foreground,
-  }) {
-    return Chip(
-      label: Text(label, style: TextStyle(fontSize: 12, color: foreground)),
-      avatar: Icon(icon, size: 16, color: foreground ?? Colors.black87),
-      backgroundColor: background ?? const Color(0xFFEFF3F8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      visualDensity: VisualDensity.compact,
+  Widget _buildChips() {
+    return Row(
+      children: [
+        // Booking As chip
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF007BFF)),
+          ),
+          child: Text(
+            widget.booking.bookingAs,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: const Color(0xFF007BFF),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+
+        // Sport Type chip
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF007BFF)),
+          ),
+          child: Text(
+            widget.booking.sportType,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: const Color(0xFF007BFF),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+
+        // Coach Request chip
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: _getCoachRequestColor(),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            _getCoachRequestText(),
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: _getCoachRequestTextColor(),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _smallOutlinedButton(
-    BuildContext context, {
-    required String label,
-    required VoidCallback onPressed,
-    required IconData icon,
-  }) {
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 16),
-      label: Text(label, style: const TextStyle(fontSize: 12)),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-        side: const BorderSide(color: Color(0xFFDFE3E8)),
-      ),
-    );
+  Color _getCoachRequestColor() {
+    switch (widget.booking.coachRequestStatus) {
+      case CoachRequestStatus.pending:
+        return Colors.grey.shade300;
+      case CoachRequestStatus.accepted:
+        return const Color(0xFFFF9800);
+      case CoachRequestStatus.rejected:
+        return Colors.red.shade300;
+    }
   }
 
-  Widget _smallFilledButton(
-    BuildContext context, {
-    required String label,
-    required VoidCallback onPressed,
-    required IconData icon,
-  }) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 16),
-      label: Text(label, style: const TextStyle(fontSize: 12)),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppTheme.primary,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-      ),
-    );
+  Color _getCoachRequestTextColor() {
+    switch (widget.booking.coachRequestStatus) {
+      case CoachRequestStatus.pending:
+        return Colors.grey.shade600;
+      case CoachRequestStatus.accepted:
+        return Colors.white;
+      case CoachRequestStatus.rejected:
+        return Colors.red.shade700;
+    }
+  }
+
+  String _getCoachRequestText() {
+    switch (widget.booking.coachRequestStatus) {
+      case CoachRequestStatus.pending:
+        return 'Pending';
+      case CoachRequestStatus.accepted:
+        return 'Accepted';
+      case CoachRequestStatus.rejected:
+        return 'Rejected';
+    }
   }
 }

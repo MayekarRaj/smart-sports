@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'membership_plan_page.dart';
+import 'corporate_membership_plan_page.dart';
 
 class CorporateRegistrationPage extends StatefulWidget {
   const CorporateRegistrationPage({super.key});
@@ -626,7 +626,7 @@ class _CorporateRegistrationPageState extends State<CorporateRegistrationPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MembershipPlanPage(),
+                      builder: (context) => const CorporateMembershipPlanPage(),
                     ),
                   );
                 }

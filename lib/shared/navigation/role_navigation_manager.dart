@@ -35,8 +35,6 @@ import 'package:smart_sports/role_specific/coach/screens/dashboard/coach_analyti
     as coach_dashboard;
 import 'package:smart_sports/role_specific/coach/screens/transactions/coach_transactions_page.dart'
     as coach_transactions;
-import 'package:smart_sports/role_specific/coach/screens/courts/courts_page.dart'
-    as coach_courts;
 import 'package:smart_sports/role_specific/coach/screens/bookings/coach_bookings_page.dart'
     as coach_bookings;
 import 'package:smart_sports/role_specific/coach/screens/events/coach_events_page.dart'
@@ -59,8 +57,6 @@ import 'package:smart_sports/role_specific/corporate/screens/dashboard/corporate
     as corporate_dashboard;
 import 'package:smart_sports/role_specific/corporate/screens/transactions/corporate_transactions_page.dart'
     as corporate_transactions;
-import 'package:smart_sports/role_specific/corporate/screens/courts/courts_page.dart'
-    as corporate_courts;
 import 'package:smart_sports/role_specific/corporate/screens/clubs/corporate_page.dart'
     as corporate_clubs;
 import 'package:smart_sports/role_specific/corporate/screens/bookings/corporate_bookings_page.dart'
@@ -75,23 +71,22 @@ import 'package:smart_sports/role_specific/corporate/screens/referrals/corporate
     as corporate_referrals;
 import 'package:smart_sports/role_specific/corporate/screens/customer_support/corporate_customer_support_page.dart'
     as corporate_support;
-import 'package:smart_sports/role_specific/corporate/screens/settings/corporate_settings_page.dart'
-    as corporate_settings;
 import 'package:smart_sports/role_specific/corporate/screens/profile/corporate_profile_page.dart'
     as corporate_profile;
 
 // Merchandiser imports
 import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/transactions/merchandiser_transactions_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/courts/courts_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/bookings/merchandiser_bookings_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/events/merchandiser_events_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/users/merchandiser_users_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/referrals/merchandiser_referrals_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/customer_support/merchandiser_customer_support_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/settings/merchandiser_settings_page.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/inventory/merchandiser_inventory_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/profile/merchandiser_profile_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/sponsorships/merchandiser_sponsorships_page.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/clubs/merchandiser_page.dart';
 
 /// Centralized navigation manager for role-specific screens
 /// Handles consistent navigation behavior across all role screens
@@ -230,59 +225,60 @@ class RoleNavigationManager {
           ),
         );
         break;
+      // Courts removed - commented out
+      // case 2:
+      //   Navigator.of(context).pushReplacement(
+      //     MaterialPageRoute(
+      //       builder: (_) => const coach_courts.ClubCourtsPage(),
+      //     ),
+      //   );
+      //   break;
       case 2:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const coach_courts.ClubCourtsPage(),
-          ),
-        );
-        break;
-      case 3:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const coach_clubs.ClubsPage()),
         );
         break;
-      case 4:
+      case 3:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => const coach_bookings.CoachBookingsPage(),
           ),
         );
         break;
-      case 5:
+      case 4:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => const coach_events.CoachEventsPage(),
           ),
         );
         break;
-      case 6:
+      case 5:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => const coach_sponsorships.ClubSponsorshipsPage(),
           ),
         );
         break;
-      case 7:
+      case 6:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const coach_users.CoachUsersPage()),
         );
         break;
-      case 8:
+      case 7:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => const coach_referrals.CoachReferralsPage(),
           ),
         );
         break;
-      case 9:
+      case 8:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => const coach_support.CoachCustomerSupportPage(),
           ),
         );
         break;
-      case 10:
+      case 9:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => const coach_settings.CoachSettingsPage(),
@@ -313,20 +309,12 @@ class RoleNavigationManager {
         );
         break;
       case 2:
-        // Courts
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const corporate_courts.CourtsPage(),
-          ),
-        );
-        break;
-      case 3:
         // Clubs
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const corporate_clubs.ClubsPage()),
         );
         break;
-      case 4:
+      case 3:
         // Bookings
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
@@ -334,20 +322,31 @@ class RoleNavigationManager {
           ),
         );
         break;
-      case 5:
-        // Events
+      case 4:
+        // Events / Tournaments
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => const corporate_events.CorporateEventsPage(),
           ),
         );
         break;
-      case 6:
+      case 5:
         // Sponsorships
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) =>
                 const corporate_sponsorships.CorporateSponsorshipsPage(),
+          ),
+        );
+        break;
+      case 6:
+        // Membership Plan (placeholder - no screen exists yet)
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const _CorporatePlaceholder(
+              title: 'Membership Plan',
+              currentIndex: 6,
+            ),
           ),
         );
         break;
@@ -376,14 +375,6 @@ class RoleNavigationManager {
           ),
         );
         break;
-      case 10:
-        // Settings
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const corporate_settings.CorporateSettingsPage(),
-          ),
-        );
-        break;
     }
   }
 
@@ -405,16 +396,13 @@ class RoleNavigationManager {
         break;
       case 2:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MerchandiserCourtsPage()),
+          MaterialPageRoute(builder: (_) => const MerchandiserInventoryPage()),
         );
         break;
       case 3:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) =>
-                const _MerchandiserPlaceholder(title: 'Clubs', currentIndex: 3),
-          ),
-        );
+        Navigator.of(
+          context,
+        ).pushReplacement(MaterialPageRoute(builder: (_) => const ClubsPage()));
         break;
       case 4:
         Navigator.of(context).pushReplacement(
@@ -459,7 +447,79 @@ class RoleNavigationManager {
   }
 
   static void _navigateMemberScreen(BuildContext context, int index) {
-    // Member navigation logic can be added here when needed
+    switch (index) {
+      case 0:
+        // Dashboard
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                const _MemberPlaceholder(title: 'Dashboard', currentIndex: 0),
+          ),
+        );
+        break;
+      case 1:
+        // Transactions
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const _MemberPlaceholder(
+              title: 'Transactions',
+              currentIndex: 1,
+            ),
+          ),
+        );
+        break;
+      case 2:
+        // Courts
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                const _MemberPlaceholder(title: 'Courts', currentIndex: 2),
+          ),
+        );
+        break;
+      case 3:
+        // Clubs
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                const _MemberPlaceholder(title: 'Clubs', currentIndex: 3),
+          ),
+        );
+        break;
+      case 4:
+        // Bookings
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                const _MemberPlaceholder(title: 'Bookings', currentIndex: 4),
+          ),
+        );
+        break;
+      case 5:
+        // Events
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                const _MemberPlaceholder(title: 'Events', currentIndex: 5),
+          ),
+        );
+        break;
+      case 6:
+        // Referrals
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                const _MemberPlaceholder(title: 'Referrals', currentIndex: 6),
+          ),
+        );
+        break;
+      case 7:
+        // Profile
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const _MemberProfilePage()),
+        );
+        break;
+    }
   }
 
   static void _navigateFreelancerScreen(BuildContext context, int index) {
@@ -515,22 +575,22 @@ class RoleNavigationManager {
 
 // Placeholder widgets for each role
 
-class _MerchandiserPlaceholder extends StatelessWidget {
+class _MemberPlaceholder extends StatelessWidget {
   final String title;
   final int currentIndex;
-  const _MerchandiserPlaceholder({
-    required this.title,
-    required this.currentIndex,
-  });
+
+  const _MemberPlaceholder({required this.title, required this.currentIndex});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
+        backgroundColor: const Color(0xFF283048),
+        foregroundColor: Colors.white,
         leading: Builder(
           builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu),
+            icon: const Icon(Icons.menu, color: Colors.white),
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
@@ -539,22 +599,43 @@ class _MerchandiserPlaceholder extends StatelessWidget {
         elevation: 0,
         child: SafeArea(
           child: RoleSidebar(
-            role: UserRole.merchandiser,
+            role: UserRole.member,
             selectedIndex: currentIndex,
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
-              UserRole.merchandiser,
+              UserRole.member,
               i,
             ),
             onProfileTap: () => RoleNavigationManager.navigateToProfile(
               context,
-              UserRole.merchandiser,
+              UserRole.member,
             ),
           ),
         ),
       ),
-      body: Center(child: Text('$title screen coming soon')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.construction, size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              '$title Screen',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Coming Soon',
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -567,9 +648,11 @@ class _MemberProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Member Profile'),
+        backgroundColor: const Color(0xFF283048),
+        foregroundColor: Colors.white,
         leading: Builder(
           builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu),
+            icon: const Icon(Icons.menu, color: Colors.white),
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
@@ -579,7 +662,7 @@ class _MemberProfilePage extends StatelessWidget {
         child: SafeArea(
           child: RoleSidebar(
             role: UserRole.member,
-            selectedIndex: 10,
+            selectedIndex: 7,
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
@@ -633,6 +716,82 @@ class _FreelancerProfilePage extends StatelessWidget {
         ),
       ),
       body: const Center(child: Text('Freelancer Profile screen coming soon')),
+    );
+  }
+}
+
+class _CorporatePlaceholder extends StatelessWidget {
+  final String title;
+  final int currentIndex;
+
+  const _CorporatePlaceholder({
+    required this.title,
+    required this.currentIndex,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFf093fb), Color(0xFFf5576c)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
+      ),
+      drawer: Drawer(
+        elevation: 0,
+        child: SafeArea(
+          child: RoleSidebar(
+            role: UserRole.corporate,
+            selectedIndex: currentIndex,
+            edgeToEdge: true,
+            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
+              context,
+              UserRole.corporate,
+              i,
+            ),
+            onProfileTap: () => RoleNavigationManager.navigateToProfile(
+              context,
+              UserRole.corporate,
+            ),
+          ),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.construction, size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              '$title Screen',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Coming Soon',
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

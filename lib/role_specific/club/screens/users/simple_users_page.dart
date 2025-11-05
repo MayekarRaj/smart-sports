@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/common/models/user.dart';
 import 'package:smart_sports/role_specific/club/screens/users/user_data_service.dart';
+import 'package:smart_sports/role_specific/club/screens/users/view_user_screen.dart';
 
 /// Simplified version of the users page for testing
 class SimpleUsersPage extends StatefulWidget {
@@ -23,6 +24,45 @@ class _SimpleUsersPageState extends State<SimpleUsersPage> {
     setState(() {
       _users = UserDataService.getMockUsers();
     });
+  }
+
+  void _handleViewUser(User user) {
+    final userData = _convertUserToViewData(user);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ViewUserScreen(userData: userData),
+      ),
+    );
+  }
+
+  Map<String, dynamic> _convertUserToViewData(User user) {
+    return {
+      'firstName': user.userName.split(' ').isNotEmpty
+          ? user.userName.split(' ')[0]
+          : '',
+      'lastName': user.userName.split(' ').length > 1
+          ? user.userName.split(' ').sublist(1).join(' ')
+          : '',
+      'role': user.role.label,
+      'email': user.email,
+      'addressLine1': '',
+      'addressLine2': '',
+      'city': '',
+      'state': '',
+      'postalCode': '',
+      'country': '',
+      'companyName': user.companyName,
+      'designation': user.designation,
+      'department': user.department.label,
+      'telephoneCountry': 'INDIA (+91)',
+      'telephone': '',
+      'faxCountry': 'INDIA (+91)',
+      'fax': '',
+      'mobileCountry': 'INDIA (+91)',
+      'mobile': user.mobile,
+      'website': '',
+    };
   }
 
   @override
@@ -72,11 +112,7 @@ class _SimpleUsersPageState extends State<SimpleUsersPage> {
                         ),
                       ),
                     ),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Tapped on ${user.userName}')),
-                      );
-                    },
+                    onTap: () => _handleViewUser(user),
                   ),
                 );
               },

@@ -1,75 +1,71 @@
 import 'package:flutter/material.dart';
+import 'coach_page.dart';
 
-class CoachDetailsPage extends StatefulWidget {
-  final CoachData coach;
+class ClubDetailsPage extends StatefulWidget {
+  final ClubData club;
 
-  const CoachDetailsPage({super.key, required this.coach});
+  const ClubDetailsPage({super.key, required this.club});
 
   @override
-  State<CoachDetailsPage> createState() => _CoachDetailsPageState();
+  State<ClubDetailsPage> createState() => _ClubDetailsPageState();
 }
 
-class _CoachDetailsPageState extends State<CoachDetailsPage> {
-  int _selectedSpecializationIndex = 0;
-  int _selectedExperienceIndex = 0;
+class _ClubDetailsPageState extends State<ClubDetailsPage> {
+  int _selectedBranchIndex = 0;
+  int _selectedSportIndex = 0;
   bool _showMoreDetails = false;
 
-  final List<String> _specializations = [
-    'Football',
+  final List<String> _branches = ['Branch 1', 'Branch 2', 'Branch 3'];
+  final List<String> _sports = [
+    'Cricket',
     'Basketball',
     'Tennis',
-    'Cricket',
-    'Swimming',
-  ];
-  final List<String> _experienceLevels = [
-    'Beginner (0-2 years)',
-    'Intermediate (2-5 years)',
-    'Advanced (5-10 years)',
-    'Expert (10+ years)',
+    'Carom',
+    'Chess',
   ];
 
-  final List<TrainingSessionData> _sessions = [
-    TrainingSessionData(
-      name: 'Morning Training',
+  final List<CourtData> _courts = [
+    CourtData(
+      name: 'Court 1',
       status: 'Available',
-      maxStudents: 15,
-      duration: '1 hour',
-      level: 'Beginner',
-      price: 25,
+      maxPlayers: 30,
+      maxTeams: 3,
+      guestCapacity: 300,
+      coaches: 4,
       schedule: {
-        'weekdays': '06:00 - 07:00',
-        'saturday': '07:00 - 08:00',
-        'sunday': '08:00 - 09:00',
+        'weekdays': '08:30 - 22:00',
+        'saturday': '11:30 - 20:00',
+        'sunday': 'Off',
       },
-      imageUrl: 'assets/images/training1.jpg',
+      imageUrl: 'assets/images/court1.jpg',
     ),
-    TrainingSessionData(
-      name: 'Evening Training',
+    CourtData(
+      name: 'Court 2',
       status: 'Available',
-      maxStudents: 20,
-      duration: '1.5 hours',
-      level: 'Intermediate',
-      price: 35,
+      maxPlayers: 30,
+      maxTeams: 3,
+      guestCapacity: 300,
+      coaches: 4,
       schedule: {
-        'weekdays': '18:00 - 19:30',
-        'saturday': '16:00 - 17:30',
-        'sunday': '17:00 - 18:30',
+        'weekdays': '08:30 - 22:00',
+        'saturday': '11:30 - 20:00',
+        'sunday': 'Off',
       },
-      imageUrl: 'assets/images/training2.jpg',
+      imageUrl: 'assets/images/court2.jpg',
     ),
-    TrainingSessionData(
-      name: 'Advanced Training',
+    CourtData(
+      name: 'Court 3',
       status: 'Available',
-      maxStudents: 10,
-      duration: '2 hours',
-      level: 'Advanced',
-      price: 50,
+      maxPlayers: 30,
+      maxTeams: 3,
+      guestCapacity: 300,
+      coaches: 4,
       schedule: {
-        'weekdays': '19:30 - 21:30',
-        'saturday': '18:00 - 20:00',
-        'sunday': '19:00 - 21:00',
+        'weekdays': '08:30 - 22:00',
+        'saturday': '11:30 - 20:00',
+        'sunday': 'Off',
       },
-      imageUrl: 'assets/images/training3.jpg',
+      imageUrl: 'assets/images/court3.jpg',
     ),
   ];
 
@@ -77,61 +73,43 @@ class _CoachDetailsPageState extends State<CoachDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.coach.name),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        title: Text(widget.club.name),
         leading: Builder(
           builder: (ctx) => IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.share, color: Colors.white),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.bookmark_border, color: Colors.white),
-          ),
+          IconButton(onPressed: () {}, icon: const Icon(Icons.share)),
+          IconButton(onPressed: () {}, icon: const Icon(Icons.bookmark_border)),
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Coach Header
-            MobileCoachHeader(coach: widget.coach),
+            // Club Header
+            MobileClubHeader(club: widget.club),
 
-            // Specialization Selection
-            MobileSpecializationSelector(
-              specializations: _specializations,
-              selectedIndex: _selectedSpecializationIndex,
-              onSpecializationChanged: (index) =>
-                  setState(() => _selectedSpecializationIndex = index),
+            // Branch Selection
+            MobileBranchSelector(
+              branches: _branches,
+              selectedIndex: _selectedBranchIndex,
+              onBranchChanged: (index) =>
+                  setState(() => _selectedBranchIndex = index),
             ),
 
-            // Experience Level Selection
-            MobileExperienceSelector(
-              experienceLevels: _experienceLevels,
-              selectedIndex: _selectedExperienceIndex,
-              onExperienceChanged: (index) =>
-                  setState(() => _selectedExperienceIndex = index),
+            // Sport Selection
+            MobileSportSelector(
+              sports: _sports,
+              selectedIndex: _selectedSportIndex,
+              onSportChanged: (index) =>
+                  setState(() => _selectedSportIndex = index),
             ),
 
-            // Training Sessions List
-            MobileTrainingSessionsList(sessions: _sessions),
+            // Courts List
+            MobileCourtsList(courts: _courts),
 
             // More Details Section
             MobileMoreDetailsSection(
@@ -146,11 +124,11 @@ class _CoachDetailsPageState extends State<CoachDetailsPage> {
   }
 }
 
-// Mobile Coach Header Component
-class MobileCoachHeader extends StatelessWidget {
-  final CoachData coach;
+// Mobile Club Header Component
+class MobileClubHeader extends StatelessWidget {
+  final ClubData club;
 
-  const MobileCoachHeader({super.key, required this.coach});
+  const MobileClubHeader({super.key, required this.club});
 
   @override
   Widget build(BuildContext context) {
@@ -171,12 +149,12 @@ class MobileCoachHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Coach Name and Rating
+          // Club Name and Rating
           Row(
             children: [
               Expanded(
                 child: Text(
-                  coach.name,
+                  club.name,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -188,7 +166,7 @@ class MobileCoachHeader extends StatelessWidget {
                   const Icon(Icons.star, color: Colors.amber, size: 20),
                   const SizedBox(width: 4),
                   Text(
-                    '${coach.rating}',
+                    '${club.rating}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -207,7 +185,7 @@ class MobileCoachHeader extends StatelessWidget {
               const Icon(Icons.location_on, size: 16, color: Colors.grey),
               const SizedBox(width: 4),
               Text(
-                coach.location,
+                club.location,
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
               ),
             ],
@@ -215,28 +193,28 @@ class MobileCoachHeader extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Specializations
+          // Available Sports
           const Text(
-            'Specializations',
+            'Available Sports',
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: coach.specializations
+            children: club.availableSports
                 .map(
-                  (specialization) => Container(
+                  (sport) => Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF232534),
+                      color: Colors.blue,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      specialization,
+                      sport,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -253,11 +231,11 @@ class MobileCoachHeader extends StatelessWidget {
           // Stats
           Row(
             children: [
-              _buildStatChip('Experience', '${coach.experience} years'),
+              _buildStatChip('Branches', '${club.branches}'),
               const SizedBox(width: 8),
-              _buildStatChip('Students', '${coach.students}'),
+              _buildStatChip('Courts', '${club.courts}'),
               const SizedBox(width: 8),
-              _buildStatChip('Rate', '\$${coach.hourlyRate}/hr'),
+              _buildStatChip('Coaches', '${club.coaches}'),
             ],
           ),
         ],
@@ -285,17 +263,17 @@ class MobileCoachHeader extends StatelessWidget {
   }
 }
 
-// Mobile Specialization Selector Component
-class MobileSpecializationSelector extends StatelessWidget {
-  final List<String> specializations;
+// Mobile Branch Selector Component
+class MobileBranchSelector extends StatelessWidget {
+  final List<String> branches;
   final int selectedIndex;
-  final ValueChanged<int> onSpecializationChanged;
+  final ValueChanged<int> onBranchChanged;
 
-  const MobileSpecializationSelector({
+  const MobileBranchSelector({
     super.key,
-    required this.specializations,
+    required this.branches,
     required this.selectedIndex,
-    required this.onSpecializationChanged,
+    required this.onBranchChanged,
   });
 
   @override
@@ -306,22 +284,22 @@ class MobileSpecializationSelector extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Select Specialization',
+            'Select Branch',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: specializations.asMap().entries.map((entry) {
+              children: branches.asMap().entries.map((entry) {
                 final index = entry.key;
-                final specialization = entry.value;
+                final branch = entry.value;
                 final isSelected = selectedIndex == index;
 
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: InkWell(
-                    onTap: () => onSpecializationChanged(index),
+                    onTap: () => onBranchChanged(index),
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -329,18 +307,16 @@ class MobileSpecializationSelector extends StatelessWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFF232534)
-                            : Colors.grey.shade200,
+                        color: isSelected ? Colors.blue : Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF232534)
+                              ? Colors.blue
                               : Colors.grey.shade300,
                         ),
                       ),
                       child: Text(
-                        specialization,
+                        branch,
                         style: TextStyle(
                           color: isSelected ? Colors.white : Colors.black87,
                           fontWeight: FontWeight.w600,
@@ -358,17 +334,17 @@ class MobileSpecializationSelector extends StatelessWidget {
   }
 }
 
-// Mobile Experience Selector Component
-class MobileExperienceSelector extends StatelessWidget {
-  final List<String> experienceLevels;
+// Mobile Sport Selector Component
+class MobileSportSelector extends StatelessWidget {
+  final List<String> sports;
   final int selectedIndex;
-  final ValueChanged<int> onExperienceChanged;
+  final ValueChanged<int> onSportChanged;
 
-  const MobileExperienceSelector({
+  const MobileSportSelector({
     super.key,
-    required this.experienceLevels,
+    required this.sports,
     required this.selectedIndex,
-    required this.onExperienceChanged,
+    required this.onSportChanged,
   });
 
   @override
@@ -379,22 +355,22 @@ class MobileExperienceSelector extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Select Experience Level',
+            'Select Sport',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: experienceLevels.asMap().entries.map((entry) {
+              children: sports.asMap().entries.map((entry) {
                 final index = entry.key;
-                final experience = entry.value;
+                final sport = entry.value;
                 final isSelected = selectedIndex == index;
 
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: InkWell(
-                    onTap: () => onExperienceChanged(index),
+                    onTap: () => onSportChanged(index),
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -402,18 +378,16 @@ class MobileExperienceSelector extends StatelessWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFF2C3BC5)
-                            : Colors.grey.shade200,
+                        color: isSelected ? Colors.blue : Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF2C3BC5)
+                              ? Colors.blue
                               : Colors.grey.shade300,
                         ),
                       ),
                       child: Text(
-                        experience,
+                        sport,
                         style: TextStyle(
                           color: isSelected ? Colors.white : Colors.black87,
                           fontWeight: FontWeight.w600,
@@ -431,11 +405,11 @@ class MobileExperienceSelector extends StatelessWidget {
   }
 }
 
-// Mobile Training Sessions List Component
-class MobileTrainingSessionsList extends StatelessWidget {
-  final List<TrainingSessionData> sessions;
+// Mobile Courts List Component
+class MobileCourtsList extends StatelessWidget {
+  final List<CourtData> courts;
 
-  const MobileTrainingSessionsList({super.key, required this.sessions});
+  const MobileCourtsList({super.key, required this.courts});
 
   @override
   Widget build(BuildContext context) {
@@ -445,24 +419,22 @@ class MobileTrainingSessionsList extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Available Training Sessions',
+            'Available Courts',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          ...sessions
-              .map((session) => MobileTrainingSessionCard(session: session))
-              .toList(),
+          ...courts.map((court) => MobileCourtCard(court: court)).toList(),
         ],
       ),
     );
   }
 }
 
-// Mobile Training Session Card Component
-class MobileTrainingSessionCard extends StatelessWidget {
-  final TrainingSessionData session;
+// Mobile Court Card Component
+class MobileCourtCard extends StatelessWidget {
+  final CourtData court;
 
-  const MobileTrainingSessionCard({super.key, required this.session});
+  const MobileCourtCard({super.key, required this.court});
 
   @override
   Widget build(BuildContext context) {
@@ -482,7 +454,7 @@ class MobileTrainingSessionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Session Image
+          // Court Image
           ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16),
@@ -492,26 +464,22 @@ class MobileTrainingSessionCard extends StatelessWidget {
               height: 150,
               width: double.infinity,
               color: Colors.grey.shade300,
-              child: const Icon(
-                Icons.fitness_center,
-                size: 50,
-                color: Colors.grey,
-              ),
+              child: const Icon(Icons.sports, size: 50, color: Colors.grey),
             ),
           ),
 
-          // Session Details
+          // Court Details
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Session Name and Status
+                // Court Name and Status
                 Row(
                   children: [
                     Expanded(
                       child: Text(
-                        session.name,
+                        court.name,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -555,29 +523,34 @@ class MobileTrainingSessionCard extends StatelessWidget {
 
                 const SizedBox(height: 12),
 
-                // Session Metrics
+                // Court Metrics
                 Row(
                   children: [
                     Expanded(
                       child: _buildMetricCard(
-                        'MAX STUDENTS',
-                        '${session.maxStudents}',
+                        'MAX PLAYERS',
+                        '${court.maxPlayers}',
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: _buildMetricCard('DURATION', session.duration),
+                      child: _buildMetricCard('MAX TEAMS', '${court.maxTeams}'),
                     ),
                     const SizedBox(width: 8),
-                    Expanded(child: _buildMetricCard('LEVEL', session.level)),
+                    Expanded(
+                      child: _buildMetricCard(
+                        'GUEST CAP',
+                        '${court.guestCapacity}',
+                      ),
+                    ),
                   ],
                 ),
 
                 const SizedBox(height: 12),
 
-                // Price
+                // Coaches
                 const Text(
-                  'PRICE',
+                  'COACH',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -585,21 +558,22 @@ class MobileTrainingSessionCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF232534),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '\$${session.price}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                Row(
+                  children: List.generate(
+                    court.coaches,
+                    (index) => Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade100,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.person,
+                        size: 16,
+                        color: Colors.blue,
+                      ),
                     ),
                   ),
                 ),
@@ -607,24 +581,24 @@ class MobileTrainingSessionCard extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 // Schedule
-                _buildScheduleItem('Weekdays', session.schedule['weekdays']!),
+                _buildScheduleItem('Weekdays', court.schedule['weekdays']!),
                 const SizedBox(height: 8),
-                _buildScheduleItem('Saturday', session.schedule['saturday']!),
+                _buildScheduleItem('Saturday', court.schedule['saturday']!),
                 const SizedBox(height: 8),
                 _buildScheduleItem(
                   'Sunday & National Holidays',
-                  session.schedule['sunday']!,
+                  court.schedule['sunday']!,
                 ),
 
                 const SizedBox(height: 16),
 
-                // Book Session Button
+                // Book Slot Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF232534),
+                      backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -632,7 +606,7 @@ class MobileTrainingSessionCard extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      'BOOK SESSION',
+                      'BOOK SLOT',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -649,7 +623,7 @@ class MobileTrainingSessionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF232534).withOpacity(0.3)),
+        border: Border.all(color: Colors.blue.shade200),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -658,7 +632,7 @@ class MobileTrainingSessionCard extends StatelessWidget {
             label,
             style: const TextStyle(
               fontSize: 10,
-              color: Color(0xFF232534),
+              color: Colors.blue,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -684,7 +658,7 @@ class MobileTrainingSessionCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFF232534).withOpacity(0.3)),
+            border: Border.all(color: Colors.blue.shade200),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
@@ -1190,43 +1164,23 @@ class MobileSponsorshipSection extends StatelessWidget {
 }
 
 // Data models
-class CoachData {
-  final String name;
-  final double rating;
-  final String location;
-  final List<String> specializations;
-  final int experience;
-  final int students;
-  final int hourlyRate;
-
-  CoachData({
-    required this.name,
-    required this.rating,
-    required this.location,
-    required this.specializations,
-    required this.experience,
-    required this.students,
-    required this.hourlyRate,
-  });
-}
-
-class TrainingSessionData {
+class CourtData {
   final String name;
   final String status;
-  final int maxStudents;
-  final String duration;
-  final String level;
-  final int price;
+  final int maxPlayers;
+  final int maxTeams;
+  final int guestCapacity;
+  final int coaches;
   final Map<String, String> schedule;
   final String imageUrl;
 
-  TrainingSessionData({
+  CourtData({
     required this.name,
     required this.status,
-    required this.maxStudents,
-    required this.duration,
-    required this.level,
-    required this.price,
+    required this.maxPlayers,
+    required this.maxTeams,
+    required this.guestCapacity,
+    required this.coaches,
     required this.schedule,
     required this.imageUrl,
   });

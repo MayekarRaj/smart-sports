@@ -21,7 +21,7 @@ class _ClubSponsorshipsPageState extends State<ClubSponsorshipsPage> {
         child: SafeArea(
           child: RoleSidebar(
             role: UserRole.coach,
-            selectedIndex: 6, // Sponsorships is index 6
+            selectedIndex: 5, // Sponsorships is index 5 (courts removed)
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,

@@ -8,6 +8,7 @@ import 'package:smart_sports/role_specific/club/screens/profile/club_profile_pag
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 // Navigation to other screens is handled via RoleNavigationManager from the sidebar.
 import 'package:smart_sports/auth/screens/auth_shell.dart';
+import 'package:smart_sports/role_specific/club/screens/users/add_user_screen.dart';
 
 class ClubUsersPage extends StatefulWidget {
   const ClubUsersPage({super.key});
@@ -60,6 +61,12 @@ class _ClubUsersPageState extends State<ClubUsersPage>
       _allUsers = UserDataService.getMockUsers();
       _applyFilters();
     });
+  }
+
+  void _handleAddUser() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const AddUserScreen()));
   }
 
   void _applyFilters() {
@@ -175,7 +182,7 @@ class _ClubUsersPageState extends State<ClubUsersPage>
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFF1E40AF),
+        backgroundColor: Colors.grey[600],
         elevation: 0,
         leading: Builder(
           builder: (BuildContext context) {
@@ -187,6 +194,13 @@ class _ClubUsersPageState extends State<ClubUsersPage>
             );
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add, color: Colors.white),
+            onPressed: _handleAddUser,
+            tooltip: 'Add User',
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Container(
@@ -255,7 +269,7 @@ class _ClubUsersPageState extends State<ClubUsersPage>
         children: [
           // Filter section
           Container(
-            color: const Color(0xFF1E40AF),
+            color: Colors.grey[600],
             child: Column(
               children: [
                 // Filter toggle button
@@ -357,7 +371,7 @@ class _ClubUsersPageState extends State<ClubUsersPage>
                   _applyFilters();
                 },
                 indicator: BoxDecoration(
-                  color: const Color(0xFF1E40AF),
+                  color: Colors.grey[600],
                   borderRadius: BorderRadius.circular(25),
                 ),
                 labelColor: Colors.white,
@@ -421,9 +435,14 @@ class _ClubUsersPageState extends State<ClubUsersPage>
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Tapped on ${user.userName}'),
-                              backgroundColor: const Color(0xFF1E40AF),
+                              backgroundColor: const Color(
+                                0xFF232534,
+                              ), // Club gradient start
                             ),
                           );
+                        },
+                        onView: () {
+                          // View user functionality is handled in UserCard
                         },
                       );
                     },
@@ -477,6 +496,13 @@ class _ClubUsersPageState extends State<ClubUsersPage>
               ),
             ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _handleAddUser,
+        backgroundColor: Colors.grey[600],
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.person_add),
+        label: const Text('Add User'),
       ),
     );
   }
@@ -540,7 +566,7 @@ class _ClubUsersPageState extends State<ClubUsersPage>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: enabled ? const Color(0xFF1E40AF) : const Color(0xFFE5E7EB),
+          color: enabled ? Colors.grey[600] : const Color(0xFFE5E7EB),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
@@ -566,7 +592,7 @@ class _ClubUsersPageState extends State<ClubUsersPage>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF1E40AF) : Colors.transparent,
+          color: isActive ? Colors.grey[600] : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(

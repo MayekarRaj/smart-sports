@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'membership_plan_page.dart';
+import 'merchandiser_membership_plan_page.dart';
 
 class MerchandiseRegistrationPage extends StatefulWidget {
   const MerchandiseRegistrationPage({super.key});
@@ -738,7 +738,7 @@ class _MerchandiseRegistrationPageState
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MembershipPlanPage(),
+                      builder: (context) => const MerchandiserMembershipPlanPage(),
                     ),
                   );
                 }

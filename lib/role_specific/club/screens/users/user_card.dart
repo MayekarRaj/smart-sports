@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/common/models/user.dart';
+import 'package:smart_sports/role_specific/club/screens/users/view_user_screen.dart';
 
 class UserCard extends StatelessWidget {
   final User user;
   final VoidCallback? onTap;
+  final VoidCallback? onView;
 
-  const UserCard({super.key, required this.user, this.onTap});
+  const UserCard({super.key, required this.user, this.onTap, this.onView});
 
   @override
   Widget build(BuildContext context) {
@@ -13,176 +15,282 @@ class UserCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with avatar and basic info
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: user.role.color,
-                    child: Text(
-                      user.userName.isNotEmpty
-                          ? user.userName[0].toUpperCase()
-                          : 'U',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user.userName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1F2937),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          user.companyName,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF6B7280),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: user.status.color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: user.status.color.withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      user.status.label,
-                      style: TextStyle(
-                        color: user.status.color,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 600;
 
-              // User details
-              _buildDetailRow(
-                icon: Icons.business,
-                label: 'Department',
-                value: user.department.label,
-              ),
-              const SizedBox(height: 8),
-              _buildDetailRow(
-                icon: Icons.work,
-                label: 'Designation',
-                value: user.designation,
-              ),
-              const SizedBox(height: 8),
-              _buildDetailRow(
-                icon: Icons.badge,
-                label: 'Role',
-                value: user.role.label,
-                valueColor: user.role.color,
-              ),
-              const SizedBox(height: 12),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with avatar and basic info
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: const Color(
+                        0xFF232534,
+                      ), // Club gradient start
+                      child: Text(
+                        user.userName.isNotEmpty
+                            ? user.userName[0].toUpperCase()
+                            : 'U',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.userName,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF232534),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            user.email,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
 
-              // Contact info
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildContactInfo(
-                      icon: Icons.phone,
-                      value: user.mobile,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildContactInfo(
-                      icon: Icons.email,
-                      value: user.email,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                const SizedBox(height: 16),
+
+                // Contact information - responsive layout
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (isWide) {
+                      // Wide layout: 2 columns
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: _buildContactInfo(
+                              icon: Icons.phone,
+                              label: 'Phone',
+                              value: user.mobile,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildContactInfo(
+                              icon: Icons.business,
+                              label: 'Company',
+                              value: user.companyName,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      // Narrow layout: stacked
+                      return Column(
+                        children: [
+                          _buildContactInfo(
+                            icon: Icons.phone,
+                            label: 'Phone',
+                            value: user.mobile,
+                          ),
+                          const SizedBox(height: 8),
+                          _buildContactInfo(
+                            icon: Icons.business,
+                            label: 'Company',
+                            value: user.companyName,
+                          ),
+                        ],
+                      );
+                    }
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                // Action buttons - responsive layout
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (isWide) {
+                      // Wide layout: horizontal buttons
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _handleViewUser(context),
+                              icon: const Icon(Icons.visibility, size: 18),
+                              label: const Text('View Details'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(
+                                  0xFF232534,
+                                ), // Club gradient start
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: onTap,
+                              icon: const Icon(Icons.edit, size: 18),
+                              label: const Text('Edit User'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(
+                                  0xFF232534,
+                                ), // Club gradient start
+                                side: const BorderSide(
+                                  color: Color(0xFF232534),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      // Narrow layout: stacked buttons
+                      return Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _handleViewUser(context),
+                              icon: const Icon(Icons.visibility, size: 18),
+                              label: const Text('View Details'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(
+                                  0xFF232534,
+                                ), // Club gradient start
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: onTap,
+                              icon: const Icon(Icons.edit, size: 18),
+                              label: const Text('Edit User'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(
+                                  0xFF232534,
+                                ), // Club gradient start
+                                side: const BorderSide(
+                                  color: Color(0xFF232534),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                  },
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow({
+  Widget _buildContactInfo({
     required IconData icon,
     required String label,
     required String value,
-    Color? valueColor,
   }) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF6B7280)),
-        const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xFF6B7280),
-            fontWeight: FontWeight.w500,
-          ),
+        Icon(
+          icon,
+          size: 16,
+          color: const Color(0xFF232534), // Club gradient start
         ),
+        const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              color: valueColor ?? const Color(0xFF1F2937),
-              fontWeight: FontWeight.w500,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF232534), // Club gradient start
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildContactInfo({required IconData icon, required String value}) {
-    return Row(
-      children: [
-        Icon(icon, size: 14, color: const Color(0xFF6B7280)),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF374151),
-              fontWeight: FontWeight.w500,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+  void _handleViewUser(BuildContext context) {
+    print('Club UserCard: _handleViewUser called for user: ${user.userName}');
+
+    // Prepare user data for the view screen
+    final userData = {
+      'userName': user.userName,
+      'email': user.email,
+      'mobile': user.mobile,
+      'companyName': user.companyName,
+      'department': user.department.label,
+      'status': user.status.label,
+      'role': user.role.label,
+      'designation': user.designation,
+    };
+
+    print('Club UserCard: Navigating to ViewUserScreen with data: $userData');
+
+    // Navigate to the view user screen
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ViewUserScreen(userData: userData),
+      ),
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/courts/courts_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/users/merchandiser_users_page.dart';
 
@@ -31,7 +30,9 @@ void _navigateFromMerchandiserSidebar(BuildContext context, int index) {
       break;
     case 2:
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MerchandiserCourtsPage()),
+        MaterialPageRoute(
+          builder: (_) => const _ClubProfilePlaceholder(title: 'Inventory'),
+        ),
       );
       break;
     case 3:

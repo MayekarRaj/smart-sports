@@ -9,7 +9,6 @@ import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/profile/merchandiser_profile_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/dashboard/merchandiser_analytics_dashboard_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/transactions/merchandiser_transactions_page.dart';
-import 'package:smart_sports/role_specific/merchandiser/screens/courts/courts_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/bookings/merchandiser_bookings_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/events/merchandiser_events_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/users/merchandiser_users_page.dart';
@@ -656,7 +655,10 @@ class _MerchandiserReferralsPageState extends State<MerchandiserReferralsPage> {
         break;
       case 2:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MerchandiserCourtsPage()),
+          MaterialPageRoute(
+            builder: (_) =>
+                const _MerchandiserReferralsPlaceholder(title: 'Inventory'),
+          ),
         );
         break;
       case 3:
@@ -696,5 +698,44 @@ class _MerchandiserReferralsPageState extends State<MerchandiserReferralsPage> {
         );
         break;
     }
+  }
+}
+
+class _MerchandiserReferralsPlaceholder extends StatelessWidget {
+  final String title;
+
+  const _MerchandiserReferralsPlaceholder({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: const Color(0xFF009A69),
+        foregroundColor: Colors.white,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inventory_outlined, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              '$title Page',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'This page will be implemented soon',
+              style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

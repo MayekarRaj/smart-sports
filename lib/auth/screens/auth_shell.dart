@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../widgets/pill_tab_switch.dart';
 import 'sign_in_page.dart';
@@ -18,7 +19,7 @@ class _AuthShellState extends State<AuthShell> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
-    
+
     return Scaffold(
       body: Container(
         height: screenHeight,
@@ -29,7 +30,10 @@ class _AuthShellState extends State<AuthShell> {
               'assets/images/pngtree-a-large-cricket-stadium-green-field-empty-picture-image_15985507.jpg',
             ),
             fit: BoxFit.cover,
-            alignment: Alignment(0.0, -0.2), // Slightly above center to show more stadium
+            alignment: Alignment(
+              0.0,
+              -0.2,
+            ), // Slightly above center to show more stadium
           ),
         ),
         child: Container(
@@ -55,12 +59,20 @@ class _AuthShellState extends State<AuthShell> {
                 ),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: screenHeight - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom - 32,
+                    minHeight: math.max(
+                      0,
+                      screenHeight -
+                          MediaQuery.of(context).padding.top -
+                          MediaQuery.of(context).padding.bottom -
+                          32,
+                    ),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      SizedBox(height: screenHeight * 0.08), // Smaller top spacer
+                      SizedBox(
+                        height: screenHeight * 0.08,
+                      ), // Smaller top spacer
                       // App Logo/Title Section - More compact
                       Container(
                         margin: const EdgeInsets.only(bottom: 24),
@@ -125,7 +137,7 @@ class _AuthShellState extends State<AuthShell> {
                           ],
                         ),
                       ),
-                      
+
                       // Auth Card - More compact
                       ConstrainedBox(
                         constraints: BoxConstraints(
@@ -178,10 +190,13 @@ class _AuthShellState extends State<AuthShell> {
                                 const SizedBox(height: 16),
                                 // Demo button for testing user screens
                                 TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(context).pushNamed('/demo-users'),
+                                  onPressed: () => Navigator.of(
+                                    context,
+                                  ).pushNamed('/demo-users'),
                                   style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
                                   ),
                                   child: Text(
                                     'Demo: Test User Screens',

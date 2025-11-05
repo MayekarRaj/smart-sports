@@ -60,76 +60,7 @@ class RoleSidebar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                child: ListView(
-                  children: [
-                    _tile(
-                      index: 0,
-                      icon: Icons.dashboard_outlined,
-                      label: 'Dashboard',
-                      t: t,
-                    ),
-                    _tile(
-                      index: 1,
-                      icon: Icons.swap_horiz,
-                      label: 'Transactions',
-                      t: t,
-                    ),
-                    _tile(
-                      index: 2,
-                      icon: Icons.sports_tennis_outlined,
-                      label: 'Courts',
-                      t: t,
-                    ),
-                    _tile(
-                      index: 3,
-                      icon: Icons.apartment_outlined,
-                      label: 'Clubs',
-                      t: t,
-                    ),
-                    _tile(
-                      index: 4,
-                      icon: Icons.calendar_month_outlined,
-                      label: 'Bookings',
-                      t: t,
-                    ),
-                    _tile(
-                      index: 5,
-                      icon: Icons.emoji_events_outlined,
-                      label: 'Events / Tournaments',
-                      t: t,
-                    ),
-                    _tile(
-                      index: 6,
-                      icon: Icons.handshake_outlined,
-                      label: 'Sponsorships',
-                      t: t,
-                    ),
-                    _tile(
-                      index: 7,
-                      icon: Icons.group_outlined,
-                      label: 'Users',
-                      t: t,
-                    ),
-                    _tile(
-                      index: 8,
-                      icon: Icons.share_outlined,
-                      label: 'Referrals',
-                      t: t,
-                    ),
-                    _tile(
-                      index: 9,
-                      icon: Icons.support_agent_outlined,
-                      label: 'Customer Support',
-                      t: t,
-                    ),
-                    _tile(
-                      index: 10,
-                      icon: Icons.settings_outlined,
-                      label: 'Settings',
-                      t: t,
-                    ),
-                  ],
-                ),
+                child: ListView(children: _buildMenuItems(t)),
               ),
             ),
             const SizedBox(height: 16),
@@ -159,6 +90,203 @@ class RoleSidebar extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildMenuItems(SidebarThemeData t) {
+    switch (role) {
+      case UserRole.corporate:
+        return [
+          _tile(
+            index: 0,
+            icon: Icons.dashboard_outlined,
+            label: 'Dashboard',
+            t: t,
+          ),
+          _tile(index: 1, icon: Icons.swap_horiz, label: 'Transactions', t: t),
+          _tile(index: 2, icon: Icons.apartment_outlined, label: 'Clubs', t: t),
+          _tile(
+            index: 3,
+            icon: Icons.calendar_month_outlined,
+            label: 'Bookings',
+            t: t,
+          ),
+          _tile(
+            index: 4,
+            icon: Icons.emoji_events_outlined,
+            label: 'Events / Tournaments',
+            t: t,
+          ),
+          _tile(
+            index: 5,
+            icon: Icons.handshake_outlined,
+            label: 'Sponsorships',
+            t: t,
+          ),
+          _tile(
+            index: 6,
+            icon: Icons.local_offer_outlined,
+            label: 'Membership Plan',
+            t: t,
+          ),
+          _tile(index: 7, icon: Icons.group_outlined, label: 'Users', t: t),
+          _tile(index: 8, icon: Icons.share_outlined, label: 'Referrals', t: t),
+          _tile(
+            index: 9,
+            icon: Icons.support_agent_outlined,
+            label: 'Customer Support',
+            t: t,
+          ),
+        ];
+      case UserRole.merchandiser:
+        return [
+          _tile(
+            index: 0,
+            icon: Icons.dashboard_outlined,
+            label: 'Dashboard',
+            t: t,
+          ),
+          _tile(index: 1, icon: Icons.swap_horiz, label: 'Transactions', t: t),
+          _tile(
+            index: 2,
+            icon: Icons.inventory_outlined,
+            label: 'Inventory',
+            t: t,
+          ),
+          _tile(index: 3, icon: Icons.apartment_outlined, label: 'Clubs', t: t),
+          _tile(
+            index: 4,
+            icon: Icons.calendar_month_outlined,
+            label: 'Bookings',
+            t: t,
+          ),
+          _tile(
+            index: 5,
+            icon: Icons.emoji_events_outlined,
+            label: 'Events / Tournaments',
+            t: t,
+          ),
+          _tile(
+            index: 6,
+            icon: Icons.handshake_outlined,
+            label: 'Sponsorships',
+            t: t,
+          ),
+          _tile(index: 7, icon: Icons.group_outlined, label: 'Users', t: t),
+          _tile(index: 8, icon: Icons.share_outlined, label: 'Referrals', t: t),
+          _tile(
+            index: 9,
+            icon: Icons.support_agent_outlined,
+            label: 'Customer Support',
+            t: t,
+          ),
+          _tile(
+            index: 10,
+            icon: Icons.settings_outlined,
+            label: 'Settings',
+            t: t,
+          ),
+        ];
+      case UserRole.coach:
+        return [
+          _tile(
+            index: 0,
+            icon: Icons.dashboard_outlined,
+            label: 'Dashboard',
+            t: t,
+          ),
+          _tile(index: 1, icon: Icons.swap_horiz, label: 'Transactions', t: t),
+          // Courts removed - commented out
+          // _tile(
+          //   index: 2,
+          //   icon: Icons.sports_tennis_outlined,
+          //   label: 'Courts',
+          //   t: t,
+          // ),
+          _tile(index: 2, icon: Icons.apartment_outlined, label: 'Clubs', t: t),
+          _tile(
+            index: 3,
+            icon: Icons.calendar_month_outlined,
+            label: 'Bookings',
+            t: t,
+          ),
+          _tile(
+            index: 4,
+            icon: Icons.emoji_events_outlined,
+            label: 'Events / Tournaments',
+            t: t,
+          ),
+          _tile(
+            index: 5,
+            icon: Icons.handshake_outlined,
+            label: 'Sponsorships',
+            t: t,
+          ),
+          _tile(index: 6, icon: Icons.group_outlined, label: 'Users', t: t),
+          _tile(index: 7, icon: Icons.share_outlined, label: 'Referrals', t: t),
+          _tile(
+            index: 8,
+            icon: Icons.support_agent_outlined,
+            label: 'Customer Support',
+            t: t,
+          ),
+          _tile(
+            index: 9,
+            icon: Icons.settings_outlined,
+            label: 'Settings',
+            t: t,
+          ),
+        ];
+      default:
+        // Default menu for other roles
+        return [
+          _tile(
+            index: 0,
+            icon: Icons.dashboard_outlined,
+            label: 'Dashboard',
+            t: t,
+          ),
+          _tile(index: 1, icon: Icons.swap_horiz, label: 'Transactions', t: t),
+          _tile(
+            index: 2,
+            icon: Icons.sports_tennis_outlined,
+            label: 'Courts',
+            t: t,
+          ),
+          _tile(index: 3, icon: Icons.apartment_outlined, label: 'Clubs', t: t),
+          _tile(
+            index: 4,
+            icon: Icons.calendar_month_outlined,
+            label: 'Bookings',
+            t: t,
+          ),
+          _tile(
+            index: 5,
+            icon: Icons.emoji_events_outlined,
+            label: 'Events / Tournaments',
+            t: t,
+          ),
+          _tile(
+            index: 6,
+            icon: Icons.handshake_outlined,
+            label: 'Sponsorships',
+            t: t,
+          ),
+          _tile(index: 7, icon: Icons.group_outlined, label: 'Users', t: t),
+          _tile(index: 8, icon: Icons.share_outlined, label: 'Referrals', t: t),
+          _tile(
+            index: 9,
+            icon: Icons.support_agent_outlined,
+            label: 'Customer Support',
+            t: t,
+          ),
+          _tile(
+            index: 10,
+            icon: Icons.settings_outlined,
+            label: 'Settings',
+            t: t,
+          ),
+        ];
+    }
   }
 
   Widget _tile({

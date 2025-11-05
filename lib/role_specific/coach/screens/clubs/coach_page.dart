@@ -75,38 +75,23 @@ class _ClubsPageState extends State<ClubsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Clubs',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        title: const Text('Clubs'),
         leading: Builder(
           builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
+            icon: const Icon(Icons.menu),
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
         actions: [
           IconButton(
+            onPressed: () => _handleAddClub(),
+            icon: const Icon(Icons.add),
+            tooltip: 'Add Club',
+          ),
+          IconButton(
             onPressed: () => setState(() => _showFilters = !_showFilters),
             icon: Icon(
               _showFilters ? Icons.filter_list_off : Icons.filter_list,
-              color: Colors.white,
             ),
             tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
           ),
@@ -117,7 +102,7 @@ class _ClubsPageState extends State<ClubsPage> {
         child: SafeArea(
           child: RoleSidebar(
             role: UserRole.coach,
-            selectedIndex: 3, // Clubs is at index 3
+            selectedIndex: 2, // Clubs is at index 2 (courts removed)
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
@@ -202,6 +187,13 @@ class _ClubsPageState extends State<ClubsPage> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _handleAddClub(),
+        icon: const Icon(Icons.add),
+        label: const Text('Add Club'),
+        backgroundColor: const Color(0xFF007BFF),
+        foregroundColor: Colors.white,
+      ),
     );
   }
 
@@ -213,22 +205,96 @@ class _ClubsPageState extends State<ClubsPage> {
 
   void _navigateToClubDetails(BuildContext context, ClubData club) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) =>
-            CoachDetailsPage(coach: _convertClubToCoach(club)),
-      ),
+      MaterialPageRoute(builder: (context) => ClubDetailsPage(club: club)),
     );
   }
 
-  CoachData _convertClubToCoach(ClubData club) {
-    return CoachData(
-      name: club.name,
-      rating: club.rating,
-      location: club.location,
-      specializations: club.availableSports,
-      experience: 5, // Default experience
-      students: 25, // Default student count
-      hourlyRate: 50, // Default hourly rate
+  void _handleAddClub() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add New Club'),
+          content: const Text('Are you sure you want to add a new club?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showAddClubForm();
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAddClubForm() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Add New Club',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Club Name',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Location',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Available Sports',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Club added successfully!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
+                    child: const Text('Add Club'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -741,27 +807,41 @@ class MobileMapSection extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Map Placeholder
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.map, size: 40, color: Colors.grey.shade400),
-                const SizedBox(height: 8),
-                Text(
-                  'Interactive Map',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+          // Map Image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              'assets/images/9c71c0d0f90c1acfa57c561de796ac8136fe5724.png',
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.map, size: 40, color: Colors.grey.shade400),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Interactive Map',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Buenos Aires',
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Buenos Aires',
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                ),
-              ],
+                );
+              },
             ),
           ),
 

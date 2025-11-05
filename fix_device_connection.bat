@@ -1,0 +1,19 @@
+@echo off
+echo Fixing device connection issues...
+
+echo Step 1: Uninstalling existing app...
+adb uninstall com.courtreserve.sekai_ichi
+
+echo Step 2: Clearing Flutter cache...
+flutter clean
+
+echo Step 3: Getting Flutter dependencies...
+flutter pub get
+
+echo Step 4: Checking device connection...
+adb devices
+
+echo Step 5: Running app...
+flutter run --hot
+
+pause

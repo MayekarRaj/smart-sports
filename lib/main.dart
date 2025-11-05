@@ -4,7 +4,7 @@ import 'auth/screens/auth_shell.dart';
 import 'auth/screens/forgot_password_page.dart';
 import 'auth/screens/reset_password_page.dart';
 import 'auth/screens/change_password_page.dart';
-import 'bookings/screens/bookings_page.dart';
+import 'bookings/screens/booking_management_screen.dart';
 import 'role_specific/club/screens/users/club_users_page.dart' as club;
 import 'role_specific/club/screens/users/demo_users_screen.dart';
 import 'role_specific/coach/screens/users/coach_users_page.dart' as coach;
@@ -36,11 +36,15 @@ class MyApp extends StatelessWidget {
       // Temporary: Add direct navigation for testing
       // home: const ClubReferralsPage(),
       // home: const coach.CoachUsersPage(), // Uncomment to test coach directly
+      // home: const BookingManagementScreen(
+      //   role: UserRole.member,
+      //   selectedIndex: 4,
+      // ), // Uncomment to test booking management directly
       routes: {
         '/forgot': (_) => const ForgotPasswordPage(),
         '/reset': (_) => const ResetPasswordPage(),
         '/change': (_) => const ChangePasswordPage(),
-        '/bookings': (_) => const BookingsPage(),
+        '/bookings': (_) => const BookingManagementScreen(),
         '/club-users': (_) => const club.ClubUsersPage(),
         '/demo-users': (_) => const DemoUsersScreen(),
         '/corporate-users': (_) => const club.ClubUsersPage(),

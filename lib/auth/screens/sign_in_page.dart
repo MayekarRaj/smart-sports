@@ -5,6 +5,7 @@ import '../widgets/password_field.dart';
 import '../widgets/social_row.dart';
 import 'forgot_password_page.dart';
 import '../../role_specific/common/role_router.dart';
+import 'verify_email_page.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -19,6 +20,7 @@ class _SignInPageState extends State<SignInPage> {
   final passCtrl = TextEditingController();
   UserRole role = UserRole.member;
   bool _isLoading = false;
+  bool _emailVerified = false;
 
   @override
   void dispose() {
@@ -29,6 +31,15 @@ class _SignInPageState extends State<SignInPage> {
 
   void _onSignIn() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!_emailVerified) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please verify your email before signing in'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -69,6 +80,43 @@ class _SignInPageState extends State<SignInPage> {
             hint: 'Email Address',
             keyboardType: TextInputType.emailAddress,
             validator: Validators.email,
+            suffix: _emailVerified
+                ? const Icon(Icons.check_circle, color: Colors.green)
+                : null,
+            onChanged: (_) {
+              if (_emailVerified) {
+                setState(() {
+                  _emailVerified = false; // reset if email changes
+                });
+              }
+            },
+          ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () async {
+                final err = Validators.email(emailCtrl.text);
+                if (err != null) {
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(err)));
+                  return;
+                }
+                final verified = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => VerifyEmailPage(email: emailCtrl.text),
+                  ),
+                );
+                if (verified == true && mounted) {
+                  setState(() {
+                    _emailVerified = true;
+                  });
+                }
+              },
+              icon: const Icon(Icons.mark_email_read_outlined),
+              label: Text(_emailVerified ? 'Verified' : 'Verify Email'),
+              style: TextButton.styleFrom(padding: const EdgeInsets.only(right: 0)),
+            ),
           ),
           const SizedBox(height: 10),
           PasswordField(

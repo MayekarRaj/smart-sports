@@ -8,6 +8,7 @@ import 'package:smart_sports/role_specific/corporate/screens/profile/corporate_p
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 // Navigation to other screens is handled via RoleNavigationManager from the sidebar.
 import 'package:smart_sports/auth/screens/auth_shell.dart';
+import 'package:smart_sports/role_specific/corporate/screens/users/add_user_screen.dart';
 
 class CorporateUsersPage extends StatefulWidget {
   const CorporateUsersPage({super.key});
@@ -60,6 +61,12 @@ class _CorporateUsersPageState extends State<CorporateUsersPage>
       _allUsers = UserDataService.getMockUsers();
       _applyFilters();
     });
+  }
+
+  void _handleAddUser() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const AddUserScreen()));
   }
 
   void _applyFilters() {
@@ -180,9 +187,9 @@ class _CorporateUsersPageState extends State<CorporateUsersPage>
         backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF414384)],
+              colors: [Colors.grey[700]!, Colors.grey[600]!],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -198,6 +205,13 @@ class _CorporateUsersPageState extends State<CorporateUsersPage>
             );
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add, color: Colors.white),
+            onPressed: _handleAddUser,
+            tooltip: 'Add User',
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Container(
@@ -266,7 +280,7 @@ class _CorporateUsersPageState extends State<CorporateUsersPage>
         children: [
           // Filter section
           Container(
-            color: const Color(0xFF232534), // Coach gradient start
+            color: Colors.grey[600], // Gray theme
             child: Column(
               children: [
                 // Filter toggle button
@@ -368,7 +382,7 @@ class _CorporateUsersPageState extends State<CorporateUsersPage>
                   _applyFilters();
                 },
                 indicator: BoxDecoration(
-                  color: const Color(0xFF232534), // Coach gradient start
+                  color: Colors.grey[600], // Gray theme
                   borderRadius: BorderRadius.circular(25),
                 ),
                 labelColor: Colors.white,
@@ -438,6 +452,9 @@ class _CorporateUsersPageState extends State<CorporateUsersPage>
                             ),
                           );
                         },
+                        onView: () {
+                          // View user functionality is handled in UserCard
+                        },
                       );
                     },
                   ),
@@ -490,6 +507,13 @@ class _CorporateUsersPageState extends State<CorporateUsersPage>
               ),
             ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _handleAddUser,
+        backgroundColor: Colors.grey[600],
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.person_add),
+        label: const Text('Add User'),
       ),
     );
   }
@@ -554,7 +578,7 @@ class _CorporateUsersPageState extends State<CorporateUsersPage>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: enabled
-              ? const Color(0xFF232534)
+              ? Colors.grey[600]
               : const Color(0xFFE5E7EB), // Coach gradient start
           borderRadius: BorderRadius.circular(6),
         ),
@@ -582,7 +606,7 @@ class _CorporateUsersPageState extends State<CorporateUsersPage>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isActive
-              ? const Color(0xFF232534)
+              ? Colors.grey[600]
               : Colors.transparent, // Coach gradient start
           borderRadius: BorderRadius.circular(6),
         ),

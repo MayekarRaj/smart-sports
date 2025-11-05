@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:smart_sports/common/models/user.dart';
+import 'package:smart_sports/role_specific/merchandiser/screens/users/view_user_screen.dart';
 
 class UserCard extends StatelessWidget {
   final User user;
   final VoidCallback? onTap;
+  final VoidCallback? onView;
 
-  const UserCard({super.key, required this.user, this.onTap});
+  const UserCard({super.key, required this.user, this.onTap, this.onView});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +16,7 @@ class UserCard extends StatelessWidget {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: onTap,
+        onTap: onTap, // Existing tap for edit
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -109,29 +111,185 @@ class UserCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Contact info
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildContactInfo(
-                      icon: Icons.phone,
-                      value: user.mobile,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildContactInfo(
-                      icon: Icons.email,
-                      value: user.email,
-                    ),
-                  ),
-                ],
+              // Contact info - Mobile responsive
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 600) {
+                    // Mobile layout: Stack contact info vertically
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildContactInfo(
+                          icon: Icons.phone,
+                          value: user.mobile,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildContactInfo(icon: Icons.email, value: user.email),
+                      ],
+                    );
+                  } else {
+                    // Desktop layout: Display contact info in a row
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: _buildContactInfo(
+                            icon: Icons.phone,
+                            value: user.mobile,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildContactInfo(
+                            icon: Icons.email,
+                            value: user.email,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Action Buttons - Mobile responsive
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 600) {
+                    // Mobile layout - full width buttons
+                    return Column(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              print('Mobile View button pressed');
+                              _handleViewUser(context);
+                            },
+                            icon: const Icon(Icons.visibility, size: 18),
+                            label: const Text('View Details'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF009A69),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: onTap,
+                            icon: const Icon(Icons.edit, size: 18),
+                            label: const Text('Edit User'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF009A69),
+                              side: const BorderSide(color: Color(0xFF009A69)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Desktop layout - horizontal buttons
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              print('Desktop View button pressed');
+                              _handleViewUser(context);
+                            },
+                            icon: const Icon(Icons.visibility, size: 18),
+                            label: const Text('View Details'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF009A69),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: onTap,
+                            icon: const Icon(Icons.edit, size: 18),
+                            label: const Text('Edit User'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF009A69),
+                              side: const BorderSide(color: Color(0xFF009A69)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _handleViewUser(BuildContext context) {
+    print('View button clicked for user: ${user.userName}');
+
+    // Convert User model to Map for ViewUserScreen
+    final userData = {
+      'firstName': user.userName.split(' ').first,
+      'lastName': user.userName.split(' ').length > 1
+          ? user.userName.split(' ').last
+          : '',
+      'role': user.role.label,
+      'email': user.email,
+      'password': '**********',
+      'profilePicture': null,
+      'addressLine1': '',
+      'addressLine2': '',
+      'city': '',
+      'state': '',
+      'zipCode': '',
+      'country': '',
+      'companyName': user.companyName,
+      'designation': user.designation,
+      'department': user.department.label,
+      'telephone': user.mobile,
+      'fax': '',
+      'mobile': user.mobile,
+      'website': '',
+    };
+
+    print('Navigating to ViewUserScreen with data: $userData');
+
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (context) => ViewUserScreen(userData: userData),
+          ),
+        )
+        .then((_) {
+          print('ViewUserScreen closed');
+        })
+        .catchError((error) {
+          print('Error navigating to ViewUserScreen: $error');
+        });
   }
 
   Widget _buildDetailRow({
@@ -169,17 +327,12 @@ class UserCard extends StatelessWidget {
   Widget _buildContactInfo({required IconData icon, required String value}) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: const Color(0xFF6B7280)),
-        const SizedBox(width: 6),
+        Icon(icon, size: 16, color: const Color(0xFF6B7280)),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF374151),
-              fontWeight: FontWeight.w500,
-            ),
-            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF1F2937)),
           ),
         ),
       ],

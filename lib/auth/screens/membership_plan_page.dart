@@ -211,35 +211,44 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'With Free Membership, You Will Continue To Use Our Following Services.',
+            'With Free Membership, you will continue to use our following services:',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.green,
             ),
           ),
-          const SizedBox(height: 20),
-
-          ..._buildBenefitsList([
-            'Select Your Employer And Use Corporate Health Benefits',
-            'Check Club Ratings And Reviews',
-            'Reserve Your Court For Any Sport Clubs',
-            'Receive Events And Tournaments Information\'s',
-            'Find A Coach Available For The Club',
-            'Track Your Utilization Records With Financial Investments',
-            'Find Merchandisers Or Freelancer For Your Sport Utilities/Accessories.',
-            'Readable Access To The Forum Discussion',
-          ], Colors.black87),
-
-          const SizedBox(height: 20),
-
-          const Text(
-            'With Free Membership, You Will Be Missing Our Following Services, However You Will Avail First XX Days Of Free Trial For All * Indicated Services.',
-            style: TextStyle(fontSize: 14, color: Colors.red),
+          const SizedBox(height: 18),
+          Padding(
+            padding: const EdgeInsets.only(left: 2.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                _BenefitRow(text: 'Maintain Club Schedule'),
+                _BenefitRow(text: 'Check Club Ratings and Reviews'),
+                _BenefitRow(text: 'Receive Bookings from Members'),
+                _BenefitRow(
+                  text:
+                      'Receive Monthly Revenues for Booking Through Our Platform',
+                ),
+                _BenefitRow(text: 'Subscription of Coach to the Club'),
+                _BenefitRow(text: 'Readable Access to the Forum Discussion'),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-
-          ..._buildPremiumFeaturesList(),
+          const SizedBox(height: 22),
+          const Text(
+            'With Free Membership, You Will Be Missing Our Following Services,\nHowever You Will Avail First XX Days Of Free Trial For All * Indicated Services.',
+            style: TextStyle(
+              fontSize: 15.3,
+              color: Colors.red,
+              fontWeight: FontWeight.w700,
+              height: 1.3,
+            ),
+          ),
+          SizedBox(height: 14),
+          // Mobile-optimized missing services list
+          MobileMissingClubServicesList(),
         ],
       ),
     );
@@ -830,4 +839,236 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
       ),
     );
   }
+}
+
+/// A helper row widget for the benefit points
+class _BenefitRow extends StatelessWidget {
+  final String text;
+  const _BenefitRow({required this.text});
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          const Icon(Icons.check, size: 18, color: Colors.green),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A helper row widget for missing services
+class _MissingRow extends StatelessWidget {
+  final String text;
+  final String detail;
+  final bool hasAsterisk;
+  const _MissingRow({
+    required this.text,
+    required this.detail,
+    this.hasAsterisk = false,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 13),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.close, size: 18, color: Colors.red),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        text,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    if (hasAsterisk)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 2),
+                        child: Text(
+                          '*',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 33, top: 3),
+            child: Text(
+              detail,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+                fontWeight: FontWeight.w400,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MobileMissingClubServicesList extends StatelessWidget {
+  const MobileMissingClubServicesList({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final List<_MobileMissingService> missing = [
+      _MobileMissingService(
+        emoji: '🧑‍🤝‍🧑',
+        name: 'Access To Members',
+        description:
+            'You will be able to promote your club to the members of your club locality, corporate offices, reach out to merchandisers for promotion and free lancers for support.',
+        hasTrial: true,
+      ),
+      _MobileMissingService(
+        emoji: '🟢',
+        name: 'Unlock Coach Ratings',
+        description:
+            'You Will Be Able To Unlock Coach Ratings To Select Your Preferred Coach.',
+      ),
+      _MobileMissingService(
+        emoji: '🏆',
+        name: 'Scheduling Events & Tournaments',
+        description:
+            'You will be able to schedule events and tournaments/matches and promote the same to all members, corporates, coaches and merchandisers.',
+        hasTrial: true,
+      ),
+      _MobileMissingService(
+        emoji: '🧑‍🤝‍🧑🏢',
+        name: 'Registering And Configuring Multiple Branches',
+        description:
+            'In a paid membership you can register multiple branches of your club.',
+      ),
+      _MobileMissingService(
+        emoji: '🧑‍💻',
+        name: 'Access To Multiple Users',
+        description:
+            'You will be able to add and provide access to additional internal users to the application to support and manage your business.',
+      ),
+      _MobileMissingService(
+        emoji: '💬',
+        name: 'Forum Discussion',
+        description:
+            'You will be able to post the stories as owner in Forum Discussion, your club stories like Tournaments, group play, match results etc with photographs can be posted.',
+        hasTrial: true,
+      ),
+      _MobileMissingService(
+        emoji: '📲',
+        name: 'Slack Mobile Notifications',
+        description:
+            'Various alerts like your Booking, Tournaments, etc can be received on your mobile device in slack app.',
+        hasTrial: true,
+      ),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(missing.length, (i) {
+        final item = missing[i];
+        return Container(
+          margin: EdgeInsets.only(bottom: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item.emoji, style: const TextStyle(fontSize: 20)),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(
+                              text: item.name,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: Colors.black,
+                              ),
+                              children: [
+                                if (item.hasTrial)
+                                  const TextSpan(
+                                    text: ' *',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 5),
+              Padding(
+                padding: const EdgeInsets.only(left: 35, right: 2),
+                child: Text(
+                  item.description,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF222E40),
+                    height: 1.39,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  textAlign: TextAlign.start,
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _MobileMissingService {
+  final String emoji;
+  final String name;
+  final String description;
+  final bool hasTrial;
+
+  const _MobileMissingService({
+    required this.emoji,
+    required this.name,
+    required this.description,
+    this.hasTrial = false,
+  });
 }

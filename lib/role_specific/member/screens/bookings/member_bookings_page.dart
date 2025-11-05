@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_sports/bookings/screens/bookings_page.dart';
+import 'package:smart_sports/bookings/screens/booking_management_screen.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 
@@ -29,7 +29,10 @@ class MemberBookingsPage extends StatelessWidget {
           ),
         ),
       ),
-      body: const BookingsPage(),
+      body: const BookingManagementScreen(
+        role: UserRole.member,
+        selectedIndex: 4,
+      ),
     );
   }
 }

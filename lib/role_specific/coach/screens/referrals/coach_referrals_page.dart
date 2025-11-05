@@ -100,7 +100,7 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
         child: SafeArea(
           child: RoleSidebar(
             role: UserRole.coach,
-            selectedIndex: 8, // Referrals is index 8
+            selectedIndex: 7, // Referrals is index 7 (courts removed)
             edgeToEdge: true,
             onSelectIndex: (i) async {
               final navigator = Navigator.of(context);
@@ -649,41 +649,42 @@ class _CoachReferralsPageState extends State<CoachReferralsPage> {
           MaterialPageRoute(builder: (_) => const CoachTransactionsPage()),
         );
         break;
+      // Courts removed - commented out
+      // case 2:
+      //   Navigator.of(context).pushReplacement(
+      //     MaterialPageRoute(builder: (_) => const ClubCourtsPage()),
+      //   );
+      //   break;
       case 2:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ClubCourtsPage()),
-        );
-        break;
-      case 3:
         // Clubs - placeholder
         break;
-      case 4:
+      case 3:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const CoachBookingsPage()),
         );
         break;
-      case 5:
+      case 4:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const CoachEventsPage()),
         );
         break;
-      case 6:
+      case 5:
         // Sponsorships - placeholder
         break;
-      case 7:
+      case 6:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const CoachUsersPage()),
         );
         break;
-      case 8:
+      case 7:
         // Already on referrals
         break;
-      case 9:
+      case 8:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const CoachCustomerSupportPage()),
         );
         break;
-      case 10:
+      case 9:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const CoachSettingsPage()),
         );

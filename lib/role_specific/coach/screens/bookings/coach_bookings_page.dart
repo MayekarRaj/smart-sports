@@ -1,60 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:smart_sports/bookings/screens/bookings_page.dart';
+import 'package:smart_sports/bookings/screens/booking_management_screen.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
-import 'package:smart_sports/shared/widgets/role_sidebar.dart';
-import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
-import 'package:smart_sports/role_specific/coach/screens/profile/coach_profile_page.dart';
 
 class CoachBookingsPage extends StatelessWidget {
   const CoachBookingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bookings'),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
-      ),
-      drawer: Drawer(
-        elevation: 0,
-        child: SafeArea(
-          child: RoleSidebar(
-            role: UserRole.coach,
-            selectedIndex: 4,
-            edgeToEdge: true,
-            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
-              context,
-              UserRole.coach,
-              i,
-            ),
-            onProfileTap: () async {
-              Navigator.of(context).pop();
-              await Future.delayed(const Duration(milliseconds: 160));
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CoachProfilePage()),
-              );
-            },
-          ),
-        ),
-      ),
-      body: const BookingsPage(),
+    return const BookingManagementScreen(
+      role: UserRole.coach,
+      selectedIndex: 3, // Bookings is at index 3 (courts removed)
     );
   }
 }

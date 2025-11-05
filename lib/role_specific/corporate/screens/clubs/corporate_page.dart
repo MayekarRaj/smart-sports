@@ -110,6 +110,11 @@ class _ClubsPageState extends State<ClubsPage> {
             ),
             tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
           ),
+          IconButton(
+            onPressed: _handleAddClub,
+            icon: const Icon(Icons.add, color: Colors.white),
+            tooltip: 'Add Club',
+          ),
         ],
       ),
       drawer: Drawer(
@@ -117,7 +122,7 @@ class _ClubsPageState extends State<ClubsPage> {
         child: SafeArea(
           child: RoleSidebar(
             role: UserRole.corporate,
-            selectedIndex: 3, // Clubs is at index 3
+            selectedIndex: 2, // Clubs is at index 2
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
@@ -202,6 +207,14 @@ class _ClubsPageState extends State<ClubsPage> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _handleAddClub,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: const Text('Add Club'),
+        elevation: 4,
+      ),
     );
   }
 
@@ -216,6 +229,218 @@ class _ClubsPageState extends State<ClubsPage> {
       MaterialPageRoute(
         builder: (context) =>
             CorporateDetailsPage(corporate: _convertClubToCorporate(club)),
+      ),
+    );
+  }
+
+  void _handleAddClub() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add New Club'),
+          content: const Text(
+            'This feature will allow you to add a new club to your corporate account. '
+            'You will be able to set up club details, courts, coaches, and more.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showAddClubForm();
+              },
+              child: const Text('Continue'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAddClubForm() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.8,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Add New Club',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Form content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildFormField('Club Name', 'Enter club name'),
+                      const SizedBox(height: 16),
+                      _buildFormField('Location', 'Enter club location'),
+                      const SizedBox(height: 16),
+                      _buildFormField('Description', 'Enter club description'),
+                      const SizedBox(height: 16),
+                      _buildFormField('Contact Number', 'Enter contact number'),
+                      const SizedBox(height: 16),
+                      _buildFormField('Email', 'Enter email address'),
+                      const SizedBox(height: 16),
+                      _buildFormField('Website', 'Enter website URL'),
+                      const SizedBox(height: 24),
+
+                      // Sports selection
+                      const Text(
+                        'Available Sports',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          'Basketball',
+                          'Tennis',
+                          'Cricket',
+                          'Football',
+                          'Badminton',
+                          'Squash',
+                          'Swimming',
+                          'Gym',
+                        ].map((sport) => _buildSportChip(sport)).toList(),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Submit button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Club added successfully!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Add Club',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFormField(String label, String hint) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          decoration: InputDecoration(
+            hintText: hint,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Colors.blue),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSportChip(String sport) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade100,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue.shade300),
+      ),
+      child: Text(
+        sport,
+        style: TextStyle(
+          color: Colors.blue.shade700,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -733,67 +958,116 @@ class MobileMapSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(16),
-      height: 150,
+      height: 200,
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Stack(
-        children: [
-          // Map Placeholder
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.map, size: 40, color: Colors.grey.shade400),
-                const SizedBox(height: 8),
-                Text(
-                  'Interactive Map',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Buenos Aires',
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-
-          // Map Legend
-          Positioned(
-            bottom: 8,
-            left: 8,
-            right: 8,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildLegendItem('A', Colors.green, 'Available'),
-                  _buildLegendItem('R', Colors.orange, 'Rushing'),
-                  _buildLegendItem('X', Colors.red, 'Not Available'),
-                ],
-              ),
-            ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            // Static Map Image with fallback
+            Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Image.asset(
+                'assets/images/9c71c0d0f90c1acfa57c561de796ac8136fe5724.png',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.map, size: 40, color: Colors.grey),
+                          SizedBox(height: 8),
+                          Text(
+                            'Buenos Aires Map',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // Map Overlay with Title
+            Positioned(
+              top: 8,
+              left: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'Interactive Map',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+
+            // Map Legend
+            Positioned(
+              bottom: 8,
+              left: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildLegendItem('A', Colors.green, 'Available'),
+                    _buildLegendItem('R', Colors.orange, 'Rushing'),
+                    _buildLegendItem('X', Colors.red, 'Not Available'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'package:smart_sports/role_specific/coach/screens/profile/coach_profile_p
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 // Navigation to other screens is handled via RoleNavigationManager from the sidebar.
 import 'package:smart_sports/auth/screens/auth_shell.dart';
+import 'package:smart_sports/role_specific/coach/screens/users/add_user_screen.dart';
 
 class CoachUsersPage extends StatefulWidget {
   const CoachUsersPage({super.key});
@@ -60,6 +61,12 @@ class _CoachUsersPageState extends State<CoachUsersPage>
       _allUsers = UserDataService.getMockUsers();
       _applyFilters();
     });
+  }
+
+  void _handleAddUser() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const AddUserScreen()));
   }
 
   void _applyFilters() {
@@ -117,7 +124,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
         child: SafeArea(
           child: RoleSidebar(
             role: UserRole.coach,
-            selectedIndex: 7, // Users is index 7
+            selectedIndex: 6, // Users is index 6 (courts removed)
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
@@ -178,9 +185,9 @@ class _CoachUsersPageState extends State<CoachUsersPage>
         backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF232534), Color(0xFF2C3BC5)],
+              colors: [Colors.grey[700]!, Colors.grey[600]!],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -196,6 +203,13 @@ class _CoachUsersPageState extends State<CoachUsersPage>
             );
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add, color: Colors.white),
+            onPressed: _handleAddUser,
+            tooltip: 'Add User',
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Container(
@@ -264,7 +278,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
         children: [
           // Filter section
           Container(
-            color: const Color(0xFF232534), // Coach gradient start
+            color: Colors.grey[600], // Gray theme
             child: Column(
               children: [
                 // Filter toggle button
@@ -366,7 +380,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
                   _applyFilters();
                 },
                 indicator: BoxDecoration(
-                  color: const Color(0xFF232534), // Coach gradient start
+                  color: Colors.grey[600], // Gray theme
                   borderRadius: BorderRadius.circular(25),
                 ),
                 labelColor: Colors.white,
@@ -436,6 +450,9 @@ class _CoachUsersPageState extends State<CoachUsersPage>
                             ),
                           );
                         },
+                        onView: () {
+                          // View user functionality is handled in UserCard
+                        },
                       );
                     },
                   ),
@@ -488,6 +505,13 @@ class _CoachUsersPageState extends State<CoachUsersPage>
               ),
             ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _handleAddUser,
+        backgroundColor: Colors.grey[600],
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.person_add),
+        label: const Text('Add User'),
       ),
     );
   }
@@ -552,7 +576,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: enabled
-              ? const Color(0xFF232534)
+              ? Colors.grey[600]
               : const Color(0xFFE5E7EB), // Coach gradient start
           borderRadius: BorderRadius.circular(6),
         ),
@@ -580,7 +604,7 @@ class _CoachUsersPageState extends State<CoachUsersPage>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isActive
-              ? const Color(0xFF232534)
+              ? Colors.grey[600]
               : Colors.transparent, // Coach gradient start
           borderRadius: BorderRadius.circular(6),
         ),
