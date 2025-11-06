@@ -33,6 +33,7 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
   List<BookingModel> _filteredBookings = [];
   bool _isLoading = true;
   int _selectedTabIndex = 0; // 0: Upcoming, 1: Archived
+  bool _isInitialLoad = true;
 
   // Debounce timer for filter changes
   Timer? _filterDebounce;
@@ -54,8 +55,10 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Refresh bookings when screen becomes visible again
-    _refreshBookings();
+    // Only refresh on first load, not on every return
+    if (_isInitialLoad) {
+      _isInitialLoad = false;
+    }
   }
 
   @override
@@ -83,7 +86,13 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
 
       setState(() {
         _bookings = bookingService.bookings;
-        _filteredBookings = List.from(_bookings);
+        // Preserve current filter state when refreshing
+        if (_filteredBookings.isNotEmpty || _selectedTabIndex != 0) {
+          // Re-apply filters to maintain state
+          _performFiltering();
+        } else {
+          _filteredBookings = List.from(_bookings);
+        }
         _isLoading = false;
       });
 
@@ -158,57 +167,78 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
         // Parse the date string (format: "Thu, Apr 24, 2025")
         DateTime? bookingDate;
         try {
-          print('Attempting to parse date: $bookingDateString');
-
           // Extract date parts from string like "Thu, Apr 24, 2025"
           final parts = bookingDateString.split(', ');
-          print('Split parts: $parts');
-
+          
           if (parts.length >= 2) {
+            // parts[1] is "Apr 24, 2025" - need to handle the comma in the date
             final datePart = parts[1].trim(); // "Apr 24, 2025"
-            print('Date part: $datePart');
-
-            final dateParts = datePart.split(' ');
-            print('Date parts: $dateParts');
-
-            if (dateParts.length >= 3) {
-              final monthStr = dateParts[0]; // "Apr"
-              final dayStr = dateParts[1]; // "24"
-              final yearStr = dateParts[2]; // "2025"
-
-              print('Month: $monthStr, Day: $dayStr, Year: $yearStr');
-
-              // Convert month string to number
-              final monthMap = {
-                'Jan': 1,
-                'Feb': 2,
-                'Mar': 3,
-                'Apr': 4,
-                'May': 5,
-                'Jun': 6,
-                'Jul': 7,
-                'Aug': 8,
-                'Sep': 9,
-                'Oct': 10,
-                'Nov': 11,
-                'Dec': 12,
-              };
-              final month = monthMap[monthStr] ?? 1;
-              final day = int.tryParse(dayStr) ?? 1;
-              final year = int.tryParse(yearStr) ?? now.year;
-
-              print('Parsed values - Month: $month, Day: $day, Year: $year');
-
-              bookingDate = DateTime(year, month, day);
-              print('Successfully parsed date: $bookingDate');
-            } else {
-              print('Not enough date parts: ${dateParts.length}');
+            
+            // Split by comma first to separate day and year
+            final dateParts = datePart.split(',');
+            if (dateParts.length >= 2) {
+              // dateParts[0] = "Apr 24", dateParts[1] = " 2025"
+              final monthDayParts = dateParts[0].trim().split(' '); // ["Apr", "24"]
+              final yearStr = dateParts[1].trim(); // "2025"
+              
+              if (monthDayParts.length >= 2) {
+                final monthStr = monthDayParts[0]; // "Apr"
+                final dayStr = monthDayParts[1]; // "24"
+                
+                // Convert month string to number
+                final monthMap = {
+                  'Jan': 1,
+                  'Feb': 2,
+                  'Mar': 3,
+                  'Apr': 4,
+                  'May': 5,
+                  'Jun': 6,
+                  'Jul': 7,
+                  'Aug': 8,
+                  'Sep': 9,
+                  'Oct': 10,
+                  'Nov': 11,
+                  'Dec': 12,
+                };
+                final month = monthMap[monthStr] ?? 1;
+                final day = int.tryParse(dayStr) ?? 1;
+                final year = int.tryParse(yearStr) ?? now.year;
+                
+                bookingDate = DateTime(year, month, day);
+              }
             }
-          } else {
-            print('Not enough parts after split: ${parts.length}');
+          }
+          
+          // If parsing still failed, try alternative format or use fallback
+          if (bookingDate == null) {
+            // Try using intl package DateFormat as fallback
+            try {
+              // Format: "Thu, Apr 24, 2025" -> try to parse with DateFormat
+              final dateFormat = RegExp(r'(\w+), (\w+) (\d+), (\d+)');
+              final match = dateFormat.firstMatch(bookingDateString);
+              if (match != null) {
+                final monthStr = match.group(2)!;
+                final dayStr = match.group(3)!;
+                final yearStr = match.group(4)!;
+                
+                final monthMap = {
+                  'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+                  'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+                };
+                final month = monthMap[monthStr] ?? 1;
+                final day = int.tryParse(dayStr) ?? 1;
+                final year = int.tryParse(yearStr) ?? now.year;
+                
+                bookingDate = DateTime(year, month, day);
+              }
+            } catch (e) {
+              // If all parsing fails, use fallback based on tab
+              bookingDate = _selectedTabIndex == 0
+                  ? now.add(const Duration(days: 1))
+                  : now.subtract(const Duration(days: 1));
+            }
           }
         } catch (e) {
-          print('Error parsing date: $bookingDateString, error: $e');
           // If parsing fails, assume it's a future booking for upcoming tab
           bookingDate = _selectedTabIndex == 0
               ? now.add(const Duration(days: 1))
@@ -398,8 +428,8 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
     );
   }
 
-  void _showPurchaseBottomSheet() {
-    Navigator.of(context).push(
+  void _showPurchaseBottomSheet() async {
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => PurchaseScreen(
           selectedClub: 'Selected Club',
@@ -411,10 +441,11 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
         ),
       ),
     );
+    // State is preserved when returning, no need to refresh
   }
 
-  void _showRepairBottomSheet() {
-    Navigator.of(context).push(
+  void _showRepairBottomSheet() async {
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => RepairScreen(
           selectedClub: 'Selected Club',
@@ -426,14 +457,20 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
         ),
       ),
     );
+    // State is preserved when returning, no need to refresh
   }
 
-  void _showCreateBookingDialog() {
-    Navigator.of(context).push(
+  void _showCreateBookingDialog() async {
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => AddBookingScreen(role: widget.role),
       ),
     );
+    // Refresh bookings after returning from add booking screen if needed
+    if (mounted) {
+      // Only refresh if we might have new bookings, but preserve filter state
+      _loadBookings();
+    }
   }
 
   Widget _buildBookingTabs() {
@@ -459,53 +496,58 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
         _performFiltering(); // Call _performFiltering directly instead of _filterBookings
       },
       borderRadius: BorderRadius.circular(25),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (widget.role == UserRole.corporate
-                    ? const Color(0xFF2C3BC5)
-                    : widget.role == UserRole.merchandiser
-                    ? const Color(0xFF009A69)
-                    : const Color(0xFF007BFF))
-              : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(25),
-          border: Border.all(
-            color: isSelected
-                ? (widget.role == UserRole.corporate
-                      ? const Color(0xFF2C3BC5)
-                      : widget.role == UserRole.merchandiser
-                      ? const Color(0xFF009A69)
-                      : const Color(0xFF007BFF))
-                : Colors.grey.shade300,
+      child: Stack(
+        children: [
+          // Background line indicator (only for active tab)
+          if (isSelected)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 3,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade800,
+                  borderRadius: BorderRadius.circular(1.5),
+                ),
+              ),
+            ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Colors.grey.shade800
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(25),
+              border: isSelected
+                  ? null
+                  : Border.all(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.grey.shade700,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color:
-                        (widget.role == UserRole.corporate
-                                ? const Color(0xFF2C3BC5)
-                                : widget.role == UserRole.merchandiser
-                                ? const Color(0xFF009A69)
-                                : const Color(0xFF007BFF))
-                            .withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-          ),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
+        ],
       ),
     );
   }

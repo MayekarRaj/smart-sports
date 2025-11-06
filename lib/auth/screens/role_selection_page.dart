@@ -3,6 +3,8 @@ import 'club_registration_page.dart';
 import 'corporate_registration_page.dart';
 import 'merchandise_registration_page.dart';
 import 'coach_registration_page.dart';
+import 'member_registration_page.dart';
+import 'freelancer_registration_page.dart';
 
 class RoleSelectionPage extends StatelessWidget {
   const RoleSelectionPage({super.key});
@@ -209,6 +211,22 @@ class RoleSelectionPage extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => const CoachRegistrationPage(),
+          ),
+        );
+        break;
+      case 'member':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MemberRegistrationPage(),
+          ),
+        );
+        break;
+      case 'freelancer':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const FreelancerRegistrationPage(),
           ),
         );
         break;

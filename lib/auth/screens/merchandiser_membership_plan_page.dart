@@ -14,23 +14,34 @@ class _MerchandiserMembershipPlanPageState
 
   // Privilege services and totals
   final Map<String, bool> _selectedServices = {
+    'access_clubs': false,
+    'access_members': false,
     'coach_ratings': false,
     'events_tournaments': false,
+    'branches': false,
+    'users': false,
     'forum': false,
     'slack': false,
   };
 
+  // Selected club types for Access Clubs
+  final Set<String> _selectedClubTypes = {};
+
   double get _totalAmount {
     double total = 0;
+    if (_selectedServices['access_clubs'] == true) total += 200;
+    if (_selectedServices['access_members'] == true) total += 200;
     if (_selectedServices['coach_ratings'] == true) total += 100;
     if (_selectedServices['events_tournaments'] == true) total += 200;
+    if (_selectedServices['branches'] == true) total += 200;
+    if (_selectedServices['users'] == true) total += 200;
     if (_selectedServices['forum'] == true) total += 100;
     if (_selectedServices['slack'] == true) total += 100;
     return total;
   }
 
   double get _discountAmount => 20;
-  double get _referralDiscount => 50;
+  double get _referralDiscount => 130;
   double get _grandTotal => _totalAmount - _discountAmount - _referralDiscount;
   double get _taxAmount => (_grandTotal > 0 ? _grandTotal : 0) * 0.10;
   double get _finalAmount => (_grandTotal > 0 ? _grandTotal : 0) + _taxAmount;
@@ -278,6 +289,19 @@ class _MerchandiserMembershipPlanPageState
           const SizedBox(height: 20),
 
           _buildServiceOption(
+            'access_clubs',
+            'Access Clubs',
+            'You will be able to promote your your brand and sponsor player/Team for selected clubs in our platform.',
+            200,
+            hasClubTypes: true,
+          ),
+          _buildServiceOption(
+            'access_members',
+            'Access To Members (All Roles)',
+            'Access to all type of role type members (local area) including corporates.',
+            200,
+          ),
+          _buildServiceOption(
             'coach_ratings',
             'Coach Ratings',
             'You Will Be Able To Unlock Coach Ratings To Select Your Coach',
@@ -286,19 +310,33 @@ class _MerchandiserMembershipPlanPageState
           _buildServiceOption(
             'events_tournaments',
             'Events & Tournaments',
-            'You will be allowed to schedule multiple events and tournaments',
+            'You will be allowed to schedule multiple events and tournaments.',
             200,
+          ),
+          _buildServiceOption(
+            'branches',
+            'Branches',
+            'Register and configure 4 branches to manage different locations efficiently @USD 50 / branch.',
+            200,
+            branchCount: 4,
+          ),
+          _buildServiceOption(
+            'users',
+            'Users',
+            'You will be allowed to add and provide access to 4 users @ USD 50 / user.',
+            200,
+            userCount: 4,
           ),
           _buildServiceOption(
             'forum',
             'Forum',
-            'You Will Have Access To All Forum Discussions And Able To Save Stories With Photos.',
+            'You will have access to forum discussions within our platform & able to save your Stories with Photos.',
             100,
           ),
           _buildServiceOption(
             'slack',
             'Slack',
-            'Automatic Mobile Notifications Per Month. You Will Get Email And Mobile Notification Of Our Various Services',
+            'Automatic Mobile Notifications Per Month: You Will Get Emails And Mobile Notification Of Our Various Services.',
             100,
           ),
 
@@ -313,8 +351,11 @@ class _MerchandiserMembershipPlanPageState
     String key,
     String title,
     String description,
-    double price,
-  ) {
+    double price, {
+    bool hasClubTypes = false,
+    int? branchCount,
+    int? userCount,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -322,55 +363,168 @@ class _MerchandiserMembershipPlanPageState
         border: Border.all(color: Colors.grey[300]!),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Checkbox(
-            value: _selectedServices[key],
-            onChanged: (value) {
-              setState(() {
-                _selectedServices[key] = value ?? false;
-              });
-            },
-            activeColor: const Color(0xFF8BB6D9),
-          ),
-          const SizedBox(width: 4),
-          _getServiceIcon(key),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Checkbox(
+                value: _selectedServices[key] ?? false,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedServices[key] = value ?? false;
+                  });
+                },
+                activeColor: const Color(0xFF8BB6D9),
+              ),
+              const SizedBox(width: 4),
+              Row(
+                children: [
+                  _getServiceIcon(key),
+                  if (branchCount != null || userCount != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(
+                        '${branchCount ?? userCount}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: TextStyle(fontSize: 12, color: Colors.red[400]),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    'Monthly Fee',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: TextStyle(fontSize: 12, color: Colors.red[400]),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: const [
+                ],
+              ),
+              const SizedBox(width: 8),
               Text(
-                'Monthly Fee',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                'USD ${price.toInt()}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
-          const SizedBox(width: 8),
-          Text(
-            'USD ${price.toInt()}',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
+          if (hasClubTypes && (_selectedServices[key] ?? false)) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildClubTypeChip('Tennis Club'),
+                _buildClubTypeChip('Baseball'),
+                _buildClubTypeChip('Cricket'),
+                _buildClubTypeChip('Basketball'),
+                IconButton(
+                  icon: const Icon(Icons.arrow_drop_down, size: 20),
+                  onPressed: () {
+                    // Handle dropdown
+                  },
+                ),
+              ],
+            ),
+          ],
+          if (branchCount != null && (_selectedServices[key] ?? false)) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildBranchChip('Branch 1'),
+                _buildBranchChip('Branch 2'),
+                _buildBranchChip('Branch 3'),
+                _buildBranchChip('Branch 4'),
+                IconButton(
+                  icon: const Icon(Icons.arrow_drop_down, size: 20),
+                  onPressed: () {
+                    // Handle dropdown
+                  },
+                ),
+              ],
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildClubTypeChip(String label) {
+    final isSelected = _selectedClubTypes.contains(label);
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          if (isSelected) {
+            _selectedClubTypes.remove(label);
+          } else {
+            _selectedClubTypes.add(label);
+          }
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF8BB6D9) : Colors.grey[200],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF8BB6D9) : Colors.grey[300]!,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: isSelected ? Colors.white : Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBranchChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          color: Colors.black87,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -379,13 +533,29 @@ class _MerchandiserMembershipPlanPageState
     IconData icon;
     Color color;
     switch (key) {
+      case 'access_clubs':
+        icon = Icons.sports_soccer;
+        color = Colors.blue;
+        break;
+      case 'access_members':
+        icon = Icons.people;
+        color = Colors.orange;
+        break;
       case 'coach_ratings':
         icon = Icons.star;
-        color = Colors.orange;
+        color = Colors.green;
         break;
       case 'events_tournaments':
         icon = Icons.emoji_events;
         color = Colors.amber;
+        break;
+      case 'branches':
+        icon = Icons.store;
+        color = Colors.blue;
+        break;
+      case 'users':
+        icon = Icons.people_outline;
+        color = Colors.blue;
         break;
       case 'forum':
         icon = Icons.forum;
@@ -470,13 +640,16 @@ class _MerchandiserMembershipPlanPageState
     bool isDiscount, {
     bool isLast = false,
   }) {
-    final Color bg = color == Colors.green
+    final bool isGreen = color == Colors.green;
+    final bool isRed = color == Colors.red;
+    final Color textColor = isGreen
         ? Colors.green
-        : (color == Colors.red ? Colors.red : Colors.grey[800]!);
+        : (isRed ? Colors.red : Colors.grey[800]!);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: bg,
+        color: Colors.white,
         borderRadius: isLast
             ? const BorderRadius.only(
                 bottomLeft: Radius.circular(16),
@@ -490,19 +663,27 @@ class _MerchandiserMembershipPlanPageState
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: textColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          Text(
-            '${isDiscount ? '-' : ''}USD ${amount.toInt()}',
-            style: const TextStyle(
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
               color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Text(
+              '${isDiscount ? '-' : ''}USD ${amount.toInt()}',
+              style: TextStyle(
+                color: textColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -585,9 +766,9 @@ class _MerchandiserMembershipPlanPageState
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: Text(
-                _isFreeMembership ? 'Submit' : 'Next',
-                style: const TextStyle(
+              child: const Text(
+                'Submit',
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,

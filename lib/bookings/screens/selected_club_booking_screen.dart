@@ -45,6 +45,12 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
   int? selectedSlotIndex;
   String? selectedCourt;
   String? selectedSlotType;
+  String? selectedSlot;
+  String? selectedTime;
+  Map<String, bool> selectedPrivilegeSlots =
+      {}; // Key: 'Court1-8:00', Value: selected
+  Map<String, bool> selectedPrivilegeBundles =
+      {}; // Key: 'Court1-8:00-8:30', Value: selected
 
   final TextEditingController startDateController = TextEditingController(
     text: 'Wed, March 5, 2025',
@@ -126,6 +132,18 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
 
             // Full Slots Section
             _buildFullSlotsSection(),
+            const SizedBox(height: 24),
+
+            // Privilege Slots Section
+            _buildPrivilegeSlotsSection(),
+            const SizedBox(height: 24),
+
+            // General Slots Section
+            _buildGeneralSlotsSection(),
+            const SizedBox(height: 24),
+
+            // Selection Summary Section
+            _buildSelectionSummary(),
             const SizedBox(height: 100), // Space for bottom buttons
           ],
         ),
@@ -862,6 +880,13 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
+          // Clear other section selections
+          selectedSlot = null;
+          selectedTime = null;
+          selectedPrivilegeSlots.clear();
+          selectedPrivilegeBundles.clear();
+
+          // Set Full slot selection
           selectedCourt = 'Court $courtNumber';
           selectedSlotIndex = slotIndex;
           selectedSlotType = title;
@@ -995,11 +1020,43 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
   }
 
   void _handleNext() {
-    if (selectedCourt != null && selectedSlotType != null) {
+    // Check if any slot is selected from any section
+    final hasFullSlotSelection =
+        selectedCourt != null && selectedSlotType != null;
+    final hasPrivilegeSlotSelection = selectedPrivilegeSlots.values.any(
+      (selected) => selected == true,
+    );
+    final hasPrivilegeBundleSelection = selectedPrivilegeBundles.values.any(
+      (selected) => selected == true,
+    );
+    final hasGeneralSlotSelection =
+        selectedSlot != null && selectedCourt != null && selectedTime != null;
+
+    if (hasFullSlotSelection ||
+        hasPrivilegeSlotSelection ||
+        hasPrivilegeBundleSelection ||
+        hasGeneralSlotSelection) {
+      String selectionInfo = '';
+      if (hasFullSlotSelection) {
+        selectionInfo = '$selectedCourt - $selectedSlotType';
+      } else if (hasPrivilegeSlotSelection) {
+        final selectedPrivilegeSlot = selectedPrivilegeSlots.entries.firstWhere(
+          (e) => e.value == true,
+        );
+        selectionInfo = 'Privilege Slot: ${selectedPrivilegeSlot.key}';
+      } else if (hasPrivilegeBundleSelection) {
+        final selectedBundle = selectedPrivilegeBundles.entries.firstWhere(
+          (e) => e.value == true,
+        );
+        selectionInfo = 'Privilege Bundle: ${selectedBundle.key}';
+      } else if (hasGeneralSlotSelection) {
+        selectionInfo = 'General Slot: $selectedCourt at $selectedTime';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Selected: $selectedCourt - $selectedSlotType. Proceeding to time slots...',
+            'Selected: $selectionInfo. Proceeding to time slots...',
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: Colors.green,
@@ -1007,6 +1064,7 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
+
       // Navigate to time slot booking screen
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -1017,6 +1075,9 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
             selectedDate: selectedDate ?? widget.selectedDate,
             distanceRange: widget.distanceRange,
             role: widget.role,
+            selectedSlot: selectedSlot,
+            selectedCourt: selectedCourt,
+            selectedTime: selectedTime,
           ),
         ),
       );
@@ -1024,7 +1085,7 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Please select a court and slot to continue',
+            'Please select a slot from Full Slots, Privilege Slots, or General Slots to continue',
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: Colors.orange,
@@ -1383,6 +1444,1021 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
       'October',
       'November',
       'December',
+    ];
+    return months[month - 1];
+  }
+
+  Widget _buildPrivilegeSlotsSection() {
+    final times = ['8:00', '8:30', '10:30', '11:00'];
+    final courts = ['Court 1', 'Court 2', 'Court 3'];
+
+    // Slot availability data: 'Court1-8:00' -> true (available) or false (not available)
+    final slotAvailability = {
+      'Court 1-8:00': true,
+      'Court 1-8:30': true,
+      'Court 1-10:30': true,
+      'Court 1-11:00': false,
+      'Court 2-8:00': false,
+      'Court 2-8:30': true,
+      'Court 2-10:30': true,
+      'Court 2-11:00': true,
+      'Court 3-8:00': true,
+      'Court 3-8:30': true,
+      'Court 3-10:30': false,
+      'Court 3-11:00': true,
+    };
+
+    // Bundle data: 'Court1-8:00-8:30' -> {price: 10000, discount: 9800, percent: 30}
+    final bundles = {
+      'Court 1-8:00-8:30': {'price': 10000, 'discount': 9800, 'percent': 30},
+      'Court 2-8:30-10:30': {'price': 10000, 'discount': 9800, 'percent': 20},
+      'Court 3-8:00-8:30': {'price': 10000, 'discount': 9800, 'percent': 30},
+      'Court 3-10:30-11:00': {'price': 9800, 'discount': 9800, 'percent': 20},
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Section
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Privilege Slots',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Selected Date ${_getDayName((selectedDate ?? widget.selectedDate).weekday)}, ${_getMonthNameShort((selectedDate ?? widget.selectedDate).month)} ${(selectedDate ?? widget.selectedDate).day.toString().padLeft(2, '0')}, ${(selectedDate ?? widget.selectedDate).year}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Unlock Privilege Slots By Upgrading Now.',
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                  const SizedBox(height: 4),
+                  ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Upgrade to unlock Privilege Slots',
+                            style: GoogleFonts.poppins(),
+                          ),
+                          backgroundColor: Colors.blue,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF007BFF),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Upgrade',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Time Slots Grid
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Time Headers
+                Row(
+                  children: [
+                    const SizedBox(width: 60), // Space for court labels
+                    ...times.map(
+                      (time) => Container(
+                        width: 75,
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        child: Center(
+                          child: Text(
+                            time,
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+
+                // Court Rows with Slots
+                ...List.generate(courts.length, (courtIndex) {
+                  final court = courts[courtIndex];
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          // Court Label
+                          SizedBox(
+                            width: 60,
+                            child: Text(
+                              court,
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                          // Time Slots
+                          ...List.generate(times.length, (timeIndex) {
+                            final time = times[timeIndex];
+                            final slotKey = '$court-$time';
+                            final isAvailable =
+                                slotAvailability[slotKey] ?? false;
+
+                            return Container(
+                              width: 75,
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              child: _buildPrivilegeSlotCard(
+                                court: court,
+                                time: time,
+                                isAvailable: isAvailable,
+                                slotKey: slotKey,
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+
+                      // Bundle Discount Bars
+                      Row(
+                        children: [
+                          const SizedBox(width: 60),
+                          ..._buildBundleBars(court, times, bundles),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildBundleBars(
+    String court,
+    List<String> times,
+    Map<String, Map<String, dynamic>> bundles,
+  ) {
+    final bars = <Widget>[];
+    final slotWidth = 75.0;
+    final slotMargin = 3.0;
+
+    // Track which time slots have bundles
+    final bundlePositions = <int, Map<String, dynamic>>{};
+
+    // Find all bundles for this court and their positions
+    for (int i = 0; i < times.length - 1; i++) {
+      final bundleKey = '$court-${times[i]}-${times[i + 1]}';
+      if (bundles.containsKey(bundleKey)) {
+        bundlePositions[i] = {'key': bundleKey, 'bundle': bundles[bundleKey]!};
+      }
+    }
+
+    // Build bars with proper spacing
+    for (int i = 0; i < times.length - 1; i++) {
+      if (bundlePositions.containsKey(i)) {
+        final bundleData = bundlePositions[i]!;
+        final bundle = bundleData['bundle'] as Map<String, dynamic>;
+        final bundleKey = bundleData['key'] as String;
+        final span = 2; // Number of time slots this bundle spans
+
+        bars.add(
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                // Toggle bundle selection
+                selectedPrivilegeBundles[bundleKey] =
+                    !(selectedPrivilegeBundles[bundleKey] ?? false);
+
+                // If selecting this bundle, set it as the active selection
+                if (selectedPrivilegeBundles[bundleKey] == true) {
+                  // Clear other section selections
+                  selectedCourt = null;
+                  selectedSlotIndex = null;
+                  selectedSlot = null;
+                  selectedTime = null;
+                  selectedPrivilegeSlots.clear();
+
+                  // Set Privilege bundle selection
+                  // bundleKey format: "Court 1-8:00-8:30"
+                  final parts = bundleKey.split('-');
+                  if (parts.length >= 3) {
+                    selectedCourt = parts[0]; // "Court 1"
+                    selectedSlotType = 'Privilege Bundle';
+                    selectedSlot = bundleKey;
+                    selectedTime = '${parts[1]}-${parts[2]}'; // "8:00-8:30"
+                  }
+                } else {
+                  // If deselecting, clear if this was the active selection
+                  if (selectedSlot == bundleKey) {
+                    selectedCourt = null;
+                    selectedSlotType = null;
+                    selectedSlot = null;
+                    selectedTime = null;
+                  }
+                }
+              });
+            },
+            child: Container(
+              width: (slotWidth * span) + (slotMargin * (span - 1)),
+              height: 32,
+              margin: EdgeInsets.only(
+                left: i == 0 ? slotMargin : 0,
+                right: slotMargin,
+              ),
+              decoration: BoxDecoration(
+                color: (selectedPrivilegeBundles[bundleKey] ?? false)
+                    ? const Color(0xFF007BFF).withOpacity(0.2)
+                    : const Color(0xFF007BFF),
+                borderRadius: BorderRadius.circular(6),
+                border: (selectedPrivilegeBundles[bundleKey] ?? false)
+                    ? Border.all(color: const Color(0xFF007BFF), width: 2)
+                    : null,
+              ),
+              child: Center(
+                child: Text(
+                  'USD ${bundle['price']} ${bundle['discount']} ${bundle['percent']}% off',
+                  style: GoogleFonts.poppins(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ),
+        );
+      } else {
+        // Empty space for slots without bundles
+        bars.add(SizedBox(width: slotWidth + slotMargin));
+      }
+    }
+
+    return bars;
+  }
+
+  Widget _buildPrivilegeSlotCard({
+    required String court,
+    required String time,
+    required bool isAvailable,
+    required String slotKey,
+  }) {
+    final isSelected = selectedPrivilegeSlots[slotKey] ?? false;
+    final color = isAvailable ? Colors.green : Colors.red;
+    final originalPrice = 5000;
+    final discountPrice = isAvailable ? 4900 : 4500;
+
+    return GestureDetector(
+      onTap: isAvailable
+          ? () {
+              setState(() {
+                // Toggle selection
+                selectedPrivilegeSlots[slotKey] = !isSelected;
+
+                // If selecting this slot, set it as the active selection
+                if (!isSelected) {
+                  // Clear other section selections
+                  selectedCourt = null;
+                  selectedSlotIndex = null;
+                  selectedSlot = null;
+                  selectedTime = null;
+
+                  // Set Privilege slot selection
+                  selectedCourt = court;
+                  selectedSlotType = 'Privilege Slot';
+                  selectedSlot = slotKey;
+                  selectedTime = time;
+                } else {
+                  // If deselecting, clear if this was the active selection
+                  if (selectedSlot == slotKey) {
+                    selectedCourt = null;
+                    selectedSlotType = null;
+                    selectedSlot = null;
+                    selectedTime = null;
+                  }
+                }
+              });
+            }
+          : null,
+      child: Container(
+        height: 95,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF007BFF) : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.08),
+              spreadRadius: 1,
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Left side discount tag
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 16,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(6),
+                    bottomLeft: Radius.circular(6),
+                  ),
+                ),
+                child: RotatedBox(
+                  quarterTurns: 3,
+                  child: Center(
+                    child: Text(
+                      '20% OFF',
+                      style: GoogleFonts.poppins(
+                        fontSize: 7,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Main content
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 16,
+                top: 6,
+                bottom: 6,
+                right: 3,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Status badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Text(
+                      isAvailable ? 'Available' : 'Not Available',
+                      style: GoogleFonts.poppins(
+                        fontSize: 7,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  // Price
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'USD $originalPrice',
+                        style: GoogleFonts.poppins(
+                          fontSize: 7,
+                          decoration: TextDecoration.lineThrough,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      Text(
+                        '$discountPrice',
+                        style: GoogleFonts.poppins(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGeneralSlotsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header - Mobile responsive
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'General Slots',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Selected Date ${_getDayName((selectedDate ?? widget.selectedDate).weekday)}, ${_getMonthNameShort((selectedDate ?? widget.selectedDate).month)} ${(selectedDate ?? widget.selectedDate).day}, ${(selectedDate ?? widget.selectedDate).year}',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Time Slots Grid - Mobile responsive
+        _buildMobileTimeSlotsGrid(
+          [
+            ['9:00', '9:30', '10:00', '11:30', '12:00', '12:30', '13:00'],
+            ['9:00', '9:30', '10:00', '11:30', '12:00', '12:30', '13:00'],
+            ['9:00', '9:30', '10:00', '11:30', '12:00', '12:30', '13:00'],
+          ],
+          [
+            ['Court 1'],
+            ['Court 2'],
+            ['Court 3'],
+          ],
+          [
+            [
+              ['Available', Colors.green],
+              ['Available', Colors.green],
+              ['Rushing', Colors.orange],
+              ['Available', Colors.green],
+              ['Not Available', Colors.red],
+              ['Rushing', Colors.orange],
+              ['Rushing', Colors.orange],
+            ],
+            [
+              ['Rushing', Colors.orange],
+              ['Not Available', Colors.red],
+              ['Available', Colors.green],
+              ['Available', Colors.green],
+              ['Rushing', Colors.orange],
+              ['Available', Colors.green],
+              ['Rushing', Colors.orange],
+            ],
+            [
+              ['Available', Colors.green],
+              ['Available', Colors.green],
+              ['Available', Colors.green],
+              ['Rushing', Colors.orange],
+              ['Not Available', Colors.red],
+              ['Rushing', Colors.orange],
+              ['Rushing', Colors.orange],
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileTimeSlotsGrid(
+    List<List<String>> timeSlots,
+    List<List<String>> courts,
+    List<List<List<dynamic>>> slotStatuses,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.15),
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Time Headers - Mobile responsive
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                const SizedBox(width: 60), // Space for court labels
+                ...timeSlots[0].map(
+                  (time) => Container(
+                    width: 70, // Fixed width for better mobile layout
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Center(
+                      child: Text(
+                        time,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Court Rows - Mobile responsive
+          ...List.generate(courts.length, (courtIndex) {
+            return Column(
+              children: [
+                // Court Row
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      // Court Label
+                      SizedBox(
+                        width: 60,
+                        child: Text(
+                          courts[courtIndex][0],
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      // Time Slots
+                      ...List.generate(timeSlots[courtIndex].length, (
+                        timeIndex,
+                      ) {
+                        return Container(
+                          width: 70, // Fixed width for better mobile layout
+                          margin: const EdgeInsets.symmetric(horizontal: 2),
+                          child: _buildMobileSlotCard(
+                            timeSlots[courtIndex][timeIndex],
+                            courts[courtIndex][0],
+                            slotStatuses[courtIndex][timeIndex][0],
+                            slotStatuses[courtIndex][timeIndex][1],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileSlotCard(
+    String time,
+    String court,
+    String status,
+    Color statusColor,
+  ) {
+    final isSelected = selectedSlot == '$court-$time';
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          // Clear other section selections
+          selectedCourt = null;
+          selectedSlotIndex = null;
+          selectedPrivilegeSlots.clear();
+          selectedPrivilegeBundles.clear();
+
+          // Set General slot selection
+          selectedSlot = '$court-$time';
+          selectedCourt = court;
+          selectedSlotType = 'General Slot';
+          selectedTime = time;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Selected: $court at $time',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 1),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        height: 80, // Fixed height for better mobile touch targets
+        margin: const EdgeInsets.all(1),
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF007BFF) : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // 20% Off Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: Text(
+                '20% Off',
+                style: GoogleFonts.poppins(
+                  fontSize: 7,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+
+            // Status Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: statusColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                status,
+                style: GoogleFonts.poppins(
+                  fontSize: 7,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+
+            // Price - Mobile optimized
+            Column(
+              children: [
+                Text(
+                  'USD 50.00',
+                  style: GoogleFonts.poppins(
+                    fontSize: 7,
+                    decoration: TextDecoration.lineThrough,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                Text(
+                  'USD 49.00',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectionSummary() {
+    // Check if any slot is selected
+    final hasFullSlotSelection =
+        selectedCourt != null && selectedSlotType != null;
+    final hasPrivilegeSlotSelection = selectedPrivilegeSlots.values.any(
+      (selected) => selected == true,
+    );
+    final hasPrivilegeBundleSelection = selectedPrivilegeBundles.values.any(
+      (selected) => selected == true,
+    );
+    final hasGeneralSlotSelection =
+        selectedSlot != null && selectedCourt != null && selectedTime != null;
+
+    final hasAnySelection =
+        hasFullSlotSelection ||
+        hasPrivilegeSlotSelection ||
+        hasPrivilegeBundleSelection ||
+        hasGeneralSlotSelection;
+
+    if (!hasAnySelection) {
+      return const SizedBox.shrink();
+    }
+
+    String slotType = '';
+    String slotDetails = '';
+
+    if (hasFullSlotSelection) {
+      slotType = 'Full Slot';
+      slotDetails = '$selectedCourt - $selectedSlotType';
+    } else if (hasPrivilegeSlotSelection) {
+      final selectedPrivilegeSlot = selectedPrivilegeSlots.entries.firstWhere(
+        (e) => e.value == true,
+      );
+      slotType = 'Privilege Slot';
+      slotDetails = selectedPrivilegeSlot.key; // e.g., "Court 1-8:00"
+    } else if (hasPrivilegeBundleSelection) {
+      final selectedBundle = selectedPrivilegeBundles.entries.firstWhere(
+        (e) => e.value == true,
+      );
+      slotType = 'Privilege Bundle';
+      slotDetails = selectedBundle.key; // e.g., "Court 1-8:00-8:30"
+    } else if (hasGeneralSlotSelection) {
+      slotType = 'General Slot';
+      slotDetails = '$selectedCourt at $selectedTime';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF007BFF), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.check_circle,
+                color: const Color(0xFF007BFF),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Selected Slot',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Selection Type Tabs (like the second image)
+          Stack(
+            children: [
+              // Background line indicator
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(1.5),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade800,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          slotType,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Container(
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Details',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Selection Details
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.sports_tennis,
+                  color: const Color(0xFF007BFF),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Court & Time',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        slotDetails,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      // Clear all selections
+                      selectedCourt = null;
+                      selectedSlotIndex = null;
+                      selectedSlotType = null;
+                      selectedSlot = null;
+                      selectedTime = null;
+                      selectedPrivilegeSlots.clear();
+                      selectedPrivilegeBundles.clear();
+                    });
+                  },
+                  icon: Icon(
+                    Icons.close,
+                    color: Colors.grey.shade600,
+                    size: 20,
+                  ),
+                  tooltip: 'Clear Selection',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getDayName(int weekday) {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days[weekday - 1];
+  }
+
+  String _getMonthNameShort(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return months[month - 1];
   }
