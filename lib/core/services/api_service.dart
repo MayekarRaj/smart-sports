@@ -1,186 +1,96 @@
+// DEPRECATED: This file is kept for backward compatibility
+// Use NetworkClient and Repositories instead
+//
+// Migration guide:
+// - Old: ApiService().signIn(request)
+// - New: AuthRepository().signIn(request) or AuthService().signIn(email, password)
+//
+// This file will be removed in a future version
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/api_endpoints.dart';
 import '../models/api_models.dart';
+import '../models/api_response.dart';
+import '../network/network_client.dart';
+import '../repositories/auth_repository.dart';
+import '../services/storage_service.dart';
 
+/// @deprecated Use AuthRepository or AuthService instead
+/// This class is maintained for backward compatibility only
+@Deprecated('Use AuthRepository or AuthService instead')
 class ApiService {
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
   ApiService._internal();
 
-  // Initialize auth token from storage
-  Future<void> initializeAuth() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    if (token != null) {
-      ApiConfig.authToken = token;
-    }
-  }
+  final NetworkClient _networkClient = NetworkClient();
+  final AuthRepository _authRepository = AuthRepository();
 
-  // Save auth token to storage
-  Future<void> saveAuthToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
-    ApiConfig.authToken = token;
-  }
-
-  // Clear auth token from storage
-  Future<void> clearAuthToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    ApiConfig.authToken = null;
-  }
-
-  // Generic HTTP request handler
-  Future<ApiResponse<T>> _makeRequest<T>(
-    String url,
-    String method, {
-    Map<String, dynamic>? body,
-    T Function(dynamic)? fromJson,
-  }) async {
-    try {
-      http.Response response;
-
-      // Debug logging
-      print('🚀 API Request: $method $url');
-      if (body != null) {
-        print('📤 Request Body: ${json.encode(body)}');
-      }
-
-      switch (method.toUpperCase()) {
-        case 'GET':
-          response = await http.get(Uri.parse(url), headers: ApiConfig.headers);
-          break;
-        case 'POST':
-          response = await http.post(
-            Uri.parse(url),
-            headers: ApiConfig.headers,
-            body: body != null ? json.encode(body) : null,
-          );
-          break;
-        case 'PUT':
-          response = await http.put(
-            Uri.parse(url),
-            headers: ApiConfig.headers,
-            body: body != null ? json.encode(body) : null,
-          );
-          break;
-        case 'DELETE':
-          response = await http.delete(
-            Uri.parse(url),
-            headers: ApiConfig.headers,
-          );
-          break;
-        default:
-          throw Exception('Unsupported HTTP method: $method');
-      }
-
-      // Debug logging
-      print('📥 Response Status: ${response.statusCode}');
-      print('📥 Response Body: ${response.body}');
-
-      final responseData = json.decode(response.body);
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return ApiResponse<T>(
-          success: true,
-          message: responseData['message'] ?? 'Success',
-          data: fromJson != null ? fromJson(responseData) : responseData,
-          statusCode: response.statusCode,
-        );
-      } else {
-        return ApiResponse<T>(
-          success: false,
-          message: responseData['message'] ?? 'Request failed',
-          statusCode: response.statusCode,
-        );
-      }
-    } catch (e) {
-      print('❌ API Error: $e');
-      return ApiResponse<T>(
-        success: false,
-        message: 'Network error: ${e.toString()}',
-        statusCode: 0,
-      );
-    }
-  }
-
-  // Authentication Methods
+  /// @deprecated Use AuthRepository.signIn() or AuthService.signIn() instead
+  @Deprecated('Use AuthRepository.signIn() or AuthService.signIn() instead')
   Future<ApiResponse<SignInResponse>> signIn(SignInRequest request) async {
-    final response = await _makeRequest<SignInResponse>(
-      ApiEndpoints.getSignInUrl(),
-      'POST',
-      body: request.toJson(),
-      fromJson: (data) => SignInResponse.fromJson(data),
-    );
-
-    if (response.success && response.data != null) {
-      await saveAuthToken(response.data!.token);
-    }
-
-    return response;
-  }
-
-  Future<ApiResponse<SignInResponse>> signUp(SignUpRequest request) async {
     try {
-      final response = await _makeRequest<SignInResponse>(
-        ApiEndpoints.getSignUpUrl(),
-        'POST',
-        body: request.toJson(),
-        fromJson: (data) => SignInResponse.fromJson(data),
-      );
-
-      if (response.success && response.data != null) {
-        await saveAuthToken(response.data!.token);
-      }
-
-      return response;
-    } catch (e) {
-      return ApiResponse<SignInResponse>(
-        success: false,
-        message: 'Signup failed: ${e.toString()}',
-        statusCode: 0,
-      );
+      final response = await _authRepository.signIn(request);
+      return ApiResponse.success(data: response);
+    } on Exception catch (e) {
+      return ApiResponse.error(message: e.toString());
     }
   }
 
-  Future<ApiResponse<UserProfile>> getProfile(int userId) async {
-    return await _makeRequest<UserProfile>(
-      ApiEndpoints.getProfileUrl(userId),
-      'GET',
-      fromJson: (data) => UserProfile.fromJson(data),
-    );
+  /// @deprecated Use AuthRepository.signUp() or AuthService.signUp() instead
+  @Deprecated('Use AuthRepository.signUp() or AuthService.signUp() instead')
+  Future<ApiResponse<SignUpResponse>> signUp(SignUpRequest request) async {
+    try {
+      final response = await _authRepository.signUp(request);
+      return ApiResponse.success(data: response);
+    } on Exception catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
   }
 
-  // Club Registration Methods
+  /// @deprecated Use AuthRepository.getProfile() instead
+  @Deprecated('Use AuthRepository.getProfile() instead')
+  Future<ApiResponse<UserProfile>> getProfile(int userId) async {
+    try {
+      final profile = await _authRepository.getProfile(userId);
+      return ApiResponse.success(data: profile);
+    } on Exception catch (e) {
+      return ApiResponse.error(message: e.toString());
+    }
+  }
+
+  /// @deprecated Use ClubRepository instead
+  @Deprecated('Use ClubRepository instead')
   Future<ApiResponse<ClubSignupResponse>> clubSignupStep1(
     ClubSignupStep1Request request,
   ) async {
-    return await _makeRequest<ClubSignupResponse>(
-      ApiEndpoints.getClubSignupStep1Url(),
-      'POST',
-      body: request.toJson(),
-      fromJson: (data) => ClubSignupResponse.fromJson(data),
+    return ApiResponse.error(
+      message: 'Use ClubRepository instead',
     );
   }
 
+  /// @deprecated Use ClubRepository instead
+  @Deprecated('Use ClubRepository instead')
   Future<ApiResponse<ClubSignupResponse>> clubSignupStep2(
     ClubSignupStep2Request request,
   ) async {
-    return await _makeRequest<ClubSignupResponse>(
-      ApiEndpoints.getClubSignupStep2Url(),
-      'POST',
-      body: request.toJson(),
-      fromJson: (data) => ClubSignupResponse.fromJson(data),
+    return ApiResponse.error(
+      message: 'Use ClubRepository instead',
     );
   }
 
-  // Logout method
+  /// @deprecated Use AuthRepository.logout() or AuthService.logout() instead
+  @Deprecated('Use AuthRepository.logout() or AuthService.logout() instead')
   Future<void> logout() async {
-    await clearAuthToken();
+    await _authRepository.logout();
   }
 
-  // Check if user is authenticated
-  bool get isAuthenticated => ApiConfig.authToken != null;
+  /// @deprecated Use AuthService.isAuthenticated() instead
+  @Deprecated('Use AuthService.isAuthenticated() instead')
+  Future<bool> get isAuthenticated async {
+    final storageService = StorageService();
+    final token = await storageService.getString('auth_token');
+    return token != null && token.isNotEmpty;
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'auth/screens/auth_shell.dart';
 import 'auth/screens/forgot_password_page.dart';
@@ -19,7 +20,11 @@ import 'role_specific/club/screens/events/club_events_page.dart';
 import 'role_specific/club/screens/clubs/clubs_page.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

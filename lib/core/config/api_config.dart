@@ -1,5 +1,5 @@
-// API Configuration for Smart Sports App
-// This file contains environment-specific configurations
+/// API Configuration for Smart Sports App
+/// This file contains environment-specific configurations
 
 class ApiConfig {
   // Environment Configuration
@@ -39,25 +39,4 @@ class ApiConfig {
   // Debug settings
   static const bool enableLogging = true;
   static const bool enableRequestLogging = true;
-}
-
-// API Endpoints
-class ApiEndpoints {
-  // Authentication endpoints
-  static const String signIn = '/sign-in';
-  static const String signUp = '/sign-up';
-  static const String profile = '/profile';
-
-  // Club registration endpoints
-  static const String clubSignupStep1 = '/signup-club';
-  static const String clubSignupStep2 = '/signup-club-branch';
-
-  // Helper methods to get full URLs
-  static String getSignInUrl() => '${ApiConfig.apiBaseUrl}$signIn';
-  static String getProfileUrl(int userId) =>
-      '${ApiConfig.apiBaseUrl}$profile/$userId';
-  static String getClubSignupStep1Url() =>
-      '${ApiConfig.apiBaseUrl}$clubSignupStep1';
-  static String getClubSignupStep2Url() =>
-      '${ApiConfig.apiBaseUrl}$clubSignupStep2';
 }

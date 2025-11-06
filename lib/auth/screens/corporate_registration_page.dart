@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/models/api_models.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../core/exceptions/api_exception.dart';
+import '../../core/utils/phone_parser.dart';
 import 'corporate_membership_plan_page.dart';
 
-class CorporateRegistrationPage extends StatefulWidget {
+class CorporateRegistrationPage extends ConsumerStatefulWidget {
   const CorporateRegistrationPage({super.key});
 
   @override
-  State<CorporateRegistrationPage> createState() =>
+  ConsumerState<CorporateRegistrationPage> createState() =>
       _CorporateRegistrationPageState();
 }
 
-class _CorporateRegistrationPageState extends State<CorporateRegistrationPage> {
+class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
+  final AuthRepository _authRepository = AuthRepository();
+  bool _isLoading = false;
 
   // Invoice Options
   String _selectedInvoiceOption = 'Monthly Invoice To Company';
@@ -127,6 +135,12 @@ class _CorporateRegistrationPageState extends State<CorporateRegistrationPage> {
                     const SizedBox(height: 12),
                     _buildRadioOption(
                       'Allowed',
+                      _familyMembersOption,
+                      (value) => setState(() => _familyMembersOption = value!),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildRadioOption(
+                      'Not Allowed',
                       _familyMembersOption,
                       (value) => setState(() => _familyMembersOption = value!),
                     ),
@@ -621,16 +635,7 @@ class _CorporateRegistrationPageState extends State<CorporateRegistrationPage> {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CorporateMembershipPlanPage(),
-                    ),
-                  );
-                }
-              },
+              onPressed: _isLoading ? null : _submitCorporateRegistration,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF059669),
                 foregroundColor: Colors.white,
@@ -641,25 +646,159 @@ class _CorporateRegistrationPageState extends State<CorporateRegistrationPage> {
                 elevation: 2,
                 shadowColor: Colors.black26,
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Next',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Next',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                      ],
                     ),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, color: Colors.white, size: 20),
-                ],
-              ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _submitCorporateRegistration() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (!mounted) return;
+
+    // Get user ID from auth state - capture before async operations
+    final currentUserId = ref.read(userIdProvider);
+    if (currentUserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please sign up first'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Parse phone numbers
+      final officePhone = PhoneParser.parsePhoneNumber(_officeNumberController.text);
+      final mobilePhone = PhoneParser.parsePhoneNumber(_mobileNumberController.text);
+
+      // Map invoice type
+      // "Monthly Invoice To Company" = 1, "Employees Pay By Themselves" = 0
+      final invoiceType = _selectedInvoiceOption == 'Monthly Invoice To Company' ? 1 : 0;
+
+      // Map family members
+      // "Allowed" = 0, "Not Allowed" = 1 (based on API example)
+      final isAllowedFamilyMembers = _familyMembersOption == 'Allowed' ? 0 : 1;
+
+      // Build request
+      final request = CorporateSignupRequest(
+        userId: currentUserId,
+        userRole: 'corporate',
+        invoiceType: invoiceType,
+        isAllowedFamilyMembers: isAllowedFamilyMembers,
+        isCompanyAddressSameAsSignupAddress: _companyAddressSameAsSignup ? 1 : 0,
+        isContactDetailsSameAsSignupContactDetails: _contactDetailsSameAsSignup ? 1 : 0,
+        companyAddress: _companyAddressSameAsSignup
+            ? null
+            : CorporateAddress(
+                address1: _address1Controller.text.trim(),
+                address2: _address2Controller.text.trim().isNotEmpty
+                    ? _address2Controller.text.trim()
+                    : null,
+                address3: null,
+                city: _cityController.text.trim(),
+                state: _stateController.text.trim(),
+                zipCode: _zipController.text.trim(),
+                country: _countryController.text.trim(),
+              ),
+        contactDetails: _contactDetailsSameAsSignup
+            ? null
+            : CorporateContactDetails(
+                designation: _designationController.text.trim().isNotEmpty
+                    ? _designationController.text.trim()
+                    : null,
+                department: _departmentController.text.trim().isNotEmpty
+                    ? _departmentController.text.trim()
+                    : null,
+                officePhoneExt: officePhone['ext']?.isNotEmpty == true
+                    ? officePhone['ext']
+                    : null,
+                officePhone: officePhone['number']?.isNotEmpty == true
+                    ? officePhone['number']
+                    : null,
+                mobilePhoneExt: mobilePhone['ext']?.isNotEmpty == true
+                    ? mobilePhone['ext']
+                    : null,
+                mobilePhone: mobilePhone['number']?.isNotEmpty == true
+                    ? mobilePhone['number']
+                    : null,
+                companyWebsite: _websiteController.text.trim().isNotEmpty
+                    ? _websiteController.text.trim()
+                    : null,
+              ),
+      );
+
+      // Call API
+      final response = await _authRepository.corporateSignup(request);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Corporate registration successful!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to membership plan page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CorporateMembershipPlanPage(),
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Registration failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }

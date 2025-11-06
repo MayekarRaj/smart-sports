@@ -1,0 +1,13 @@
+# Build configuration for code generation
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # Generate code for both fromJson and toJson
+          any_map: true
+          checked: false
+          explicit_to_json: true
+          field_rename: snake
+          include_if_null: false
+

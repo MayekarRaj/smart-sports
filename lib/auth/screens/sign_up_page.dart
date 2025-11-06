@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/validators.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/models/api_models.dart';
+import '../../core/exceptions/api_exception.dart';
 import '../widgets/rounded_text_field.dart';
 import '../widgets/password_field.dart';
 import 'role_selection_page.dart';
 import 'verify_email_page.dart';
 import '../widgets/sports_multi_select.dart';
 
-class SignUpPage extends StatefulWidget {
+class SignUpPage extends ConsumerStatefulWidget {
   const SignUpPage({super.key});
 
   @override
-  State<SignUpPage> createState() => _SignUpPageState();
+  ConsumerState<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _SignUpPageState extends ConsumerState<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   final firstName = TextEditingController();
   final lastName = TextEditingController();
@@ -72,27 +76,78 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
-  void _register() {
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    if (!_emailVerified) {
+    
+    // Validate sports selection
+    if (_selectedSports.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please verify your email before registering'),
+          content: Text('Please select at least one sport'),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
 
-    // Navigate directly to role selection page
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const RoleSelectionPage()),
+    // Create sign-up request
+    final request = SignUpRequest(
+      firstName: firstName.text.trim(),
+      lastName: lastName.text.trim(),
+      email: email.text.trim(),
+      password: pass.text,
+      sportsNames: _selectedSports,
+      zipCode: zipCode.text.trim().isNotEmpty ? zipCode.text.trim() : null,
+      city: city.text.trim().isNotEmpty ? city.text.trim() : null,
+      state: state.text.trim().isNotEmpty ? state.text.trim() : null,
+      country: country.text.trim().isNotEmpty ? country.text.trim() : null,
+      addressLine1: address.text.trim().isNotEmpty ? address.text.trim() : null,
+      addressLine2: address2.text.trim().isNotEmpty ? address2.text.trim() : null,
+      officePhoneExt: null, // Not in current form
+      officePhone: officePhone.text.trim().isNotEmpty ? officePhone.text.trim() : null,
+      mobilePhoneExt: null, // Not in current form
+      mobilePhone: mobilePhone.text.trim().isNotEmpty ? mobilePhone.text.trim() : null,
+      companyWebsite: companyWebsite.text.trim().isNotEmpty ? companyWebsite.text.trim() : null,
     );
+
+    // Use Riverpod auth provider
+    // The state change will be handled by ref.listen in the build method
+    await ref.read(authStateProvider.notifier).signUp(request);
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authStateProvider);
+    final isLoading = authState.isLoading;
+    
+    // Listen to auth state changes in build method (for navigation)
+    ref.listen<AuthState>(authStateProvider, (previous, next) {
+      if (next.isAuthenticated && mounted) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registration successful!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to role selection page
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const RoleSelectionPage()),
+        );
+      } else if (next.hasError && mounted) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.error ?? 'Registration failed'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    });
+    
     return SingleChildScrollView(
       child: Form(
         key: _formKey,
@@ -314,9 +369,15 @@ class _SignUpPageState extends State<SignUpPage> {
             SizedBox(
               height: 56,
               child: ElevatedButton.icon(
-                onPressed: _register,
-                icon: const Icon(Icons.person_add),
-                label: const Text('Register'),
+                onPressed: isLoading ? null : _register,
+                icon: isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.person_add),
+                label: Text(isLoading ? 'Registering...' : 'Register'),
               ),
             ),
           ],
