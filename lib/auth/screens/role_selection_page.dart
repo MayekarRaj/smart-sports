@@ -4,6 +4,8 @@ import 'club_registration_page.dart';
 import 'corporate_registration_page.dart';
 import 'merchandise_registration_page.dart';
 import 'coach_registration_page.dart';
+import 'member_registration_page.dart';
+import 'freelancer_registration_page.dart';
 
 class RoleSelectionPage extends StatefulWidget {
   const RoleSelectionPage({super.key});
@@ -159,6 +161,22 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
               );
             },
             transitionDuration: const Duration(milliseconds: 300),
+          ),
+        );
+        break;
+      case 'member':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MemberRegistrationPage(),
+          ),
+        );
+        break;
+      case 'freelancer':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const FreelancerRegistrationPage(),
           ),
         );
         break;

@@ -72,9 +72,8 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
             const SizedBox(height: 12),
             if (_showFilters) const _FilterStrip(),
             const SizedBox(height: 16),
-            _EliteSportsArenaCard(onTap: () => _showAllCourts(context)),
-            const SizedBox(height: 12),
-            _EliteSportsArenaCard2(onTap: () => _showAllCourts(context)),
+            // Multiple Arena Cards
+            ..._buildArenaCards(context),
             const SizedBox(height: 16),
             // Branch Selection Dropdown
             _buildBranchSelectionDropdown(),
@@ -117,10 +116,64 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
     super.dispose();
   }
 
-  void _showAllCourts(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const CourtsListPage()));
+  void _showAllCourts(BuildContext context, {String? arenaName}) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CourtsListPage(arenaName: arenaName ?? 'Elite Sports Arena'),
+      ),
+    );
+  }
+
+  List<Widget> _buildArenaCards(BuildContext context) {
+    final arenas = [
+      {
+        'name': 'Elite Sports Arena',
+        'location': 'Los Angeles, CA',
+        'courts': 3,
+        'sports': ['Basketball', 'Tennis', 'Soccer'],
+        'color': Colors.blue,
+        'icon': Icons.sports_tennis,
+      },
+      {
+        'name': 'Premier Sports Complex',
+        'location': 'New York, NY',
+        'courts': 5,
+        'sports': ['Soccer', 'Football', 'Cricket'],
+        'color': Colors.green,
+        'icon': Icons.sports_soccer,
+      },
+      {
+        'name': 'Thunder Sports Center',
+        'location': 'Chicago, IL',
+        'courts': 4,
+        'sports': ['Basketball', 'Volleyball', 'Badminton'],
+        'color': Colors.orange,
+        'icon': Icons.sports_basketball,
+      },
+      {
+        'name': 'Golden Court Arena',
+        'location': 'Miami, FL',
+        'courts': 2,
+        'sports': ['Tennis', 'Squash', 'Table Tennis'],
+        'color': Colors.purple,
+        'icon': Icons.sports,
+      },
+    ];
+
+    return arenas.map((arena) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: _ArenaCard(
+          name: arena['name'] as String,
+          location: arena['location'] as String,
+          courts: arena['courts'] as int,
+          sports: arena['sports'] as List<String>,
+          color: arena['color'] as Color,
+          icon: arena['icon'] as IconData,
+          onTap: () => _showAllCourts(context, arenaName: arena['name'] as String),
+        ),
+      );
+    }).toList();
   }
 
   void _handleAddCourt() {
@@ -1503,10 +1556,24 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
   }
 }
 
-class _EliteSportsArenaCard extends StatelessWidget {
+class _ArenaCard extends StatelessWidget {
+  final String name;
+  final String location;
+  final int courts;
+  final List<String> sports;
+  final Color color;
+  final IconData icon;
   final VoidCallback onTap;
 
-  const _EliteSportsArenaCard({required this.onTap});
+  const _ArenaCard({
+    required this.name,
+    required this.location,
+    required this.courts,
+    required this.sports,
+    required this.color,
+    required this.icon,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1534,23 +1601,23 @@ class _EliteSportsArenaCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Court Image
+              // Arena Image
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
                   width: 80,
                   height: 70,
-                  color: Colors.blue.shade100,
+                  color: color.withOpacity(0.1),
                   child: Icon(
-                    Icons.sports_tennis,
-                    color: Colors.blue,
+                    icon,
+                    color: color,
                     size: 28,
                   ),
                 ),
               ),
               const SizedBox(width: 12),
 
-              // Court Info
+              // Arena Info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1562,7 +1629,7 @@ class _EliteSportsArenaCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Elite Sports Arena',
+                            name,
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -1578,7 +1645,7 @@ class _EliteSportsArenaCard extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blue,
+                            color: color,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Row(
@@ -1612,12 +1679,12 @@ class _EliteSportsArenaCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.blue,
+                        color: color,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text(
-                        'Los Angeles, CA',
-                        style: TextStyle(
+                      child: Text(
+                        location,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
@@ -1639,11 +1706,7 @@ class _EliteSportsArenaCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Wrap(
                       spacing: 4,
-                      children: [
-                        _buildSportChip('Basketball'),
-                        _buildSportChip('Tennis'),
-                        _buildSportChip('Soccer'),
-                      ],
+                      children: sports.take(3).map((sport) => _buildSportChip(sport, color)).toList(),
                     ),
 
                     const SizedBox(height: 10),
@@ -1655,14 +1718,16 @@ class _EliteSportsArenaCard extends StatelessWidget {
                           child: _buildActionButton(
                             icon: Icons.share,
                             label: 'Share',
+                            color: color,
                             onTap: () {},
                           ),
                         ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: _buildActionButton(
-                            icon: Icons.sports_tennis,
+                            icon: icon,
                             label: 'Coach',
+                            color: color,
                             onTap: () {},
                           ),
                         ),
@@ -1671,6 +1736,7 @@ class _EliteSportsArenaCard extends StatelessWidget {
                           child: _buildActionButton(
                             icon: Icons.people,
                             label: 'Players',
+                            color: color,
                             onTap: () {},
                           ),
                         ),
@@ -1703,7 +1769,7 @@ class _EliteSportsArenaCard extends StatelessWidget {
                           CircleAvatar(
                             radius: 10,
                             backgroundColor: Colors.yellow,
-                            child: Icon(
+                            child: const Icon(
                               Icons.person,
                               size: 12,
                               color: Colors.white,
@@ -1714,7 +1780,7 @@ class _EliteSportsArenaCard extends StatelessWidget {
                             child: CircleAvatar(
                               radius: 10,
                               backgroundColor: Colors.green,
-                              child: Icon(
+                              child: const Icon(
                                 Icons.person,
                                 size: 12,
                                 color: Colors.white,
@@ -1747,10 +1813,10 @@ class _EliteSportsArenaCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(color: Colors.grey.shade300),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            '3',
-                            style: TextStyle(
+                            '$courts',
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -1760,7 +1826,7 @@ class _EliteSportsArenaCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Icon(Icons.star, color: Colors.blue, size: 16),
+                  Icon(Icons.star, color: color, size: 16),
                 ],
               ),
             ],
@@ -1770,11 +1836,11 @@ class _EliteSportsArenaCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSportChip(String sport) {
+  Widget _buildSportChip(String sport, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.blue,
+        color: color,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -1791,6 +1857,7 @@ class _EliteSportsArenaCard extends StatelessWidget {
   Widget _buildActionButton({
     required IconData icon,
     required String label,
+    required Color color,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -1799,338 +1866,11 @@ class _EliteSportsArenaCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         decoration: BoxDecoration(
-          color: Colors.blue,
+          color: color,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withOpacity(0.2),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 14),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EliteSportsArenaCard2 extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _EliteSportsArenaCard2({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Court Image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: 80,
-                  height: 70,
-                  color: Colors.green.shade100,
-                  child: Icon(
-                    Icons.sports_soccer,
-                    color: Colors.green,
-                    size: 28,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // Court Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Premier Sports Complex',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.bookmark,
-                                color: Colors.white,
-                                size: 12,
-                              ),
-                              SizedBox(width: 2),
-                              Text(
-                                'Fav',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Location
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'New York, NY',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Available Sports
-                    const Text(
-                      'SPORTS',
-                      style: TextStyle(
-                        fontSize: 8,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 4,
-                      children: [
-                        _buildSportChip2('Soccer'),
-                        _buildSportChip2('Football'),
-                        _buildSportChip2('Cricket'),
-                      ],
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    // Action Buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionButton2(
-                            icon: Icons.share,
-                            label: 'Share',
-                            onTap: () {},
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: _buildActionButton2(
-                            icon: Icons.sports_soccer,
-                            label: 'Coach',
-                            onTap: () {},
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: _buildActionButton2(
-                            icon: Icons.people,
-                            label: 'Players',
-                            onTap: () {},
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              // Side Info
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Coach Section
-                  Column(
-                    children: [
-                      const Text(
-                        'COACH',
-                        style: TextStyle(
-                          fontSize: 8,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 10,
-                            backgroundColor: Colors.blue,
-                            child: Icon(
-                              Icons.person,
-                              size: 12,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Positioned(
-                            left: 12,
-                            child: CircleAvatar(
-                              radius: 10,
-                              backgroundColor: Colors.purple,
-                              child: Icon(
-                                Icons.person,
-                                size: 12,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Branch Section
-                  Column(
-                    children: [
-                      const Text(
-                        'BRANCH',
-                        style: TextStyle(
-                          fontSize: 8,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        width: 24,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            '5',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Icon(Icons.star, color: Colors.green, size: 16),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSportChip2(String sport) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.green,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        sport,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 8,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton2({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        decoration: BoxDecoration(
-          color: Colors.green,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.green.withOpacity(0.2),
+              color: color.withOpacity(0.2),
               blurRadius: 2,
               offset: const Offset(0, 1),
             ),

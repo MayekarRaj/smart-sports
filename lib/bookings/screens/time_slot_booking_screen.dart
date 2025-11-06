@@ -10,6 +10,9 @@ class TimeSlotBookingScreen extends StatefulWidget {
   final DateTime selectedDate;
   final RangeValues distanceRange;
   final UserRole? role;
+  final String? selectedSlot;
+  final String? selectedCourt;
+  final String? selectedTime;
 
   const TimeSlotBookingScreen({
     Key? key,
@@ -19,6 +22,9 @@ class TimeSlotBookingScreen extends StatefulWidget {
     required this.selectedDate,
     required this.distanceRange,
     this.role,
+    this.selectedSlot,
+    this.selectedCourt,
+    this.selectedTime,
   }) : super(key: key);
 
   @override
@@ -26,9 +32,6 @@ class TimeSlotBookingScreen extends StatefulWidget {
 }
 
 class _TimeSlotBookingScreenState extends State<TimeSlotBookingScreen> {
-  String? selectedSlot;
-  String? selectedCourt;
-  String? selectedTime;
   bool isSingleSlot = true;
   String selectedSlotType = 'Single Slot';
   String selectedDuration = 'Full Day';
@@ -88,14 +91,6 @@ class _TimeSlotBookingScreenState extends State<TimeSlotBookingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Privilege Slots Section
-            _buildPrivilegeSlotsSection(),
-            const SizedBox(height: 20),
-
-            // General Slots Section
-            _buildGeneralSlotsSection(),
-            const SizedBox(height: 20),
-
             // Define Start and End Time Section
             _buildTimeDefinitionSection(),
             const SizedBox(height: 80), // Space for bottom buttons
@@ -187,413 +182,35 @@ class _TimeSlotBookingScreenState extends State<TimeSlotBookingScreen> {
     );
   }
 
-  Widget _buildPrivilegeSlotsSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.15),
-            spreadRadius: 2,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Privilege Slots',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Available Slots and Waiting Slots - Mobile responsive
-          LayoutBuilder(
-            builder: (context, constraints) {
-              // For very small screens, stack vertically
-              if (constraints.maxWidth < 400) {
-                return Column(
-                  children: [
-                    _buildSlotsColumn('AVAILABLE SLOTS', false),
-                    const SizedBox(height: 16),
-                    _buildSlotsColumn('WAITING SLOTS', true),
-                  ],
-                );
-              }
-              // For larger screens, use horizontal layout
-              return Row(
-                children: [
-                  Expanded(child: _buildSlotsColumn('AVAILABLE SLOTS', false)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildSlotsColumn('WAITING SLOTS', true)),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGeneralSlotsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header - Mobile responsive
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'General Slots',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Selected Date ${_getDayName(widget.selectedDate.weekday)}, ${_getMonthName(widget.selectedDate.month)} ${widget.selectedDate.day}, ${widget.selectedDate.year}',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-
-        // Time Slots Grid - Mobile responsive
-        _buildMobileTimeSlotsGrid(
-          [
-            ['9:00', '9:30', '10:00', '11:30', '12:00', '12:30', '13:00'],
-            ['9:00', '9:30', '10:00', '11:30', '12:00', '12:30', '13:00'],
-            ['9:00', '9:30', '10:00', '11:30', '12:00', '12:30', '13:00'],
-          ],
-          [
-            ['Court 1'],
-            ['Court 2'],
-            ['Court 3'],
-          ],
-          [
-            [
-              ['Available', Colors.green],
-              ['Available', Colors.green],
-              ['Rushing', Colors.orange],
-              ['Available', Colors.green],
-              ['Not Available', Colors.red],
-              ['Rushing', Colors.orange],
-              ['Rushing', Colors.orange],
-            ],
-            [
-              ['Rushing', Colors.orange],
-              ['Not Available', Colors.red],
-              ['Available', Colors.green],
-              ['Available', Colors.green],
-              ['Rushing', Colors.orange],
-              ['Available', Colors.green],
-              ['Rushing', Colors.orange],
-            ],
-            [
-              ['Available', Colors.green],
-              ['Available', Colors.green],
-              ['Available', Colors.green],
-              ['Rushing', Colors.orange],
-              ['Not Available', Colors.red],
-              ['Rushing', Colors.orange],
-              ['Rushing', Colors.orange],
-            ],
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileTimeSlotsGrid(
-    List<List<String>> timeSlots,
-    List<List<String>> courts,
-    List<List<List<dynamic>>> slotStatuses,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.15),
-            spreadRadius: 2,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Time Headers - Mobile responsive
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                const SizedBox(width: 60), // Space for court labels
-                ...timeSlots[0].map(
-                  (time) => Container(
-                    width: 70, // Fixed width for better mobile layout
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    child: Center(
-                      child: Text(
-                        time,
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Court Rows - Mobile responsive
-          ...List.generate(courts.length, (courtIndex) {
-            return Column(
-              children: [
-                // Court Row
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      // Court Label
-                      SizedBox(
-                        width: 60,
-                        child: Text(
-                          courts[courtIndex][0],
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                      // Time Slots
-                      ...List.generate(timeSlots[courtIndex].length, (
-                        timeIndex,
-                      ) {
-                        return Container(
-                          width: 70, // Fixed width for better mobile layout
-                          margin: const EdgeInsets.symmetric(horizontal: 2),
-                          child: _buildMobileSlotCard(
-                            timeSlots[courtIndex][timeIndex],
-                            courts[courtIndex][0],
-                            slotStatuses[courtIndex][timeIndex][0],
-                            slotStatuses[courtIndex][timeIndex][1],
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileSlotCard(
-    String time,
-    String court,
-    String status,
-    Color statusColor,
-  ) {
-    final isSelected = selectedSlot == '$court-$time';
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedSlot = '$court-$time';
-          selectedCourt = court;
-          selectedTime = time;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Selected: $court at $time',
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      },
-      child: Container(
-        height: 80, // Fixed height for better mobile touch targets
-        margin: const EdgeInsets.all(1),
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF007BFF) : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 3,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // 20% Off Badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(3),
-              ),
-              child: Text(
-                '20% Off',
-                style: GoogleFonts.poppins(
-                  fontSize: 7,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-
-            // Status Badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              decoration: BoxDecoration(
-                color: statusColor,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                status,
-                style: GoogleFonts.poppins(
-                  fontSize: 7,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-
-            // Price - Mobile optimized
-            Column(
-              children: [
-                Text(
-                  'USD 50.00',
-                  style: GoogleFonts.poppins(
-                    fontSize: 7,
-                    decoration: TextDecoration.lineThrough,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                Text(
-                  'USD 49.00',
-                  style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _handleNext() {
-    if (selectedSlot != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Selected: $selectedSlot. Proceeding to booking review...',
-            style: GoogleFonts.poppins(),
-          ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Proceeding to booking review...',
+          style: GoogleFonts.poppins(),
         ),
-      );
-      // Navigate to booking review screen
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => BookingReviewScreen(
-            selectedClub: widget.selectedClub,
-            selectedSport: widget.selectedSport,
-            selectedArea: widget.selectedArea,
-            selectedDate: widget.selectedDate,
-            distanceRange: widget.distanceRange,
-            role: widget.role,
-            selectedSlot: selectedSlot,
-            selectedCourt: selectedCourt,
-            selectedTime: selectedTime,
-          ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+    // Navigate to booking review screen
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => BookingReviewScreen(
+          selectedClub: widget.selectedClub,
+          selectedSport: widget.selectedSport,
+          selectedArea: widget.selectedArea,
+          selectedDate: widget.selectedDate,
+          distanceRange: widget.distanceRange,
+          role: widget.role,
+          selectedSlot: widget.selectedSlot,
+          selectedCourt: widget.selectedCourt,
+          selectedTime: widget.selectedTime,
         ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Please select a time slot to continue',
-            style: GoogleFonts.poppins(),
-          ),
-          backgroundColor: Colors.orange,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
-    }
-  }
-
-  String _getDayName(int weekday) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[weekday - 1];
-  }
-
-  String _getMonthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return months[month - 1];
+      ),
+    );
   }
 
   LinearGradient _getRoleGradient(UserRole role) {
@@ -635,116 +252,6 @@ class _TimeSlotBookingScreenState extends State<TimeSlotBookingScreen> {
           end: Alignment.bottomRight,
         );
     }
-  }
-
-  Widget _buildSlotsColumn(String title, bool isWaiting) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        if (isWaiting) ...[
-          const SizedBox(height: 4),
-          Text(
-            '(Not Charged Until Confirmed)',
-            style: GoogleFonts.poppins(fontSize: 9, color: Colors.red),
-          ),
-        ],
-        const SizedBox(height: 12),
-
-        // Court rows
-        ...List.generate(3, (index) => _buildCourtRow(index + 1)),
-      ],
-    );
-  }
-
-  Widget _buildCourtRow(int courtNumber) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Court name and price row
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Court $courtNumber',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF007BFF),
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-              Text(
-                '100 USD/Slot',
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Slots input and total row
-          Row(
-            children: [
-              // Slots input
-              Container(
-                width: 40,
-                height: 28,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Center(
-                  child: Text(
-                    '3',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Slots',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const Spacer(),
-              // Total
-              Text(
-                'USD 300',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildTimeDefinitionSection() {
