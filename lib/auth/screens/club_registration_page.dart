@@ -544,7 +544,13 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                 label: 'City',
                 value: controllers['city']!.text,
                 items: ['Xyz', 'City 1', 'City 2'],
-                onChanged: (value) => controllers['city']!.text = value!,
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      controllers['city']!.text = value;
+                    });
+                  }
+                },
               ),
             ),
             const SizedBox(width: 12),
@@ -553,7 +559,13 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                 label: 'State',
                 value: controllers['state']!.text,
                 items: ['Xyz', 'State 1', 'State 2'],
-                onChanged: (value) => controllers['state']!.text = value!,
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      controllers['state']!.text = value;
+                    });
+                  }
+                },
               ),
             ),
           ],
@@ -575,7 +587,13 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                 label: 'Country',
                 value: controllers['country']!.text,
                 items: ['Xyz', 'Country 1', 'Country 2'],
-                onChanged: (value) => controllers['country']!.text = value!,
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      controllers['country']!.text = value;
+                    });
+                  }
+                },
               ),
             ),
           ],
@@ -718,6 +736,8 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           return Column(
             children: [
               _buildTimeSlotCard(
+                branchData,
+                index,
                 'Time ${index + 1}',
                 timeSlot['days']!,
                 timeSlot['startTime']!,
@@ -733,11 +753,18 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
   }
 
   Widget _buildTimeSlotCard(
+    Map<String, dynamic> branchData,
+    int timeSlotIndex,
     String timeLabel,
     String openDays,
     String startTime,
     String endTime,
   ) {
+    final operationalTimes =
+        branchData['operationalTimes'] as List<Map<String, String>>;
+    final timeSlot = operationalTimes[timeSlotIndex];
+    final dayOptions = ['Weekdays', 'Weekend', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -748,20 +775,45 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              timeLabel,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  timeLabel,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-            ),
+              if (operationalTimes.length > 1)
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      operationalTimes.removeAt(timeSlotIndex);
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                      size: 18,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 12),
           Row(
@@ -780,25 +832,41 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                     ),
                     const SizedBox(height: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: const Color(0xFFE2E8F0)),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(openDays, style: const TextStyle(fontSize: 14)),
-                          const Icon(
-                            Icons.keyboard_arrow_down,
-                            color: Color(0xFF64748B),
-                            size: 20,
+                      child: DropdownButtonFormField<String>(
+                        value: openDays,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
                           ),
-                        ],
+                        ),
+                        items: dayOptions.map((String day) {
+                          return DropdownMenuItem<String>(
+                            value: day,
+                            child: Text(
+                              day,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              timeSlot['days'] = value;
+                            });
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Color(0xFF64748B),
+                          size: 20,
+                        ),
                       ),
                     ),
                   ],
@@ -821,22 +889,25 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                     Row(
                       children: [
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                          child: InkWell(
+                            onTap: () => _selectTime(context, branchData, timeSlotIndex, true),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 8,
                               ),
-                            ),
-                            child: Text(
-                              startTime,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 14),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: const Color(0xFFE2E8F0),
+                                ),
+                              ),
+                              child: Text(
+                                startTime,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 14),
+                              ),
                             ),
                           ),
                         ),
@@ -851,22 +922,25 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                          child: InkWell(
+                            onTap: () => _selectTime(context, branchData, timeSlotIndex, false),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 8,
                               ),
-                            ),
-                            child: Text(
-                              endTime,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 14),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: const Color(0xFFE2E8F0),
+                                ),
+                              ),
+                              child: Text(
+                                endTime,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 14),
+                              ),
                             ),
                           ),
                         ),
@@ -880,6 +954,44 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _selectTime(
+    BuildContext context,
+    Map<String, dynamic> branchData,
+    int timeSlotIndex,
+    bool isStartTime,
+  ) async {
+    final operationalTimes =
+        branchData['operationalTimes'] as List<Map<String, String>>;
+    final timeSlot = operationalTimes[timeSlotIndex];
+    
+    // Parse current time
+    final currentTimeString = isStartTime
+        ? timeSlot['startTime']!
+        : timeSlot['endTime']!;
+    final timeParts = currentTimeString.split(':');
+    final currentTime = TimeOfDay(
+      hour: int.tryParse(timeParts[0]) ?? 0,
+      minute: int.tryParse(timeParts[1]) ?? 0,
+    );
+
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: currentTime,
+    );
+
+    if (picked != null && mounted) {
+      setState(() {
+        final timeString =
+            '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+        if (isStartTime) {
+          timeSlot['startTime'] = timeString;
+        } else {
+          timeSlot['endTime'] = timeString;
+        }
+      });
+    }
   }
 
   Widget _buildSportsSubSection(Map<String, dynamic> branchData) {
