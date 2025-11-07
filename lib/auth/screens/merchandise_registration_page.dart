@@ -1,79 +1,376 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/models/api_models.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../core/exceptions/api_exception.dart';
+import '../../core/utils/phone_parser.dart';
+import '../../core/services/storage_service.dart';
+import '../widgets/sports_multi_select.dart';
 import 'merchandiser_membership_plan_page.dart';
 
-class MerchandiseRegistrationPage extends StatefulWidget {
+// Helper class for branch data
+class BranchData {
+  final TextEditingController branchNameController;
+  final TextEditingController numberOfUsersController;
+  bool addressSameAsSignup;
+  bool contactSameAsSignup;
+  
+  // Address Controllers (per branch)
+  final TextEditingController address1Controller;
+  final TextEditingController cityController;
+  final TextEditingController stateController;
+  final TextEditingController zipController;
+  final TextEditingController countryController;
+  
+  // Contact Details Controllers (per branch)
+  final TextEditingController officePhoneController;
+  final TextEditingController mobilePhoneController;
+  final TextEditingController websiteController;
+  
+  // Sports selection (per branch)
+  List<String> selectedSports;
+
+  BranchData({
+    required this.branchNameController,
+    required this.numberOfUsersController,
+    this.addressSameAsSignup = true,
+    this.contactSameAsSignup = true,
+    required this.address1Controller,
+    required this.cityController,
+    required this.stateController,
+    required this.zipController,
+    required this.countryController,
+    required this.officePhoneController,
+    required this.mobilePhoneController,
+    required this.websiteController,
+    this.selectedSports = const [],
+  });
+
+  void dispose() {
+    branchNameController.dispose();
+    numberOfUsersController.dispose();
+    address1Controller.dispose();
+    cityController.dispose();
+    stateController.dispose();
+    zipController.dispose();
+    countryController.dispose();
+    officePhoneController.dispose();
+    mobilePhoneController.dispose();
+    websiteController.dispose();
+  }
+}
+
+class MerchandiseRegistrationPage extends ConsumerStatefulWidget {
   const MerchandiseRegistrationPage({super.key});
 
   @override
-  State<MerchandiseRegistrationPage> createState() =>
+  ConsumerState<MerchandiseRegistrationPage> createState() =>
       _MerchandiseRegistrationPageState();
 }
 
 class _MerchandiseRegistrationPageState
-    extends State<MerchandiseRegistrationPage> {
+    extends ConsumerState<MerchandiseRegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
+  final AuthRepository _authRepository = AuthRepository();
+  bool _isLoading = false;
 
   // Company Details Controllers
-  final _branchesController = TextEditingController(text: '2');
-  final List<String> _selectedSports = [
-    'Tennis',
-    'Baseball',
-    'Cricket',
-    'Basketball',
-  ];
+  final _branchesController = TextEditingController(text: '1');
 
-  // Branch Data
-  final List<Map<String, dynamic>> _branches = [
-    {
-      'name': 'Xyz',
-      'users': 1,
-      'addressSameAsSignup': true,
-      'contactSameAsSignup': true,
-    },
-    {
-      'name': 'Xyz',
-      'users': 2,
-      'addressSameAsSignup': false,
-      'contactSameAsSignup': false,
-    },
-  ];
+  // Branch Data - Dynamic structure
+  final List<BranchData> _branches = [];
 
-  // Address Controllers
-  final _address1Controller = TextEditingController(text: 'Xyz');
-  final _address2Controller = TextEditingController(text: 'Xyz');
-  final _cityController = TextEditingController(text: 'Xyz');
-  final _stateController = TextEditingController(text: 'Xyz');
-  final _zipController = TextEditingController(text: 'Xyz');
-  final _countryController = TextEditingController(text: 'Xyz');
-
-  // Contact Details Controllers
-  final _designationController = TextEditingController();
-  final _departmentController = TextEditingController();
-  final _officeNumberController = TextEditingController(
-    text: '+91 - 9876543210',
-  );
-  final _mobileNumberController = TextEditingController(
-    text: '+91 - 9876543210',
-  );
-  final _websiteController = TextEditingController(text: 'https://abc.com');
+  @override
+  void initState() {
+    super.initState();
+    // Add one initial branch
+    _addBranch();
+  }
 
   @override
   void dispose() {
     _branchesController.dispose();
-    _address1Controller.dispose();
-    _address2Controller.dispose();
-    _cityController.dispose();
-    _stateController.dispose();
-    _zipController.dispose();
-    _countryController.dispose();
-    _designationController.dispose();
-    _departmentController.dispose();
-    _officeNumberController.dispose();
-    _mobileNumberController.dispose();
-    _websiteController.dispose();
+    // Dispose all branches
+    for (var branch in _branches) {
+      branch.dispose();
+    }
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _addBranch() {
+    setState(() {
+      _branches.add(
+        BranchData(
+          branchNameController: TextEditingController(),
+          numberOfUsersController: TextEditingController(text: '1'),
+          addressSameAsSignup: true,
+          contactSameAsSignup: true,
+          address1Controller: TextEditingController(),
+          cityController: TextEditingController(),
+          stateController: TextEditingController(),
+          zipController: TextEditingController(),
+          countryController: TextEditingController(),
+          officePhoneController: TextEditingController(),
+          mobilePhoneController: TextEditingController(),
+          websiteController: TextEditingController(),
+          selectedSports: [],
+        ),
+      );
+    });
+  }
+
+  void _removeBranch(int index) {
+    if (_branches.length > 1) {
+      setState(() {
+        _branches[index].dispose();
+        _branches.removeAt(index);
+        // Update number of branches controller
+        _branchesController.text = _branches.length.toString();
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('At least one branch is required'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  Future<void> _submitRegistration() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (!mounted) return;
+
+    // Validate branches
+    if (_branches.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please add at least one branch'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Validate first branch (required for step 1)
+    final firstBranch = _branches[0];
+    if (firstBranch.branchNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter branch name for Branch 1'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Step 1: Submit first branch
+      final firstBranchData = _branches[0];
+      
+      // Parse phone numbers for first branch
+      final officePhone = PhoneParser.parsePhoneNumber(firstBranchData.officePhoneController.text);
+      final mobilePhone = PhoneParser.parsePhoneNumber(firstBranchData.mobilePhoneController.text);
+
+      final step1Request = MerchandizerSignupRequest(
+        userRole: 'merchandizer',
+        branchName: firstBranchData.branchNameController.text.trim(),
+        noOfUsers: int.tryParse(firstBranchData.numberOfUsersController.text) ?? 1,
+        isAddressIsSameAsUser: firstBranchData.addressSameAsSignup ? 1 : 0,
+        addressLine1: firstBranchData.addressSameAsSignup
+            ? null
+            : firstBranchData.address1Controller.text.trim().isNotEmpty
+                ? firstBranchData.address1Controller.text.trim()
+                : null,
+        addressLine2: null, // Not in API request
+        city: firstBranchData.addressSameAsSignup
+            ? null
+            : firstBranchData.cityController.text.trim().isNotEmpty
+                ? firstBranchData.cityController.text.trim()
+                : null,
+        state: firstBranchData.addressSameAsSignup
+            ? null
+            : firstBranchData.stateController.text.trim().isNotEmpty
+                ? firstBranchData.stateController.text.trim()
+                : null,
+        zipcode: firstBranchData.addressSameAsSignup
+            ? null
+            : firstBranchData.zipController.text.trim().isNotEmpty
+                ? firstBranchData.zipController.text.trim()
+                : null,
+        country: firstBranchData.addressSameAsSignup
+            ? null
+            : firstBranchData.countryController.text.trim().isNotEmpty
+                ? firstBranchData.countryController.text.trim()
+                : null,
+        isContactDetailsIsSameUser: firstBranchData.contactSameAsSignup ? 1 : 0,
+        designation: null, // Not in API request
+        department: null, // Not in API request
+        officePhoneExt: firstBranchData.contactSameAsSignup
+            ? null
+            : officePhone['ext']?.isNotEmpty == true
+                ? officePhone['ext']
+                : null,
+        officePhone: firstBranchData.contactSameAsSignup
+            ? null
+            : officePhone['number']?.isNotEmpty == true
+                ? officePhone['number']
+                : null,
+        mobilePhoneExt: firstBranchData.contactSameAsSignup
+            ? null
+            : mobilePhone['ext']?.isNotEmpty == true
+                ? mobilePhone['ext']
+                : null,
+        mobilePhone: firstBranchData.contactSameAsSignup
+            ? null
+            : mobilePhone['number']?.isNotEmpty == true
+                ? mobilePhone['number']
+                : null,
+        companyWebsite: firstBranchData.contactSameAsSignup
+            ? null
+            : firstBranchData.websiteController.text.trim().isNotEmpty
+                ? firstBranchData.websiteController.text.trim()
+                : null,
+      );
+
+      final step1Response = await _authRepository.merchandizerSignup(step1Request);
+      
+      // Save merchandizer ID for later use (e.g., fetching branches)
+      final storageService = StorageService();
+      await storageService.saveInt('merchandizer_id', step1Response.merchandizerId);
+
+      // Step 2: Submit additional branches (if any)
+      if (_branches.length > 1) {
+        final additionalBranches = _branches.sublist(1).map((branch) {
+          // Parse phone numbers
+          final officePhone = PhoneParser.parsePhoneNumber(branch.officePhoneController.text);
+          final mobilePhone = PhoneParser.parsePhoneNumber(branch.mobilePhoneController.text);
+
+          // Validate branch name
+          if (branch.branchNameController.text.trim().isEmpty) {
+            throw Exception('Please enter branch name for all branches');
+          }
+
+          // Validate sports selection
+          if (branch.selectedSports.isEmpty) {
+            throw Exception('Please select at least one sport for all branches');
+          }
+
+          return MerchandizerBranch(
+            branchName: branch.branchNameController.text.trim(),
+            noOfUsers: int.tryParse(branch.numberOfUsersController.text) ?? 1,
+            isAddressSameAsUser: branch.addressSameAsSignup ? 1 : 0,
+            addressLine1: branch.addressSameAsSignup
+                ? null
+                : branch.address1Controller.text.trim().isNotEmpty
+                    ? branch.address1Controller.text.trim()
+                    : null,
+            city: branch.addressSameAsSignup
+                ? null
+                : branch.cityController.text.trim().isNotEmpty
+                    ? branch.cityController.text.trim()
+                    : null,
+            state: branch.addressSameAsSignup
+                ? null
+                : branch.stateController.text.trim().isNotEmpty
+                    ? branch.stateController.text.trim()
+                    : null,
+            zipCode: branch.addressSameAsSignup
+                ? null
+                : branch.zipController.text.trim().isNotEmpty
+                    ? branch.zipController.text.trim()
+                    : null,
+            country: branch.addressSameAsSignup
+                ? null
+                : branch.countryController.text.trim().isNotEmpty
+                    ? branch.countryController.text.trim()
+                    : null,
+            isContactSameAsUser: branch.contactSameAsSignup ? 1 : 0,
+            officePhone: branch.contactSameAsSignup
+                ? null
+                : officePhone['number']?.isNotEmpty == true
+                    ? officePhone['number']
+                    : null,
+            mobilePhone: branch.contactSameAsSignup
+                ? null
+                : mobilePhone['number']?.isNotEmpty == true
+                    ? mobilePhone['number']
+                    : null,
+            companyWebsite: branch.contactSameAsSignup
+                ? null
+                : branch.websiteController.text.trim().isNotEmpty
+                    ? branch.websiteController.text.trim()
+                    : null,
+            sportsNames: branch.selectedSports,
+          );
+        }).toList();
+
+        final step2Request = MerchandizerBranchSignupRequest(branches: additionalBranches);
+        await _authRepository.merchandizerBranchSignup(step2Request);
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Merchandizer registration successful!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MerchandiserMembershipPlanPage(),
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        // Handle validation errors
+        if (e.isValidationError && e.errors != null) {
+          final errorMessages = <String>[];
+          e.errors!.forEach((key, value) {
+            if (value is List && value.isNotEmpty) {
+              errorMessages.addAll(value.map((v) => v.toString()));
+            }
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessages.isNotEmpty ? errorMessages.first : e.message),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.message),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Registration failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -124,27 +421,36 @@ class _MerchandiseRegistrationPageState
                     _buildTextField(
                       controller: _branchesController,
                       label: 'Number Of Branches',
-                      hint: '2',
+                      hint: '1',
                       keyboardType: TextInputType.number,
                       suffixText:
                           '(It Will Be Paid Service To Use This Platform For More Than 1 Branch)',
+                      onChanged: (value) {
+                        final numBranches = int.tryParse(value) ?? 1;
+                        setState(() {
+                          while (_branches.length < numBranches) {
+                            _addBranch();
+                          }
+                          while (_branches.length > numBranches && _branches.length > 1) {
+                            _removeBranch(_branches.length - 1);
+                          }
+                        });
+                      },
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
 
-              // Branch 1 Details Section
-              _buildBranchSection(1),
-              const SizedBox(height: 16),
-
-              // Branch 2 Details Section (if multiple branches)
-              if (int.tryParse(_branchesController.text) != null &&
-                  int.parse(_branchesController.text) > 1)
-                _buildBranchSection(2),
-              if (int.tryParse(_branchesController.text) != null &&
-                  int.parse(_branchesController.text) > 1)
-                const SizedBox(height: 16),
+              // Dynamic Branch Sections
+              ...List.generate(_branches.length, (index) {
+                return Column(
+                  children: [
+                    _buildBranchSection(index),
+                    const SizedBox(height: 16),
+                  ],
+                );
+              }),
 
               const SizedBox(height: 32),
 
@@ -231,15 +537,12 @@ class _MerchandiseRegistrationPageState
   }
 
   IconData _getSectionIcon(String title) {
-    switch (title) {
-      case 'Company Details':
-        return Icons.shopping_bag;
-      case 'Branch 1 Details':
-      case 'Branch 2 Details':
-        return Icons.account_tree;
-      default:
-        return Icons.info;
+    if (title == 'Company Details') {
+      return Icons.shopping_bag;
+    } else if (title.startsWith('Branch')) {
+      return Icons.account_tree;
     }
+    return Icons.info;
   }
 
   Widget _buildTextField({
@@ -248,6 +551,7 @@ class _MerchandiseRegistrationPageState
     required String hint,
     TextInputType keyboardType = TextInputType.text,
     String? suffixText,
+    ValueChanged<String>? onChanged,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,6 +574,8 @@ class _MerchandiseRegistrationPageState
           child: TextFormField(
             controller: controller,
             keyboardType: keyboardType,
+            enabled: !_isLoading,
+            onChanged: onChanged,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             decoration: InputDecoration(
               hintText: hint,
@@ -328,8 +634,9 @@ class _MerchandiseRegistrationPageState
     );
   }
 
-  Widget _buildBranchSection(int branchNumber) {
-    final branchData = _branches[branchNumber - 1];
+  Widget _buildBranchSection(int index) {
+    final branchData = _branches[index];
+    final branchNumber = index + 1;
 
     return _buildSectionCard(
       title: 'Branch $branchNumber Details',
@@ -338,63 +645,74 @@ class _MerchandiseRegistrationPageState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTextField(
-            controller: TextEditingController(
-              text: branchData['name'].toString(),
-            ),
-            label: 'Branch Name',
-            hint: 'Enter branch name',
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  controller: branchData.branchNameController,
+                  label: 'Branch Name',
+                  hint: 'Enter branch name',
+                ),
+              ),
+              if (_branches.length > 1) ...[
+                const SizedBox(width: 12),
+                IconButton(
+                  onPressed: () => _removeBranch(index),
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  tooltip: 'Remove Branch',
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 16),
           _buildTextField(
-            controller: TextEditingController(
-              text: branchData['users'].toString(),
-            ),
+            controller: branchData.numberOfUsersController,
             label: 'Number Of Users',
             hint: 'Enter number of users',
             keyboardType: TextInputType.number,
-            suffixText: branchNumber == 2
+            suffixText: branchNumber > 1
                 ? '(It Is A Paid Service For More Than 1 User/Branch. You Will Be Allowed To Add Users From Your Admin Panel After Subscription.)'
                 : null,
           ),
           const SizedBox(height: 16),
           _buildCheckboxOption(
             'Address Is Same As Sign Up Address?',
-            branchData['addressSameAsSignup'] as bool,
+            branchData.addressSameAsSignup,
             (value) => setState(() {
-              _branches[branchNumber - 1]['addressSameAsSignup'] = value!;
+              branchData.addressSameAsSignup = value ?? false;
             }),
           ),
 
           // Address Section (if not same as signup)
-          if (!(branchData['addressSameAsSignup'] as bool)) ...[
+          if (!branchData.addressSameAsSignup) ...[
             const SizedBox(height: 16),
-            _buildAddressSubSection(),
+            _buildAddressSubSection(branchData),
           ],
 
           const SizedBox(height: 16),
           _buildCheckboxOption(
             'Contact Details Is Same As Sign Up Contact Details?',
-            branchData['contactSameAsSignup'] as bool,
+            branchData.contactSameAsSignup,
             (value) => setState(() {
-              _branches[branchNumber - 1]['contactSameAsSignup'] = value!;
+              branchData.contactSameAsSignup = value ?? false;
             }),
           ),
 
           // Contact Details Section (if not same as signup)
-          if (!(branchData['contactSameAsSignup'] as bool)) ...[
+          if (!branchData.contactSameAsSignup) ...[
             const SizedBox(height: 16),
-            _buildContactDetailsSubSection(),
+            _buildContactDetailsSubSection(branchData),
           ],
 
+          // Sports Section (for all branches)
           const SizedBox(height: 16),
-          _buildSportsSubSection(),
+          _buildSportsSubSection(branchData),
         ],
       ),
     );
   }
 
-  Widget _buildAddressSubSection() {
+  Widget _buildAddressSubSection(BranchData branchData) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -415,15 +733,9 @@ class _MerchandiseRegistrationPageState
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          controller: _address1Controller,
+          controller: branchData.address1Controller,
           label: 'Address 1',
           hint: 'Enter address line 1',
-        ),
-        const SizedBox(height: 16),
-        _buildTextField(
-          controller: _address2Controller,
-          label: 'Address 2',
-          hint: 'Enter address line 2',
         ),
         const SizedBox(height: 16),
         Row(
@@ -431,18 +743,30 @@ class _MerchandiseRegistrationPageState
             Expanded(
               child: _buildDropdownField(
                 label: 'City',
-                value: _cityController.text,
-                items: ['Xyz', 'City 1', 'City 2'],
-                onChanged: (value) => _cityController.text = value!,
+                value: branchData.cityController.text.isNotEmpty ? branchData.cityController.text : null,
+                items: const ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata'],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      branchData.cityController.text = value;
+                    });
+                  }
+                },
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildDropdownField(
                 label: 'State',
-                value: _stateController.text,
-                items: ['Xyz', 'State 1', 'State 2'],
-                onChanged: (value) => _stateController.text = value!,
+                value: branchData.stateController.text.isNotEmpty ? branchData.stateController.text : null,
+                items: const ['Maharashtra', 'Delhi', 'Karnataka', 'Tamil Nadu', 'West Bengal'],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      branchData.stateController.text = value;
+                    });
+                  }
+                },
               ),
             ),
           ],
@@ -452,7 +776,7 @@ class _MerchandiseRegistrationPageState
           children: [
             Expanded(
               child: _buildTextField(
-                controller: _zipController,
+                controller: branchData.zipController,
                 label: 'Zip Code',
                 hint: 'Enter zip code',
                 keyboardType: TextInputType.number,
@@ -462,9 +786,15 @@ class _MerchandiseRegistrationPageState
             Expanded(
               child: _buildDropdownField(
                 label: 'Country',
-                value: _countryController.text,
-                items: ['Xyz', 'Country 1', 'Country 2'],
-                onChanged: (value) => _countryController.text = value!,
+                value: branchData.countryController.text.isNotEmpty ? branchData.countryController.text : null,
+                items: const ['India', 'USA', 'UK', 'Canada', 'Australia'],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      branchData.countryController.text = value;
+                    });
+                  }
+                },
               ),
             ),
           ],
@@ -473,7 +803,7 @@ class _MerchandiseRegistrationPageState
     );
   }
 
-  Widget _buildContactDetailsSubSection() {
+  Widget _buildContactDetailsSubSection(BranchData branchData) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -497,27 +827,7 @@ class _MerchandiseRegistrationPageState
           children: [
             Expanded(
               child: _buildTextField(
-                controller: _designationController,
-                label: 'Designation',
-                hint: 'Enter designation',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildTextField(
-                controller: _departmentController,
-                label: 'Department',
-                hint: 'Enter department',
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildTextField(
-                controller: _officeNumberController,
+                controller: branchData.officePhoneController,
                 label: 'Office Number',
                 hint: 'Enter office number',
                 keyboardType: TextInputType.phone,
@@ -526,7 +836,7 @@ class _MerchandiseRegistrationPageState
             const SizedBox(width: 12),
             Expanded(
               child: _buildTextField(
-                controller: _mobileNumberController,
+                controller: branchData.mobilePhoneController,
                 label: 'Mobile Number',
                 hint: 'Enter mobile number',
                 keyboardType: TextInputType.phone,
@@ -536,7 +846,7 @@ class _MerchandiseRegistrationPageState
         ),
         const SizedBox(height: 16),
         _buildTextField(
-          controller: _websiteController,
+          controller: branchData.websiteController,
           label: 'Company Website',
           hint: 'Enter website URL',
           keyboardType: TextInputType.url,
@@ -545,7 +855,20 @@ class _MerchandiseRegistrationPageState
     );
   }
 
-  Widget _buildSportsSubSection() {
+  Widget _buildSportsSubSection(BranchData branchData) {
+    final allSports = const [
+      'Cricket',
+      'Football',
+      'Basketball',
+      'Hockey',
+      'Tennis',
+      'Badminton',
+      'Volleyball',
+      'Baseball',
+      'Rugby',
+      'Table Tennis',
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -558,66 +881,99 @@ class _MerchandiseRegistrationPageState
           ),
         ),
         const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _selectedSports.map((sport) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8E2DE2).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF8E2DE2)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            sport,
-                            style: const TextStyle(
-                              color: Color(0xFF8E2DE2),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
+        InkWell(
+          onTap: () async {
+            final result = await showDialog<List<String>>(
+              context: context,
+              builder: (ctx) => SportsMultiSelect(
+                allSports: allSports,
+                initialSelected: branchData.selectedSports,
+              ),
+            );
+            if (result != null && mounted) {
+              setState(() {
+                branchData.selectedSports = result;
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: branchData.selectedSports.isEmpty
+                        ? [
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text(
+                                'Select sports',
+                                style: TextStyle(color: Colors.grey),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              size: 10,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                          ]
+                        : branchData.selectedSports.map((sport) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF8E2DE2).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: const Color(0xFF8E2DE2)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    sport,
+                                    style: const TextStyle(
+                                      color: Color(0xFF8E2DE2),
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        branchData.selectedSports.remove(sport);
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 10,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                  ),
                 ),
-              ),
-              const Icon(
-                Icons.keyboard_arrow_down,
-                color: Color(0xFF64748B),
-                size: 20,
-              ),
-            ],
+                const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: Color(0xFF64748B),
+                  size: 20,
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -626,10 +982,13 @@ class _MerchandiseRegistrationPageState
 
   Widget _buildDropdownField({
     required String label,
-    required String value,
+    required String? value,
     required List<String> items,
     required Function(String?) onChanged,
   }) {
+    // Ensure value is in items list, otherwise use null
+    final validValue = value != null && value.isNotEmpty && items.contains(value) ? value : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -649,14 +1008,16 @@ class _MerchandiseRegistrationPageState
             border: Border.all(color: Colors.grey[200]!),
           ),
           child: DropdownButtonFormField<String>(
-            value: value,
+            value: validValue,
             decoration: const InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 14,
               ),
+              hintText: 'Select',
             ),
+            hint: const Text('Select', style: TextStyle(color: Colors.grey)),
             items: items.map((String item) {
               return DropdownMenuItem<String>(value: item, child: Text(item));
             }).toList(),
@@ -733,16 +1094,7 @@ class _MerchandiseRegistrationPageState
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MerchandiserMembershipPlanPage(),
-                    ),
-                  );
-                }
-              },
+              onPressed: _isLoading ? null : _submitRegistration,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7C3AED),
                 foregroundColor: Colors.white,
@@ -753,21 +1105,30 @@ class _MerchandiseRegistrationPageState
                 elevation: 2,
                 shadowColor: Colors.black26,
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Next',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Next',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                      ],
                     ),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, color: Colors.white, size: 20),
-                ],
-              ),
             ),
           ),
         ],

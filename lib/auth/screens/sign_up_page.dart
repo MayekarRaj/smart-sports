@@ -4,6 +4,7 @@ import '../../core/utils/validators.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/models/api_models.dart';
 import '../../core/exceptions/api_exception.dart';
+import '../../core/repositories/auth_repository.dart';
 import '../widgets/rounded_text_field.dart';
 import '../widgets/password_field.dart';
 import 'role_selection_page.dart';
@@ -51,6 +52,8 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   // OTP UI removed from the form; we show a dedicated Verify Email page after register
   bool _emailVerified = false;
+  final AuthRepository _authRepository = AuthRepository();
+  bool _isCheckingEmail = false;
 
   @override
   void dispose() {
@@ -76,8 +79,67 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     super.dispose();
   }
 
+  Future<void> _checkEmailVerification() async {
+    final emailText = email.text.trim();
+    if (emailText.isEmpty || Validators.email(emailText) != null) {
+      return;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _isCheckingEmail = true;
+    });
+
+    try {
+      final response = await _authRepository.checkEmailVerification(emailText);
+      if (mounted) {
+        setState(() {
+          _emailVerified = response.verified;
+        });
+      }
+    } on ApiException catch (e) {
+      // Email not found or not verified - that's okay, user needs to verify
+      if (mounted) {
+        setState(() {
+          _emailVerified = false;
+        });
+      }
+    } catch (e) {
+      // Error checking - assume not verified
+      if (mounted) {
+        setState(() {
+          _emailVerified = false;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingEmail = false;
+        });
+      }
+    }
+  }
+
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    // Check email verification before allowing sign up
+    if (!_emailVerified) {
+      // First check if email is verified
+      await _checkEmailVerification();
+      
+      if (!_emailVerified && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please verify your email before signing up'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        return;
+      }
+    }
     
     // Validate sports selection
     if (_selectedSports.isEmpty) {
@@ -181,49 +243,79 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
               hint: 'Email Address',
               keyboardType: TextInputType.emailAddress,
               validator: Validators.email,
-              // show a green check when verified
-              suffix: _emailVerified
-                  ? const Icon(Icons.check_circle, color: Colors.green)
-                  : null,
-              onChanged: (_) {
+              enabled: !_isCheckingEmail,
+              // show a green check when verified, loading indicator when checking
+              suffix: _isCheckingEmail
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : _emailVerified
+                      ? const Icon(Icons.check_circle, color: Colors.green)
+                      : null,
+              onChanged: (value) {
                 if (_emailVerified) {
                   setState(() {
                     _emailVerified = false; // reset if user edits email
                   });
                 }
+                // Check email verification when email changes (debounced)
+                final emailValue = value.trim();
+                Future.delayed(const Duration(milliseconds: 800), () {
+                  if (mounted && email.text.trim() == emailValue) {
+                    _checkEmailVerification();
+                  }
+                });
               },
             ),
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
-                onPressed: () async {
-                  final err = Validators.email(email.text);
-                  if (err != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(err)),
-                    );
-                    return;
-                  }
-                  final verified = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(
-                      builder: (_) => VerifyEmailPage(email: email.text),
-                    ),
-                  );
-                  if (verified == true && mounted) {
-                    setState(() {
-                      _emailVerified = true;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Email verified'),
-                        backgroundColor: Colors.green,
+                onPressed: _emailVerified
+                    ? null
+                    : () async {
+                        final err = Validators.email(email.text);
+                        if (err != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(err)),
+                          );
+                          return;
+                        }
+                        final verified = await Navigator.of(context).push<bool>(
+                          MaterialPageRoute(
+                            builder: (_) => VerifyEmailPage(email: email.text),
+                          ),
+                        );
+                        if (verified == true && mounted) {
+                          setState(() {
+                            _emailVerified = true;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Email verified'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      },
+                icon: _emailVerified
+                    ? const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 18,
+                      )
+                    : const Icon(
+                        Icons.mark_email_read_outlined,
+                        size: 18,
                       ),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.mark_email_read_outlined),
-                label: Text(_emailVerified ? 'Verified' : 'Verify Email'),
+                label: Text(
+                  _emailVerified ? 'Email Verified' : 'Verify Email',
+                  style: TextStyle(
+                    color: _emailVerified ? Colors.green : null,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 16),

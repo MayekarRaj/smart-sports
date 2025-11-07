@@ -967,3 +967,503 @@ class FreelancerSignupResponse {
 
   Map<String, dynamic> toJson() => _$FreelancerSignupResponseToJson(this);
 }
+
+// OTP Models
+@JsonSerializable()
+class SendOtpRequest {
+  final String email;
+
+  SendOtpRequest({required this.email});
+
+  factory SendOtpRequest.fromJson(Map<String, dynamic> json) =>
+      _$SendOtpRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SendOtpRequestToJson(this);
+}
+
+@JsonSerializable()
+class SendOtpResponse {
+  final bool success;
+  final String message;
+  @JsonKey(name: 'lineNumber')
+  final int? lineNumber;
+
+  SendOtpResponse({
+    required this.success,
+    required this.message,
+    this.lineNumber,
+  });
+
+  factory SendOtpResponse.fromJson(Map<String, dynamic> json) =>
+      _$SendOtpResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SendOtpResponseToJson(this);
+}
+
+@JsonSerializable()
+class VerifyOtpRequest {
+  final String email;
+  final String otp;
+
+  VerifyOtpRequest({
+    required this.email,
+    required this.otp,
+  });
+
+  factory VerifyOtpRequest.fromJson(Map<String, dynamic> json) =>
+      _$VerifyOtpRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VerifyOtpRequestToJson(this);
+}
+
+@JsonSerializable()
+class VerifyOtpResponse {
+  final String message;
+  final bool verified;
+
+  VerifyOtpResponse({
+    required this.message,
+    required this.verified,
+  });
+
+  factory VerifyOtpResponse.fromJson(Map<String, dynamic> json) =>
+      _$VerifyOtpResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VerifyOtpResponseToJson(this);
+}
+
+@JsonSerializable()
+class CheckEmailVerificationRequest {
+  final String email;
+
+  CheckEmailVerificationRequest({required this.email});
+
+  factory CheckEmailVerificationRequest.fromJson(Map<String, dynamic> json) =>
+      _$CheckEmailVerificationRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CheckEmailVerificationRequestToJson(this);
+}
+
+@JsonSerializable()
+class CheckEmailVerificationResponse {
+  final bool verified;
+  final String message;
+
+  CheckEmailVerificationResponse({
+    required this.verified,
+    required this.message,
+  });
+
+  factory CheckEmailVerificationResponse.fromJson(Map<String, dynamic> json) =>
+      _$CheckEmailVerificationResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CheckEmailVerificationResponseToJson(this);
+}
+
+// Forgot Password Models
+@JsonSerializable()
+class ForgotPasswordRequest {
+  final String email;
+
+  ForgotPasswordRequest({required this.email});
+
+  factory ForgotPasswordRequest.fromJson(Map<String, dynamic> json) =>
+      _$ForgotPasswordRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ForgotPasswordRequestToJson(this);
+}
+
+@JsonSerializable()
+class ForgotPasswordResponse {
+  final String message;
+  final bool success;
+  final String? token;
+
+  ForgotPasswordResponse({
+    required this.message,
+    required this.success,
+    this.token,
+  });
+
+  factory ForgotPasswordResponse.fromJson(Map<String, dynamic> json) =>
+      _$ForgotPasswordResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ForgotPasswordResponseToJson(this);
+}
+
+// Merchandizer Registration Models
+@JsonSerializable()
+class MerchandizerSignupRequest {
+  @JsonKey(name: 'user_role')
+  final String userRole;
+  
+  @JsonKey(name: 'branch_name')
+  final String branchName;
+  
+  @JsonKey(name: 'no_of_users')
+  final int noOfUsers;
+  
+  @JsonKey(name: 'is_address_is_same_as_user')
+  final int isAddressIsSameAsUser;
+  
+  @JsonKey(name: 'address_line1')
+  final String? addressLine1;
+  
+  @JsonKey(name: 'address_line2')
+  final String? addressLine2;
+  
+  final String? city;
+  final String? state;
+  final String? zipcode;
+  final String? country;
+  
+  @JsonKey(name: 'is_contact_details_is_same_user')
+  final int isContactDetailsIsSameUser;
+  
+  final String? designation;
+  final String? department;
+  
+  @JsonKey(name: 'office_phone_ext')
+  final String? officePhoneExt;
+  
+  @JsonKey(name: 'office_phone')
+  final String? officePhone;
+  
+  @JsonKey(name: 'mobile_phone_ext')
+  final String? mobilePhoneExt;
+  
+  @JsonKey(name: 'mobile_phone')
+  final String? mobilePhone;
+  
+  @JsonKey(name: 'company_website')
+  final String? companyWebsite;
+
+  MerchandizerSignupRequest({
+    required this.userRole,
+    required this.branchName,
+    required this.noOfUsers,
+    required this.isAddressIsSameAsUser,
+    this.addressLine1,
+    this.addressLine2,
+    this.city,
+    this.state,
+    this.zipcode,
+    this.country,
+    required this.isContactDetailsIsSameUser,
+    this.designation,
+    this.department,
+    this.officePhoneExt,
+    this.officePhone,
+    this.mobilePhoneExt,
+    this.mobilePhone,
+    this.companyWebsite,
+  });
+
+  factory MerchandizerSignupRequest.fromJson(Map<String, dynamic> json) =>
+      _$MerchandizerSignupRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MerchandizerSignupRequestToJson(this);
+}
+
+@JsonSerializable()
+class MerchandizerSignupResponse {
+  final bool success;
+  final String message;
+  
+  @JsonKey(name: 'merchandizer_id')
+  final int merchandizerId;
+
+  MerchandizerSignupResponse({
+    required this.success,
+    required this.message,
+    required this.merchandizerId,
+  });
+
+  factory MerchandizerSignupResponse.fromJson(Map<String, dynamic> json) =>
+      _$MerchandizerSignupResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MerchandizerSignupResponseToJson(this);
+}
+
+@JsonSerializable()
+class MerchandizerBranch {
+  @JsonKey(name: 'branch_name')
+  final String branchName;
+  
+  @JsonKey(name: 'no_of_users')
+  final int noOfUsers;
+  
+  @JsonKey(name: 'is_address_same_as_user')
+  final int isAddressSameAsUser;
+  
+  @JsonKey(name: 'address_line_1')
+  final String? addressLine1;
+  
+  final String? city;
+  final String? state;
+  
+  @JsonKey(name: 'zip_code')
+  final String? zipCode;
+  
+  final String? country;
+  
+  @JsonKey(name: 'is_contact_same_as_user')
+  final int isContactSameAsUser;
+  
+  @JsonKey(name: 'office_phone')
+  final String? officePhone;
+  
+  @JsonKey(name: 'mobile_phone')
+  final String? mobilePhone;
+  
+  @JsonKey(name: 'company_website')
+  final String? companyWebsite;
+  
+  @JsonKey(name: 'sports_names')
+  final List<String> sportsNames;
+
+  MerchandizerBranch({
+    required this.branchName,
+    required this.noOfUsers,
+    required this.isAddressSameAsUser,
+    this.addressLine1,
+    this.city,
+    this.state,
+    this.zipCode,
+    this.country,
+    required this.isContactSameAsUser,
+    this.officePhone,
+    this.mobilePhone,
+    this.companyWebsite,
+    required this.sportsNames,
+  });
+
+  factory MerchandizerBranch.fromJson(Map<String, dynamic> json) =>
+      _$MerchandizerBranchFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MerchandizerBranchToJson(this);
+}
+
+@JsonSerializable()
+class MerchandizerBranchSignupRequest {
+  final List<MerchandizerBranch> branches;
+
+  MerchandizerBranchSignupRequest({required this.branches});
+
+  factory MerchandizerBranchSignupRequest.fromJson(Map<String, dynamic> json) =>
+      _$MerchandizerBranchSignupRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MerchandizerBranchSignupRequestToJson(this);
+}
+
+@JsonSerializable()
+class MerchandizerBranchData {
+  final int id;
+  @JsonKey(name: 'user_id')
+  final int userId;
+  @JsonKey(name: 'parent_id')
+  final int parentId;
+  @JsonKey(name: 'branch_name')
+  final String branchName;
+  @JsonKey(name: 'no_of_branches')
+  final int? noOfBranches;
+  @JsonKey(name: 'no_of_users')
+  final int noOfUsers;
+  @JsonKey(name: 'is_address_is_same_as_user')
+  final int isAddressIsSameAsUser;
+  @JsonKey(name: 'address_id')
+  final int? addressId;
+  @JsonKey(name: 'is_contact_details_is_same_user')
+  final int isContactDetailsIsSameUser;
+  @JsonKey(name: 'sports_names')
+  final String sportsNames;
+  @JsonKey(name: 'contact_details_id')
+  final int? contactDetailsId;
+  @JsonKey(name: 'is_deleted')
+  final int isDeleted;
+  @JsonKey(name: 'created_at')
+  final String createdAt;
+  @JsonKey(name: 'updated_at')
+  final String updatedAt;
+
+  MerchandizerBranchData({
+    required this.id,
+    required this.userId,
+    required this.parentId,
+    required this.branchName,
+    this.noOfBranches,
+    required this.noOfUsers,
+    required this.isAddressIsSameAsUser,
+    this.addressId,
+    required this.isContactDetailsIsSameUser,
+    required this.sportsNames,
+    this.contactDetailsId,
+    required this.isDeleted,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory MerchandizerBranchData.fromJson(Map<String, dynamic> json) =>
+      _$MerchandizerBranchDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MerchandizerBranchDataToJson(this);
+}
+
+@JsonSerializable()
+class MerchandizerBranchSignupResponse {
+  final bool success;
+  final String message;
+  final List<MerchandizerBranchData> data;
+
+  MerchandizerBranchSignupResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory MerchandizerBranchSignupResponse.fromJson(Map<String, dynamic> json) =>
+      _$MerchandizerBranchSignupResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MerchandizerBranchSignupResponseToJson(this);
+}
+
+// Paid Services Models
+@JsonSerializable()
+class PaidService {
+  final int id;
+  @JsonKey(name: 'user_role')
+  final String userRole;
+  @JsonKey(name: 'icon_name')
+  final String iconName;
+  final String name;
+  @JsonKey(name: 'description_1')
+  final String description1;
+  @JsonKey(name: 'description_2')
+  final String description2;
+  final String amount;
+  @JsonKey(name: 'is_active')
+  final int isActive;
+  @JsonKey(name: 'is_deleted')
+  final int isDeleted;
+  @JsonKey(name: 'created_at')
+  final String createdAt;
+  @JsonKey(name: 'updated_at')
+  final String updatedAt;
+
+  PaidService({
+    required this.id,
+    required this.userRole,
+    required this.iconName,
+    required this.name,
+    required this.description1,
+    required this.description2,
+    required this.amount,
+    required this.isActive,
+    required this.isDeleted,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory PaidService.fromJson(Map<String, dynamic> json) =>
+      _$PaidServiceFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PaidServiceToJson(this);
+
+  /// Get amount as double
+  double get amountValue => double.tryParse(amount) ?? 0.0;
+
+  /// Check if service is active
+  bool get isServiceActive => isActive == 1;
+}
+
+@JsonSerializable()
+class PaidServicesResponse {
+  final bool success;
+  final String message;
+  final List<PaidService> data;
+
+  PaidServicesResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory PaidServicesResponse.fromJson(Map<String, dynamic> json) =>
+      _$PaidServicesResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PaidServicesResponseToJson(this);
+}
+
+// Club List Models
+@JsonSerializable()
+class Club {
+  final int id;
+  @JsonKey(name: 'club_name')
+  final String clubName;
+  final List<dynamic> branches;
+
+  Club({
+    required this.id,
+    required this.clubName,
+    required this.branches,
+  });
+
+  factory Club.fromJson(Map<String, dynamic> json) =>
+      _$ClubFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ClubToJson(this);
+}
+
+@JsonSerializable()
+class ClubListResponse {
+  final bool success;
+  final String message;
+  final List<Club> data;
+
+  ClubListResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory ClubListResponse.fromJson(Map<String, dynamic> json) =>
+      _$ClubListResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ClubListResponseToJson(this);
+}
+
+// Merchandizer Branch List Models
+@JsonSerializable()
+class MerchandizerBranchListItem {
+  final int id;
+  @JsonKey(name: 'merchandizer_branch_name')
+  final String merchandizerBranchName;
+
+  MerchandizerBranchListItem({
+    required this.id,
+    required this.merchandizerBranchName,
+  });
+
+  factory MerchandizerBranchListItem.fromJson(Map<String, dynamic> json) =>
+      _$MerchandizerBranchListItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MerchandizerBranchListItemToJson(this);
+}
+
+@JsonSerializable()
+class MerchandizerBranchListResponse {
+  final bool success;
+  final String message;
+  final List<MerchandizerBranchListItem> data;
+
+  MerchandizerBranchListResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory MerchandizerBranchListResponse.fromJson(Map<String, dynamic> json) =>
+      _$MerchandizerBranchListResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MerchandizerBranchListResponseToJson(this);
+}

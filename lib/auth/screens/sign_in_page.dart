@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/validators.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../core/exceptions/api_exception.dart';
 import '../widgets/rounded_text_field.dart';
 import '../widgets/password_field.dart';
 import '../widgets/social_row.dart';
@@ -22,6 +24,8 @@ class _SignInPageState extends ConsumerState<SignInPage> {
   final passCtrl = TextEditingController();
   UserRole role = UserRole.member;
   bool _emailVerified = false;
+  final AuthRepository _authRepository = AuthRepository();
+  bool _isCheckingEmail = false;
 
   @override
   void dispose() {
@@ -30,16 +34,66 @@ class _SignInPageState extends ConsumerState<SignInPage> {
     super.dispose();
   }
 
+  Future<void> _checkEmailVerification() async {
+    final emailText = emailCtrl.text.trim();
+    if (emailText.isEmpty || Validators.email(emailText) != null) {
+      return;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _isCheckingEmail = true;
+    });
+
+    try {
+      final response = await _authRepository.checkEmailVerification(emailText);
+      if (mounted) {
+        setState(() {
+          _emailVerified = response.verified;
+        });
+      }
+    } on ApiException catch (e) {
+      // Email not found or not verified - that's okay, user needs to verify
+      if (mounted) {
+        setState(() {
+          _emailVerified = false;
+        });
+      }
+    } catch (e) {
+      // Error checking - assume not verified
+      if (mounted) {
+        setState(() {
+          _emailVerified = false;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingEmail = false;
+        });
+      }
+    }
+  }
+
   Future<void> _onSignIn() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    // Check email verification before allowing sign in
     if (!_emailVerified) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please verify your email before signing in'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
+      // First check if email is verified
+      await _checkEmailVerification();
+      
+      if (!_emailVerified && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please verify your email before signing in'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        return;
+      }
     }
 
     // Use Riverpod auth provider
@@ -94,7 +148,30 @@ class _SignInPageState extends ConsumerState<SignInPage> {
             hint: 'Email',
             keyboardType: TextInputType.emailAddress,
             validator: (v) => Validators.email(v),
-            enabled: !isLoading,
+            enabled: !isLoading && !_isCheckingEmail,
+            suffix: _isCheckingEmail
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : _emailVerified
+                    ? const Icon(Icons.check_circle, color: Colors.green)
+                    : null,
+            onChanged: (value) {
+              if (_emailVerified) {
+                setState(() {
+                  _emailVerified = false; // reset if user edits email
+                });
+              }
+              // Check email verification when email changes (debounced)
+              final emailValue = value.trim();
+              Future.delayed(const Duration(milliseconds: 800), () {
+                if (mounted && emailCtrl.text.trim() == emailValue) {
+                  _checkEmailVerification();
+                }
+              });
+            },
           ),
           const SizedBox(height: 12),
           PasswordField(
@@ -113,8 +190,8 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                     : () => Navigator.pushNamed(context, '/forgot'),
                 child: const Text('Forgot Password?'),
               ),
-              TextButton(
-                onPressed: isLoading
+              TextButton.icon(
+                onPressed: (_emailVerified || isLoading)
                     ? null
                     : () async {
                         final verified = await Navigator.push<bool>(
@@ -129,7 +206,22 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                           setState(() => _emailVerified = true);
                         }
                       },
-                child: const Text('Verify Email'),
+                icon: _emailVerified
+                    ? const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 18,
+                      )
+                    : const Icon(
+                        Icons.email_outlined,
+                        size: 18,
+                      ),
+                label: Text(
+                  _emailVerified ? 'Email Verified' : 'Verify Email',
+                  style: TextStyle(
+                    color: _emailVerified ? Colors.green : null,
+                  ),
+                ),
               ),
             ],
           ),

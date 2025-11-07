@@ -47,18 +47,21 @@ class AuthService {
   }
 
   /// Send OTP to email
-  Future<void> sendOtp(String email) async {
-    await _authRepository.sendOtp(email);
+  /// Returns SendOtpResponse with success status and message
+  Future<SendOtpResponse> sendOtp(String email) async {
+    return await _authRepository.sendOtp(email);
   }
 
   /// Verify OTP
-  Future<void> verifyOtp(String email, String otp) async {
-    await _authRepository.verifyOtp(email, otp);
+  /// Returns VerifyOtpResponse with verification status
+  Future<VerifyOtpResponse> verifyOtp(String email, String otp) async {
+    return await _authRepository.verifyOtp(email, otp);
   }
 
   /// Forgot password
-  Future<void> forgotPassword(String email) async {
-    await _authRepository.forgotPassword(email);
+  /// Returns ForgotPasswordResponse with success status, message, and token
+  Future<ForgotPasswordResponse> forgotPassword(String email) async {
+    return await _authRepository.forgotPassword(email);
   }
 
   /// Reset password

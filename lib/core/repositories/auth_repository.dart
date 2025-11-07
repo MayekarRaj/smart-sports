@@ -51,51 +51,87 @@ class AuthRepository extends BaseRepository {
   }
 
   /// Send OTP to email
-  Future<void> sendOtp(String email) async {
-    final response = await networkClient.post<Map<String, dynamic>>(
+  /// Returns SendOtpResponse with success status and message
+  Future<SendOtpResponse> sendOtp(String email) async {
+    final request = SendOtpRequest(email: email);
+    final response = await networkClient.post<SendOtpResponse>(
       ApiEndpoints.getSendOtpUrl(),
-      body: {'email': email},
+      body: request.toJson(),
       requiresAuth: false,
+      fromJson: (data) => SendOtpResponse.fromJson(data as Map<String, dynamic>),
     );
 
-    if (!response.success) {
-      throw ApiException(
-        message: response.message,
-        statusCode: response.statusCode ?? 0,
-      );
+    if (response.success && response.hasData) {
+      return response.dataOrThrow;
     }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
   }
 
   /// Verify OTP
-  Future<void> verifyOtp(String email, String otp) async {
-    final response = await networkClient.post<Map<String, dynamic>>(
+  /// Returns VerifyOtpResponse with verification status
+  Future<VerifyOtpResponse> verifyOtp(String email, String otp) async {
+    final request = VerifyOtpRequest(email: email, otp: otp);
+    final response = await networkClient.post<VerifyOtpResponse>(
       ApiEndpoints.getVerifyOtpUrl(),
-      body: {'email': email, 'otp': otp},
+      body: request.toJson(),
       requiresAuth: false,
+      fromJson: (data) => VerifyOtpResponse.fromJson(data as Map<String, dynamic>),
     );
 
-    if (!response.success) {
-      throw ApiException(
-        message: response.message,
-        statusCode: response.statusCode ?? 0,
-      );
+    if (response.success && response.hasData) {
+      return response.dataOrThrow;
     }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Check if email is verified
+  /// Returns CheckEmailVerificationResponse with verification status
+  Future<CheckEmailVerificationResponse> checkEmailVerification(String email) async {
+    final request = CheckEmailVerificationRequest(email: email);
+    final response = await networkClient.post<CheckEmailVerificationResponse>(
+      ApiEndpoints.getCheckEmailVerificationUrl(),
+      body: request.toJson(),
+      requiresAuth: false,
+      fromJson: (data) => CheckEmailVerificationResponse.fromJson(data as Map<String, dynamic>),
+    );
+
+    if (response.success && response.hasData) {
+      return response.dataOrThrow;
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
   }
 
   /// Forgot password - send reset link
-  Future<void> forgotPassword(String email) async {
-    final response = await networkClient.post<Map<String, dynamic>>(
+  /// Returns ForgotPasswordResponse with success status, message, and token
+  Future<ForgotPasswordResponse> forgotPassword(String email) async {
+    final request = ForgotPasswordRequest(email: email);
+    final response = await networkClient.post<ForgotPasswordResponse>(
       ApiEndpoints.getForgotPasswordUrl(),
-      body: {'email': email},
+      body: request.toJson(),
       requiresAuth: false,
+      fromJson: (data) => ForgotPasswordResponse.fromJson(data as Map<String, dynamic>),
     );
 
-    if (!response.success) {
-      throw ApiException(
-        message: response.message,
-        statusCode: response.statusCode ?? 0,
-      );
+    if (response.success && response.hasData) {
+      return response.dataOrThrow;
     }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
   }
 
   /// Reset password with token
@@ -259,6 +295,139 @@ class AuthRepository extends BaseRepository {
 
     if (response.success && response.hasData) {
       return response.dataOrThrow;
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Merchandizer signup (Step 1)
+  /// Returns MerchandizerSignupResponse with merchandizer_id
+  Future<MerchandizerSignupResponse> merchandizerSignup(MerchandizerSignupRequest request) async {
+    final response = await networkClient.post<MerchandizerSignupResponse>(
+      ApiEndpoints.getMerchandizerSignupUrl(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) => MerchandizerSignupResponse.fromJson(data as Map<String, dynamic>),
+    );
+
+    if (response.success && response.hasData) {
+      return response.dataOrThrow;
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Merchandizer branch signup (Step 2)
+  /// Returns MerchandizerBranchSignupResponse with branch data
+  Future<MerchandizerBranchSignupResponse> merchandizerBranchSignup(MerchandizerBranchSignupRequest request) async {
+    final response = await networkClient.post<List<dynamic>>(
+      ApiEndpoints.getMerchandizerBranchSignupUrl(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) => data as List<dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      // API returns response with data array, so we handle it specially
+      final dataList = response.dataOrThrow;
+      final branches = dataList.map((item) => MerchandizerBranchData.fromJson(item as Map<String, dynamic>)).toList();
+      
+      return MerchandizerBranchSignupResponse(
+        success: true,
+        message: response.message,
+        data: branches,
+      );
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Get paid services list for a user role
+  /// Returns PaidServicesResponse with list of paid services
+  Future<PaidServicesResponse> getPaidServicesList(String userRole) async {
+    final response = await networkClient.get<List<dynamic>>(
+      ApiEndpoints.getPaidServicesListUrl(userRole: userRole),
+      requiresAuth: true,
+      fromJson: (data) => data as List<dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      // API returns response with data array, so we handle it specially
+      final dataList = response.dataOrThrow;
+      final services = dataList
+          .map((item) => PaidService.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return PaidServicesResponse(
+        success: true,
+        message: response.message,
+        data: services,
+      );
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Get all clubs list
+  /// Returns ClubListResponse with list of clubs
+  Future<ClubListResponse> getAllClubList() async {
+    final response = await networkClient.get<List<dynamic>>(
+      ApiEndpoints.getAllClubListUrl(),
+      requiresAuth: true,
+      fromJson: (data) => data as List<dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      final dataList = response.dataOrThrow;
+      final clubs = dataList
+          .map((item) => Club.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return ClubListResponse(
+        success: true,
+        message: response.message,
+        data: clubs,
+      );
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Get merchandizer branch list
+  /// Returns MerchandizerBranchListResponse with list of branches
+  Future<MerchandizerBranchListResponse> getMerchandizerBranchList(int merchandizerId) async {
+    final response = await networkClient.get<List<dynamic>>(
+      ApiEndpoints.getMerchandizerBranchListUrl(merchandizerId),
+      requiresAuth: true,
+      fromJson: (data) => data as List<dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      final dataList = response.dataOrThrow;
+      final branches = dataList
+          .map((item) => MerchandizerBranchListItem.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return MerchandizerBranchListResponse(
+        success: true,
+        message: response.message,
+        data: branches,
+      );
     }
 
     throw ApiException(

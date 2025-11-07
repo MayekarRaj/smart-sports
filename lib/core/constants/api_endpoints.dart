@@ -10,8 +10,9 @@ class ApiEndpoints {
   static const String refreshToken = '/refresh-token';
   static const String profile = '/profile';
   static const String sendOtp = '/send-otp';
-  static const String verifyOtp = '/verify-otp';
-  static const String forgotPassword = '/forgot-password';
+  static const String verifyOtp = '/verify-email';
+  static const String checkEmailVerification = '/check-verified-email-or-not';
+  static const String forgotPassword = '/password/forgot-password';
   static const String resetPassword = '/reset-password';
   static const String changePassword = '/change-password';
 
@@ -27,6 +28,17 @@ class ApiEndpoints {
 
   // ==================== Freelancer Registration ====================
   static const String freelancerSignup = '/signup-freelancer';
+
+  // ==================== Merchandizer Registration ====================
+  static const String merchandizerSignup = '/signup-merchandizer';
+  static const String merchandizerBranchSignup = '/signup-merchandizer-branch';
+
+  // ==================== Paid Services ====================
+  static const String paidServicesList = '/paid-services-list';
+
+  // ==================== Club and Branch Lists ====================
+  static const String getAllClubList = '/signup-getAllClubList';
+  static const String getMerchandizerBranchList = '/signup-getMerchandizerBranchList';
 
   // ==================== Bookings ====================
   static const String bookings = '/bookings';
@@ -84,6 +96,7 @@ class ApiEndpoints {
   static String getProfileUrl(int userId) => '${ApiConfig.apiBaseUrl}$profile/$userId';
   static String getSendOtpUrl() => '${ApiConfig.apiBaseUrl}$sendOtp';
   static String getVerifyOtpUrl() => '${ApiConfig.apiBaseUrl}$verifyOtp';
+  static String getCheckEmailVerificationUrl() => '${ApiConfig.apiBaseUrl}$checkEmailVerification';
   static String getForgotPasswordUrl() => '${ApiConfig.apiBaseUrl}$forgotPassword';
   static String getResetPasswordUrl() => '${ApiConfig.apiBaseUrl}$resetPassword';
   static String getChangePasswordUrl() => '${ApiConfig.apiBaseUrl}$changePassword';
@@ -100,6 +113,24 @@ class ApiEndpoints {
 
   // Freelancer Registration
   static String getFreelancerSignupUrl() => '${ApiConfig.apiBaseUrl}$freelancerSignup';
+
+  // Merchandizer Registration
+  static String getMerchandizerSignupUrl() => '${ApiConfig.apiBaseUrl}$merchandizerSignup';
+  static String getMerchandizerBranchSignupUrl() => '${ApiConfig.apiBaseUrl}$merchandizerBranchSignup';
+
+  // Paid Services
+  static String getPaidServicesListUrl({String? userRole}) {
+    final baseUrl = '${ApiConfig.apiBaseUrl}$paidServicesList';
+    if (userRole != null && userRole.isNotEmpty) {
+      return '$baseUrl?user_role=$userRole';
+    }
+    return baseUrl;
+  }
+
+  // Club and Branch Lists
+  static String getAllClubListUrl() => '${ApiConfig.apiBaseUrl}$getAllClubList';
+  static String getMerchandizerBranchListUrl(int merchandizerId) => 
+      '${ApiConfig.apiBaseUrl}$getMerchandizerBranchList/$merchandizerId';
 
   // Bookings
   static String getBookingsUrl() => '${ApiConfig.apiBaseUrl}$bookings';
