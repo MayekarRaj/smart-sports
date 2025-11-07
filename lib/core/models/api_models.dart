@@ -728,3 +728,242 @@ class CorporateSignupResponse {
 
   Map<String, dynamic> toJson() => _$CorporateSignupResponseToJson(this);
 }
+
+// Coach Registration Models
+@JsonSerializable()
+class CoachSignupRequest {
+  @JsonKey(name: 'user_role')
+  final String userRole;
+  
+  @JsonKey(name: 'no_of_users')
+  final int noOfUsers;
+  
+  @JsonKey(name: 'is_address_is_same_as_user')
+  final int isAddressIsSameAsUser;
+  
+  @JsonKey(name: 'address_line1')
+  final String? addressLine1;
+  
+  @JsonKey(name: 'address_line2')
+  final String? addressLine2;
+  
+  final String? city;
+  final String? state;
+  final String? zipcode;
+  final String? country;
+  
+  @JsonKey(name: 'is_contact_details_is_same_user')
+  final int isContactDetailsIsSameUser;
+  
+  final String? designation;
+  final String? department;
+  
+  @JsonKey(name: 'office_phone_ext')
+  final String? officePhoneExt;
+  
+  @JsonKey(name: 'office_phone')
+  final String? officePhone;
+  
+  @JsonKey(name: 'mobile_phone_ext')
+  final String? mobilePhoneExt;
+  
+  @JsonKey(name: 'mobile_phone')
+  final String? mobilePhone;
+  
+  @JsonKey(name: 'company_website')
+  final String? companyWebsite;
+  
+  final List<CoachClub> clubs;
+  
+  @JsonKey(name: 'experience_levels')
+  final List<CoachExperienceLevel> experienceLevels;
+
+  CoachSignupRequest({
+    required this.userRole,
+    required this.noOfUsers,
+    required this.isAddressIsSameAsUser,
+    this.addressLine1,
+    this.addressLine2,
+    this.city,
+    this.state,
+    this.zipcode,
+    this.country,
+    required this.isContactDetailsIsSameUser,
+    this.designation,
+    this.department,
+    this.officePhoneExt,
+    this.officePhone,
+    this.mobilePhoneExt,
+    this.mobilePhone,
+    this.companyWebsite,
+    required this.clubs,
+    required this.experienceLevels,
+  });
+
+  factory CoachSignupRequest.fromJson(Map<String, dynamic> json) =>
+      _$CoachSignupRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CoachSignupRequestToJson(this);
+}
+
+@JsonSerializable()
+class CoachClub {
+  @JsonKey(name: 'club_name')
+  final String clubName;
+  
+  @JsonKey(name: 'sport_type')
+  final String sportType;
+  
+  @JsonKey(name: 'service_days')
+  final List<CoachServiceDay> serviceDays;
+
+  CoachClub({
+    required this.clubName,
+    required this.sportType,
+    required this.serviceDays,
+  });
+
+  factory CoachClub.fromJson(Map<String, dynamic> json) =>
+      _$CoachClubFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CoachClubToJson(this);
+}
+
+@JsonSerializable()
+class CoachServiceDay {
+  final String day;
+  
+  @JsonKey(name: 'time_slots_start')
+  final String timeSlotsStart;
+  
+  @JsonKey(name: 'time_slots_end')
+  final String timeSlotsEnd;
+
+  CoachServiceDay({
+    required this.day,
+    required this.timeSlotsStart,
+    required this.timeSlotsEnd,
+  });
+
+  factory CoachServiceDay.fromJson(Map<String, dynamic> json) =>
+      _$CoachServiceDayFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CoachServiceDayToJson(this);
+}
+
+@JsonSerializable()
+class CoachExperienceLevel {
+  @JsonKey(name: 'exp_level_name')
+  final String expLevelName;
+  
+  @JsonKey(name: 'certificate_name')
+  final String certificateName;
+  
+  @JsonKey(name: 'certificate_base64')
+  final String certificateBase64;
+
+  CoachExperienceLevel({
+    required this.expLevelName,
+    required this.certificateName,
+    required this.certificateBase64,
+  });
+
+  factory CoachExperienceLevel.fromJson(Map<String, dynamic> json) =>
+      _$CoachExperienceLevelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CoachExperienceLevelToJson(this);
+}
+
+// Freelancer Registration Models
+@JsonSerializable()
+class FreelancerSignupRequest {
+  @JsonKey(name: 'user_role')
+  final String userRole;
+  
+  @JsonKey(name: 'no_of_users')
+  final int noOfUsers;
+  
+  @JsonKey(name: 'is_address_is_same_as_user')
+  final int isAddressIsSameAsUser;
+  
+  @JsonKey(name: 'address_line1')
+  final String? addressLine1;
+  
+  @JsonKey(name: 'address_line2')
+  final String? addressLine2;
+  
+  @JsonKey(name: 'address_line3')
+  final String? addressLine3;
+  
+  final String? city;
+  final String? state;
+  final String? zipcode;
+  final String? country;
+  
+  @JsonKey(name: 'is_contact_details_is_same_user')
+  final int isContactDetailsIsSameUser;
+  
+  final String? designation;
+  final String? department;
+  
+  @JsonKey(name: 'office_phone_ext')
+  final String? officePhoneExt;
+  
+  @JsonKey(name: 'office_phone')
+  final String? officePhone;
+  
+  @JsonKey(name: 'mobile_phone_ext')
+  final String? mobilePhoneExt;
+  
+  @JsonKey(name: 'mobile_phone')
+  final String? mobilePhone;
+  
+  @JsonKey(name: 'company_website')
+  final String? companyWebsite;
+
+  FreelancerSignupRequest({
+    required this.userRole,
+    required this.noOfUsers,
+    required this.isAddressIsSameAsUser,
+    this.addressLine1,
+    this.addressLine2,
+    this.addressLine3,
+    this.city,
+    this.state,
+    this.zipcode,
+    this.country,
+    required this.isContactDetailsIsSameUser,
+    this.designation,
+    this.department,
+    this.officePhoneExt,
+    this.officePhone,
+    this.mobilePhoneExt,
+    this.mobilePhone,
+    this.companyWebsite,
+  });
+
+  factory FreelancerSignupRequest.fromJson(Map<String, dynamic> json) =>
+      _$FreelancerSignupRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FreelancerSignupRequestToJson(this);
+}
+
+@JsonSerializable()
+class FreelancerSignupResponse {
+  final bool success;
+  final String message;
+  
+  @JsonKey(name: 'freelancer_id')
+  final int freelancerId;
+
+  FreelancerSignupResponse({
+    required this.success,
+    required this.message,
+    required this.freelancerId,
+  });
+
+  factory FreelancerSignupResponse.fromJson(Map<String, dynamic> json) =>
+      _$FreelancerSignupResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FreelancerSignupResponseToJson(this);
+}

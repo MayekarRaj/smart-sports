@@ -226,5 +226,45 @@ class AuthRepository extends BaseRepository {
       statusCode: response.statusCode ?? 0,
     );
   }
+
+  /// Coach signup
+  /// Returns success response
+  Future<Map<String, dynamic>> coachSignup(CoachSignupRequest request) async {
+    final response = await networkClient.post<Map<String, dynamic>>(
+      ApiEndpoints.getCoachSignupUrl(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) => data as Map<String, dynamic>,
+    );
+
+    if (response.success) {
+      return response.dataOrThrow;
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Freelancer signup
+  /// Returns FreelancerSignupResponse with freelancer_id
+  Future<FreelancerSignupResponse> freelancerSignup(FreelancerSignupRequest request) async {
+    final response = await networkClient.post<FreelancerSignupResponse>(
+      ApiEndpoints.getFreelancerSignupUrl(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) => FreelancerSignupResponse.fromJson(data as Map<String, dynamic>),
+    );
+
+    if (response.success && response.hasData) {
+      return response.dataOrThrow;
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
 }
 

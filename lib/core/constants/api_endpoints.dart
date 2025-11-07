@@ -22,6 +22,12 @@ class ApiEndpoints {
   // ==================== Corporate Registration ====================
   static const String corporateSignup = '/signup-corporate';
 
+  // ==================== Coach Registration ====================
+  static const String coachSignup = '/signup-coach';
+
+  // ==================== Freelancer Registration ====================
+  static const String freelancerSignup = '/signup-freelancer';
+
   // ==================== Bookings ====================
   static const String bookings = '/bookings';
   static const String bookingDetails = '/bookings'; // /bookings/{id}
@@ -88,6 +94,12 @@ class ApiEndpoints {
 
   // Corporate Registration
   static String getCorporateSignupUrl() => '${ApiConfig.apiBaseUrl}$corporateSignup';
+
+  // Coach Registration
+  static String getCoachSignupUrl() => '${ApiConfig.apiBaseUrl}$coachSignup';
+
+  // Freelancer Registration
+  static String getFreelancerSignupUrl() => '${ApiConfig.apiBaseUrl}$freelancerSignup';
 
   // Bookings
   static String getBookingsUrl() => '${ApiConfig.apiBaseUrl}$bookings';
