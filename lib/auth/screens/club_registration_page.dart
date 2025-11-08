@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
-import 'membership_plan_page.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../core/models/api_models.dart';
+import '../../core/exceptions/api_exception.dart';
+import '../../core/services/storage_service.dart';
+import '../../core/utils/phone_parser.dart';
+import '../widgets/sports_multi_select.dart';
+import 'club_membership_plan_page.dart';
 
 class ClubRegistrationPage extends StatefulWidget {
   const ClubRegistrationPage({super.key});
@@ -11,6 +17,9 @@ class ClubRegistrationPage extends StatefulWidget {
 class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
+  final AuthRepository _authRepository = AuthRepository();
+  final StorageService _storageService = StorageService();
+  bool _isLoading = false;
 
   // Club Details Controllers
   final _branchesController = TextEditingController(text: '1');
@@ -19,67 +28,54 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
   // Branch Data - Dynamic list to store all branches
   List<Map<String, dynamic>> _branches = [];
 
-  // Sports data
-  final List<String> _selectedSports = [
-    'Tennis',
-    'Baseball',
+  // All available sports
+  final List<String> _allSports = const [
     'Cricket',
+    'Football',
     'Basketball',
+    'Hockey',
+    'Tennis',
+    'Badminton',
+    'Volleyball',
+    'Baseball',
+    'Rugby',
+    'Table Tennis',
   ];
-
-  // Default Address Controllers (for signup address)
-  final _defaultAddress1Controller = TextEditingController(text: 'Xyz');
-  final _defaultAddress2Controller = TextEditingController(text: 'Xyz');
-  final _defaultCityController = TextEditingController(text: 'Xyz');
-  final _defaultStateController = TextEditingController(text: 'Xyz');
-  final _defaultZipController = TextEditingController(text: 'Xyz');
-  final _defaultCountryController = TextEditingController(text: 'Xyz');
-
-  // Default Contact Details Controllers (for signup contact)
-  final _defaultDesignationController = TextEditingController();
-  final _defaultDepartmentController = TextEditingController();
-  final _defaultOfficeNumberController = TextEditingController(
-    text: '+91 - 9876543210',
-  );
-  final _defaultMobileNumberController = TextEditingController(
-    text: '+91 - 9876543210',
-  );
-  final _defaultWebsiteController = TextEditingController(
-    text: 'https://abc.com',
-  );
 
   @override
   void initState() {
     super.initState();
+    // Initialize branches first
     _initializeBranches();
-    _branchesController.addListener(_onBranchesChanged);
+    // Add listener after initialization to avoid triggering during init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _branchesController.addListener(_onBranchesChanged);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _branchesController.removeListener(_onBranchesChanged);
     _branchesController.dispose();
-    _defaultAddress1Controller.dispose();
-    _defaultAddress2Controller.dispose();
-    _defaultCityController.dispose();
-    _defaultStateController.dispose();
-    _defaultZipController.dispose();
-    _defaultCountryController.dispose();
-    _defaultDesignationController.dispose();
-    _defaultDepartmentController.dispose();
-    _defaultOfficeNumberController.dispose();
-    _defaultMobileNumberController.dispose();
-    _defaultWebsiteController.dispose();
 
     // Dispose all branch controllers
     for (var branch in _branches) {
+      if (branch['nameController'] != null) {
+        (branch['nameController'] as TextEditingController).dispose();
+      }
+      if (branch['usersController'] != null) {
+        (branch['usersController'] as TextEditingController).dispose();
+      }
       if (branch['addressControllers'] != null) {
         for (var controller in branch['addressControllers'].values) {
-          controller.dispose();
+          (controller as TextEditingController).dispose();
         }
       }
       if (branch['contactControllers'] != null) {
         for (var controller in branch['contactControllers'].values) {
-          controller.dispose();
+          (controller as TextEditingController).dispose();
         }
       }
     }
@@ -100,31 +96,31 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
   Map<String, dynamic> _createBranchData(int branchNumber) {
     return {
       'branchNumber': branchNumber,
-      'name': 'Branch $branchNumber',
-      'users': branchNumber == 1 ? 1 : 2,
+      'nameController': TextEditingController(),
+      'usersController': TextEditingController(text: branchNumber == 1 ? '1' : '2'),
       'addressSameAsSignup': branchNumber == 1,
       'contactSameAsSignup': branchNumber == 1,
       'addressControllers': {
-        'address1': TextEditingController(text: 'Xyz'),
-        'address2': TextEditingController(text: 'Xyz'),
-        'city': TextEditingController(text: 'Xyz'),
-        'state': TextEditingController(text: 'Xyz'),
-        'zip': TextEditingController(text: 'Xyz'),
-        'country': TextEditingController(text: 'Xyz'),
+        'address1': TextEditingController(),
+        'address2': TextEditingController(),
+        'city': TextEditingController(),
+        'state': TextEditingController(),
+        'zip': TextEditingController(),
+        'country': TextEditingController(),
       },
       'contactControllers': {
         'designation': TextEditingController(),
         'department': TextEditingController(),
-        'officeNumber': TextEditingController(text: '+91 - 9876543210'),
-        'mobileNumber': TextEditingController(text: '+91 - 9876543210'),
-        'website': TextEditingController(text: 'https://abc.com'),
+        'officeNumber': TextEditingController(),
+        'mobileNumber': TextEditingController(),
+        'website': TextEditingController(),
       },
       'operationalTimes': [
-        {'days': 'Weekdays', 'startTime': '00:00', 'endTime': '00:00'},
+        {'days': 'Weekdays', 'startTime': '09:00', 'endTime': '18:00'},
         if (branchNumber > 1)
-          {'days': 'Weekend', 'startTime': '00:00', 'endTime': '00:00'},
+          {'days': 'Weekend', 'startTime': '09:00', 'endTime': '18:00'},
       ],
-      'sports': List<String>.from(_selectedSports),
+      'sports': <String>[],
     };
   }
 
@@ -138,19 +134,32 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           for (int i = _branches.length; i < numberOfBranches; i++) {
             _branches.add(_createBranchData(i + 1));
           }
+          // If checkbox is checked, sync sports from first branch to new branches
+          if (_allSportsSameForBranches && _branches.isNotEmpty) {
+            final firstBranchSports = _branches[0]['sports'] as List<String>;
+            for (int i = 1; i < _branches.length; i++) {
+              _branches[i]['sports'] = List<String>.from(firstBranchSports);
+            }
+          }
         } else {
           // Remove excess branches
           for (int i = _branches.length - 1; i >= numberOfBranches; i--) {
             // Dispose controllers before removing
             var branch = _branches[i];
+            if (branch['nameController'] != null) {
+              (branch['nameController'] as TextEditingController).dispose();
+            }
+            if (branch['usersController'] != null) {
+              (branch['usersController'] as TextEditingController).dispose();
+            }
             if (branch['addressControllers'] != null) {
               for (var controller in branch['addressControllers'].values) {
-                controller.dispose();
+                (controller as TextEditingController).dispose();
               }
             }
             if (branch['contactControllers'] != null) {
               for (var controller in branch['contactControllers'].values) {
-                controller.dispose();
+                (controller as TextEditingController).dispose();
               }
             }
             _branches.removeAt(i);
@@ -160,14 +169,240 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     }
   }
 
-  void _submitClubRegistration() {
+  Future<void> _submitClubRegistration() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Navigate directly to membership plan page
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const MembershipPlanPage()),
-    );
+    // Get user_id from storage (saved as String, need to parse to int)
+    final userIdString = await _storageService.getString('user_id');
+    if (userIdString == null || userIdString.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User ID not found. Please sign up first.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+    final userId = int.tryParse(userIdString);
+    if (userId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid user ID. Please sign up again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final numberOfBranches = int.tryParse(_branchesController.text) ?? 1;
+      final firstBranch = _branches[0];
+      
+      // Get signup data from storage (we'll need to fetch this or pass it)
+      // For now, we'll use the first branch's data for the main club
+      final nameController = firstBranch['nameController'] as TextEditingController;
+      final usersController = firstBranch['usersController'] as TextEditingController;
+      final addressControllers = firstBranch['addressControllers'] as Map<String, TextEditingController>;
+      final contactControllers = firstBranch['contactControllers'] as Map<String, TextEditingController>;
+      final operationalTimes = firstBranch['operationalTimes'] as List<Map<String, String>>;
+      final sports = firstBranch['sports'] as List<String>;
+
+      // Validate required fields
+      if (nameController.text.trim().isEmpty) {
+        throw ValidationException('Club name is required');
+      }
+      if (sports.isEmpty) {
+        throw ValidationException('Please select at least one sport');
+      }
+      if (operationalTimes.isEmpty) {
+        throw ValidationException('Please add at least one operational time slot');
+      }
+
+      // Parse phone numbers
+      final officePhoneParsed = PhoneParser.parsePhoneNumber(contactControllers['officeNumber']!.text);
+      final mobilePhoneParsed = PhoneParser.parsePhoneNumber(contactControllers['mobileNumber']!.text);
+
+      // Build operational details
+      final operationalDetails = operationalTimes.map((time) {
+        return ClubOperationalDetail(
+          openDays: time['days']!,
+          clubStartTime: time['startTime']!,
+          clubEndTime: time['endTime']!,
+        );
+      }).toList();
+
+      if (numberOfBranches == 1) {
+        // Single branch - use signup-club API
+        final isAddressSame = firstBranch['addressSameAsSignup'] as bool;
+        final isContactSame = firstBranch['contactSameAsSignup'] as bool;
+        
+        final request = ClubSignupRequest(
+          userRole: 'club',
+          clubName: nameController.text.trim(),
+          noOfUsers: int.tryParse(usersController.text) ?? 1,
+          isAddressIsSameAsUser: isAddressSame ? 1 : 0,
+          addressLine1: addressControllers['address1']!.text.trim(),
+          addressLine2: addressControllers['address2']!.text.trim(),
+          city: addressControllers['city']!.text.trim(),
+          state: addressControllers['state']!.text.trim(),
+          zipcode: addressControllers['zip']!.text.trim(),
+          country: addressControllers['country']!.text.trim(),
+          isContactDetailsIsSameUser: isContactSame ? 1 : 0,
+          designation: contactControllers['designation']!.text.trim(),
+          department: contactControllers['department']!.text.trim(),
+          officePhoneExt: officePhoneParsed['ext'] ?? '',
+          officePhone: officePhoneParsed['number'] ?? '',
+          mobilePhoneExt: mobilePhoneParsed['ext'] ?? '',
+          mobilePhone: mobilePhoneParsed['number'] ?? '',
+          companyWebsite: contactControllers['website']!.text.trim(),
+          sportsIsSameAsUser: 0, // We're providing sports
+          sportsNames: sports,
+          operationalDetails: operationalDetails,
+        );
+
+        final response = await _authRepository.clubSignup(request);
+        
+        // Save club_id to storage
+        await _storageService.saveInt('club_id', response.clubId);
+
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ClubMembershipPlanPage()),
+          );
+        }
+      } else {
+        // Multiple branches - use signup-club for first, then signup-club-branch for rest
+        // Step 1: Create main club
+        final isAddressSame = firstBranch['addressSameAsSignup'] as bool;
+        final isContactSame = firstBranch['contactSameAsSignup'] as bool;
+        
+        final step1Request = ClubSignupRequest(
+          userRole: 'club',
+          clubName: nameController.text.trim(),
+          noOfUsers: int.tryParse(usersController.text) ?? 1,
+          isAddressIsSameAsUser: isAddressSame ? 1 : 0,
+          addressLine1: addressControllers['address1']!.text.trim(),
+          addressLine2: addressControllers['address2']!.text.trim(),
+          city: addressControllers['city']!.text.trim(),
+          state: addressControllers['state']!.text.trim(),
+          zipcode: addressControllers['zip']!.text.trim(),
+          country: addressControllers['country']!.text.trim(),
+          isContactDetailsIsSameUser: isContactSame ? 1 : 0,
+          designation: contactControllers['designation']!.text.trim(),
+          department: contactControllers['department']!.text.trim(),
+          officePhoneExt: officePhoneParsed['ext'] ?? '',
+          officePhone: officePhoneParsed['number'] ?? '',
+          mobilePhoneExt: mobilePhoneParsed['ext'] ?? '',
+          mobilePhone: mobilePhoneParsed['number'] ?? '',
+          companyWebsite: contactControllers['website']!.text.trim(),
+          sportsIsSameAsUser: 0,
+          sportsNames: sports,
+          operationalDetails: operationalDetails,
+        );
+
+        final step1Response = await _authRepository.clubSignup(step1Request);
+        
+        // Save club_id to storage
+        await _storageService.saveInt('club_id', step1Response.clubId);
+
+        // Step 2: Create additional branches
+        final additionalBranches = _branches.skip(1).map((branch) {
+          final branchNameController = branch['nameController'] as TextEditingController;
+          final branchUsersController = branch['usersController'] as TextEditingController;
+          final branchAddressControllers = branch['addressControllers'] as Map<String, TextEditingController>;
+          final branchContactControllers = branch['contactControllers'] as Map<String, TextEditingController>;
+          final branchOperationalTimes = branch['operationalTimes'] as List<Map<String, String>>;
+          final isAddressSame = branch['addressSameAsSignup'] as bool;
+          final isContactSame = branch['contactSameAsSignup'] as bool;
+
+          // Parse phone numbers
+          final branchOfficePhoneParsed = PhoneParser.parsePhoneNumber(branchContactControllers['officeNumber']!.text);
+          final branchMobilePhoneParsed = PhoneParser.parsePhoneNumber(branchContactControllers['mobileNumber']!.text);
+
+          // Build operational details
+          final branchOperationalDetails = branchOperationalTimes.map((time) {
+            return ClubOperationalDetail(
+              openDays: time['days']!,
+              clubStartTime: time['startTime']!,
+              clubEndTime: time['endTime']!,
+            );
+          }).toList();
+
+          return ClubBranchData(
+            clubName: branchNameController.text.trim(),
+            numberOfUsers: int.tryParse(branchUsersController.text) ?? 1,
+            isAddressSameAsUser: isAddressSame ? 1 : 0,
+            addressLine1: isAddressSame ? null : branchAddressControllers['address1']!.text.trim().isEmpty ? null : branchAddressControllers['address1']!.text.trim(),
+            addressLine2: isAddressSame ? null : (branchAddressControllers['address2']!.text.trim().isEmpty ? null : branchAddressControllers['address2']!.text.trim()),
+            city: isAddressSame ? null : (branchAddressControllers['city']!.text.trim().isEmpty ? null : branchAddressControllers['city']!.text.trim()),
+            state: isAddressSame ? null : (branchAddressControllers['state']!.text.trim().isEmpty ? null : branchAddressControllers['state']!.text.trim()),
+            zipCode: isAddressSame ? null : (branchAddressControllers['zip']!.text.trim().isEmpty ? null : branchAddressControllers['zip']!.text.trim()),
+            country: isAddressSame ? null : (branchAddressControllers['country']!.text.trim().isEmpty ? null : branchAddressControllers['country']!.text.trim()),
+            isContactSameAsUser: isContactSame ? 1 : 0,
+            designation: isContactSame ? null : (branchContactControllers['designation']!.text.trim().isEmpty ? null : branchContactControllers['designation']!.text.trim()),
+            department: isContactSame ? null : (branchContactControllers['department']!.text.trim().isEmpty ? null : branchContactControllers['department']!.text.trim()),
+            officePhoneExt: isContactSame ? null : ((branchOfficePhoneParsed['ext'] ?? '').isEmpty ? null : branchOfficePhoneParsed['ext']),
+            officePhone: isContactSame ? null : ((branchOfficePhoneParsed['number'] ?? '').isEmpty ? null : branchOfficePhoneParsed['number']),
+            mobilePhoneExt: isContactSame ? null : ((branchMobilePhoneParsed['ext'] ?? '').isEmpty ? null : branchMobilePhoneParsed['ext']),
+            mobilePhone: isContactSame ? null : ((branchMobilePhoneParsed['number'] ?? '').isEmpty ? null : branchMobilePhoneParsed['number']),
+            companyWebsite: isContactSame ? null : (branchContactControllers['website']!.text.trim().isEmpty ? null : branchContactControllers['website']!.text.trim()),
+            operationalDetails: branchOperationalDetails,
+          );
+        }).toList();
+
+        final step2Request = ClubBranchSignupRequest(branches: additionalBranches);
+        await _authRepository.clubBranchSignup(step2Request);
+
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ClubMembershipPlanPage()),
+          );
+        }
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } on ValidationException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -227,8 +462,18 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                     _buildCheckboxOption(
                       'All Sports Are Same For Each Branch',
                       _allSportsSameForBranches,
-                      (value) =>
-                          setState(() => _allSportsSameForBranches = value!),
+                      (value) {
+                        setState(() {
+                          _allSportsSameForBranches = value!;
+                          // If checked, sync sports from first branch to all other branches
+                          if (_allSportsSameForBranches && _branches.isNotEmpty) {
+                            final firstBranchSports = _branches[0]['sports'] as List<String>;
+                            for (int i = 1; i < _branches.length; i++) {
+                              _branches[i]['sports'] = List<String>.from(firstBranchSports);
+                            }
+                          }
+                        });
+                      },
                     ),
                   ],
                 ),
@@ -236,17 +481,25 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
               const SizedBox(height: 16),
 
               // Dynamic Branch Sections
-              ..._branches.asMap().entries.map((entry) {
-                final index = entry.key;
-                final branch = entry.value;
-                return Column(
-                  children: [
-                    _buildBranchSection(branch),
-                    if (index < _branches.length - 1)
-                      const SizedBox(height: 16),
-                  ],
-                );
-              }).toList(),
+              if (_branches.isNotEmpty)
+                ..._branches.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final branch = entry.value;
+                  // Ensure branch has required controllers before building
+                  if (branch['nameController'] == null || 
+                      branch['usersController'] == null ||
+                      branch['addressControllers'] == null ||
+                      branch['contactControllers'] == null) {
+                    return const SizedBox.shrink();
+                  }
+                  return Column(
+                    children: [
+                      _buildBranchSection(branch),
+                      if (index < _branches.length - 1)
+                        const SizedBox(height: 16),
+                    ],
+                  );
+                }).toList(),
 
               const SizedBox(height: 32),
 
@@ -432,10 +685,18 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
 
   Widget _buildBranchSection(Map<String, dynamic> branchData) {
     final branchNumber = branchData['branchNumber'] as int;
+    final nameController = branchData['nameController'] as TextEditingController?;
+    final usersController = branchData['usersController'] as TextEditingController?;
     final addressControllers =
-        branchData['addressControllers'] as Map<String, TextEditingController>;
+        branchData['addressControllers'] as Map<String, TextEditingController>?;
     final contactControllers =
-        branchData['contactControllers'] as Map<String, TextEditingController>;
+        branchData['contactControllers'] as Map<String, TextEditingController>?;
+
+    // Safety check - if controllers are null, return empty container
+    if (nameController == null || usersController == null || 
+        addressControllers == null || contactControllers == null) {
+      return const SizedBox.shrink();
+    }
 
     return _buildSectionCard(
       title: 'Branch $branchNumber Details',
@@ -445,17 +706,13 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTextField(
-            controller: TextEditingController(
-              text: branchData['name'].toString(),
-            ),
+            controller: nameController,
             label: 'Club Name',
             hint: 'Enter club name',
           ),
           const SizedBox(height: 16),
           _buildTextField(
-            controller: TextEditingController(
-              text: branchData['users'].toString(),
-            ),
+            controller: usersController,
             label: 'Number Of Users',
             hint: 'Enter number of users',
             keyboardType: TextInputType.number,
@@ -464,12 +721,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                 : null,
           ),
           const SizedBox(height: 16),
-          if (branchNumber == 1) ...[
-            const SizedBox(height: 10),
-            _buildAddressSubSection(addressControllers),
-            const SizedBox(height: 16),
-            _buildContactDetailsSubSection(contactControllers),
-          ] else ...[
+          // Address Section with checkbox
           _buildCheckboxOption(
             'Address Is Same As Sign Up Address?',
             branchData['addressSameAsSignup'] as bool,
@@ -482,6 +734,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             _buildAddressSubSection(addressControllers),
           ],
           const SizedBox(height: 16),
+          // Contact Details Section with checkbox
           _buildCheckboxOption(
             'Contact Details Is Same As Sign Up Contact Details?',
             branchData['contactSameAsSignup'] as bool,
@@ -492,7 +745,6 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           if (!(branchData['contactSameAsSignup'] as bool)) ...[
             const SizedBox(height: 16),
             _buildContactDetailsSubSection(contactControllers),
-          ],
           ],
           const SizedBox(height: 16),
           _buildClubOperationalDetailsSubSection(branchData),
@@ -650,7 +902,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
               child: _buildTextField(
                 controller: controllers['officeNumber']!,
                 label: 'Office Number',
-                hint: 'Enter office number',
+                hint: '+91 - 1234567890',
                 keyboardType: TextInputType.phone,
               ),
             ),
@@ -659,7 +911,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
               child: _buildTextField(
                 controller: controllers['mobileNumber']!,
                 label: 'Mobile Number',
-                hint: 'Enter mobile number',
+                hint: '+91 - 9876543210',
                 keyboardType: TextInputType.phone,
               ),
             ),
@@ -763,18 +1015,39 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     final operationalTimes =
         branchData['operationalTimes'] as List<Map<String, String>>;
     final timeSlot = operationalTimes[timeSlotIndex];
-    final dayOptions = ['Weekdays', 'Weekend', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final dayOptions = ['Weekdays', 'Weekend', 'All Days', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    // Parse times for display
+    final startTimeParts = startTime.split(':');
+    final startTimeOfDay = TimeOfDay(
+      hour: int.tryParse(startTimeParts[0]) ?? 9,
+      minute: int.tryParse(startTimeParts[1]) ?? 0,
+    );
+    final endTimeParts = endTime.split(':');
+    final endTimeOfDay = TimeOfDay(
+      hour: int.tryParse(endTimeParts[0]) ?? 18,
+      minute: int.tryParse(endTimeParts[1]) ?? 0,
+    );
 
     return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header with label and delete button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -801,152 +1074,67 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.delete_outline,
                       color: Colors.red,
-                      size: 18,
+                      size: 20,
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          // First Row: Day Selection
+          _buildDropdownField(
+            label: 'Open Days',
+            value: openDays,
+            items: dayOptions,
+            onChanged: (value) {
+              if (value != null) {
+                setState(() {
+                  timeSlot['days'] = value;
+                });
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          // Second Row: Time Selection
           Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Open Days',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: DropdownButtonFormField<String>(
-                        value: openDays,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                        ),
-                        items: dayOptions.map((String day) {
-                          return DropdownMenuItem<String>(
-                            value: day,
-                            child: Text(
-                              day,
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() {
-                              timeSlot['days'] = value;
-                            });
-                          }
-                        },
-                        icon: const Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Color(0xFF64748B),
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ],
+                child: _buildTimePickerField(
+                  label: 'Start Time',
+                  time: startTimeOfDay,
+                  onTimeSelected: (time) {
+                    if (time != null && mounted) {
+                      setState(() {
+                        final timeString =
+                            '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                        timeSlot['startTime'] = timeString;
+                      });
+                    }
+                  },
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Club Time',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: () => _selectTime(context, branchData, timeSlotIndex, true),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: const Color(0xFFE2E8F0),
-                                ),
-                              ),
-                              child: Text(
-                                startTime,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 20,
-                          height: 2,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF667EEA),
-                            borderRadius: BorderRadius.circular(1),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: InkWell(
-                            onTap: () => _selectTime(context, branchData, timeSlotIndex, false),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: const Color(0xFFE2E8F0),
-                                ),
-                              ),
-                              child: Text(
-                                endTime,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                child: _buildTimePickerField(
+                  label: 'End Time',
+                  time: endTimeOfDay,
+                  onTimeSelected: (time) {
+                    if (time != null && mounted) {
+                      setState(() {
+                        final timeString =
+                            '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                        timeSlot['endTime'] = timeString;
+                      });
+                    }
+                  },
                 ),
               ),
             ],
@@ -956,119 +1144,191 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     );
   }
 
-  Future<void> _selectTime(
-    BuildContext context,
-    Map<String, dynamic> branchData,
-    int timeSlotIndex,
-    bool isStartTime,
-  ) async {
-    final operationalTimes =
-        branchData['operationalTimes'] as List<Map<String, String>>;
-    final timeSlot = operationalTimes[timeSlotIndex];
+  Widget _buildTimePickerField({
+    required String label,
+    required TimeOfDay time,
+    required Function(TimeOfDay?) onTimeSelected,
+  }) {
+    final timeString = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
     
-    // Parse current time
-    final currentTimeString = isStartTime
-        ? timeSlot['startTime']!
-        : timeSlot['endTime']!;
-    final timeParts = currentTimeString.split(':');
-    final currentTime = TimeOfDay(
-      hour: int.tryParse(timeParts[0]) ?? 0,
-      minute: int.tryParse(timeParts[1]) ?? 0,
-    );
-
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: currentTime,
-    );
-
-    if (picked != null && mounted) {
-      setState(() {
-        final timeString =
-            '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-        if (isStartTime) {
-          timeSlot['startTime'] = timeString;
-        } else {
-          timeSlot['endTime'] = timeString;
-        }
-      });
-    }
-  }
-
-  Widget _buildSportsSubSection(Map<String, dynamic> branchData) {
-    final sports = branchData['sports'] as List<String>;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Sports',
-          style: TextStyle(
-            fontSize: 14,
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
             color: Color(0xFF64748B),
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () async {
+            final TimeOfDay? picked = await showTimePicker(
+              context: context,
+              initialTime: time,
+            );
+            if (picked != null && mounted) {
+              onTimeSelected(picked);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  timeString,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                const Icon(
+                  Icons.access_time,
+                  size: 18,
+                  color: Color(0xFF64748B),
+                ),
+              ],
+            ),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: sports.map((sport) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF667EEA).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF667EEA)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            sport,
-                            style: const TextStyle(
-                              color: Color(0xFF667EEA),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              size: 10,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+        ),
+      ],
+    );
+  }
+
+
+  Widget _buildSportsSubSection(Map<String, dynamic> branchData) {
+    final sports = branchData['sports'] as List<String>;
+    final branchNumber = branchData['branchNumber'] as int;
+    final isDisabled = _allSportsSameForBranches && branchNumber > 1;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text(
+              'Sports',
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (isDisabled) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Synced with Branch 1',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.blue,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-              const Icon(
-                Icons.keyboard_arrow_down,
-                color: Color(0xFF64748B),
-                size: 20,
-              ),
             ],
+          ],
+        ),
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: isDisabled
+              ? null
+              : () async {
+                  final result = await showDialog<List<String>>(
+                    context: context,
+                    builder: (ctx) => SportsMultiSelect(
+                      allSports: _allSports,
+                      initialSelected: sports,
+                    ),
+                  );
+                  if (result != null && mounted) {
+                    setState(() {
+                      branchData['sports'] = result;
+                      // If checkbox is checked and this is branch 1, sync to all other branches
+                      if (_allSportsSameForBranches && branchNumber == 1) {
+                        for (int i = 1; i < _branches.length; i++) {
+                          _branches[i]['sports'] = List<String>.from(result);
+                        }
+                      }
+                    });
+                  }
+                },
+          child: Opacity(
+            opacity: isDisabled ? 0.6 : 1.0,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isDisabled
+                      ? const Color(0xFFE2E8F0).withOpacity(0.5)
+                      : const Color(0xFFE2E8F0),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: sports.isNotEmpty
+                          ? sports.map((sport) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF667EEA).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: const Color(0xFF667EEA)),
+                                ),
+                                child: Text(
+                                  sport,
+                                  style: const TextStyle(
+                                    color: Color(0xFF667EEA),
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              );
+                            }).toList()
+                          : [
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Text(
+                                  'Select sports',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ),
+                            ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    color: isDisabled
+                        ? const Color(0xFF64748B).withOpacity(0.5)
+                        : const Color(0xFF64748B),
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
@@ -1081,6 +1341,9 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     required List<String> items,
     required Function(String?) onChanged,
   }) {
+    // Validate value - must be non-empty and exist in items list
+    final String? validValue = (value.isNotEmpty && items.contains(value)) ? value : null;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1100,13 +1363,18 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             border: Border.all(color: Colors.grey[200]!),
           ),
           child: DropdownButtonFormField<String>(
-            value: value,
+            value: validValue,
             decoration: const InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 14,
               ),
+              hintText: 'Select',
+            ),
+            hint: const Text(
+              'Select',
+              style: TextStyle(color: Colors.grey),
             ),
             items: items.map((String item) {
               return DropdownMenuItem<String>(value: item, child: Text(item));
@@ -1139,7 +1407,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         children: [
           Expanded(
             child: OutlinedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: _isLoading ? null : () => Navigator.pop(context),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(
@@ -1161,7 +1429,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           const SizedBox(width: 12),
           Expanded(
             child: OutlinedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: _isLoading ? null : () => Navigator.pop(context),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(
@@ -1184,7 +1452,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: _submitClubRegistration,
+              onPressed: _isLoading ? null : _submitClubRegistration,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1E40AF),
                 foregroundColor: Colors.white,
@@ -1195,21 +1463,30 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                 elevation: 2,
                 shadowColor: Colors.black26,
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Next',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Next',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                      ],
                     ),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, color: Colors.white, size: 20),
-                ],
-              ),
             ),
           ),
         ],

@@ -435,5 +435,103 @@ class AuthRepository extends BaseRepository {
       statusCode: response.statusCode ?? 0,
     );
   }
+
+  /// Get club branch list
+  /// Returns ClubBranchListResponse with list of branches
+  Future<ClubBranchListResponse> getClubBranchList(int clubId) async {
+    final response = await networkClient.get<List<dynamic>>(
+      ApiEndpoints.getClubBranchListUrl(clubId),
+      requiresAuth: true,
+      fromJson: (data) => data as List<dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      final dataList = response.dataOrThrow;
+      final branches = dataList
+          .map((item) => ClubBranchListItem.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return ClubBranchListResponse(
+        success: true,
+        message: response.message,
+        data: branches,
+      );
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Choose membership type (Free or Paid)
+  /// Returns ChooseMembershipTypeResponse with success status
+  Future<ChooseMembershipTypeResponse> chooseMembershipType(String membershipType) async {
+    final request = ChooseMembershipTypeRequest(membershipType: membershipType);
+    final response = await networkClient.post<Map<String, dynamic>>(
+      ApiEndpoints.getChooseMembershipTypeUrl(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) => data as Map<String, dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      return ChooseMembershipTypeResponse.fromJson(response.dataOrThrow);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Club signup (Step 1 - single branch)
+  /// Returns ClubSignupResponse with club_id
+  Future<ClubSignupResponse> clubSignup(ClubSignupRequest request) async {
+    final response = await networkClient.post<Map<String, dynamic>>(
+      ApiEndpoints.getClubSignupStep1Url(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) => data as Map<String, dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      return ClubSignupResponse.fromJson(response.dataOrThrow);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Club branch signup (Step 2 - multiple branches)
+  /// Returns ClubBranchSignupResponse with list of branch data
+  Future<ClubBranchSignupResponse> clubBranchSignup(ClubBranchSignupRequest request) async {
+    final response = await networkClient.post<List<dynamic>>(
+      ApiEndpoints.getClubSignupStep2Url(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) => data as List<dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      final dataList = response.dataOrThrow;
+      final branches = dataList
+          .map((item) => ClubBranchResponseData.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return ClubBranchSignupResponse(
+        success: true,
+        message: response.message,
+        data: branches,
+      );
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
 }
 

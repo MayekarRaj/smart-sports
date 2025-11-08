@@ -1,37 +1,162 @@
 import 'package:flutter/material.dart';
 import '../../core/repositories/auth_repository.dart';
+import '../../core/models/api_models.dart';
 import '../../core/exceptions/api_exception.dart';
+import '../../core/services/storage_service.dart';
 import 'payment_method_page.dart';
 
-class MembershipPlanPage extends StatefulWidget {
-  const MembershipPlanPage({super.key});
+class ClubMembershipPlanPage extends StatefulWidget {
+  const ClubMembershipPlanPage({super.key});
 
   @override
-  State<MembershipPlanPage> createState() => _MembershipPlanPageState();
+  State<ClubMembershipPlanPage> createState() => _ClubMembershipPlanPageState();
 }
 
-class _MembershipPlanPageState extends State<MembershipPlanPage> {
+class _ClubMembershipPlanPageState extends State<ClubMembershipPlanPage> {
   bool _isFreeMembership = true;
   final AuthRepository _authRepository = AuthRepository();
+  final StorageService _storageService = StorageService();
+  bool _isLoadingServices = false;
   bool _isSubmitting = false;
-  final Map<String, bool> _selectedServices = {
-    'priority_booking': false,
-    'avail_discounts': false,
-    'coach_ratings': false,
-    'events_tournaments': false,
-    'forum': false,
-    'slack': false,
-  };
+  List<PaidService> _paidServices = [];
+  String? _errorMessage;
+
+  // Privilege services and totals - dynamically populated from API
+  final Map<String, bool> _selectedServices = {};
+
+  // Selected branches
+  final Set<int> _selectedBranchIds = {};
+  
+  // Fetched data
+  List<ClubBranchListItem> _branches = [];
+  bool _isLoadingBranches = false;
+  String? _branchesError;
 
   double get _totalAmount {
     double total = 0;
-    if (_selectedServices['priority_booking'] == true) total += 200;
-    if (_selectedServices['avail_discounts'] == true) total += 100;
-    if (_selectedServices['coach_ratings'] == true) total += 100;
-    if (_selectedServices['events_tournaments'] == true) total += 200;
-    if (_selectedServices['forum'] == true) total += 100;
-    if (_selectedServices['slack'] == true) total += 100;
+    for (var service in _paidServices) {
+      final serviceKey = _getServiceKey(service.name);
+      if (_selectedServices[serviceKey] == true) {
+        total += service.amountValue;
+      }
+    }
     return total;
+  }
+
+  /// Map service name to key for selectedServices map
+  String _getServiceKey(String serviceName) {
+    final normalized = serviceName.toLowerCase()
+        .replaceAll(' ', '_')
+        .replaceAll('&', '')
+        .replaceAll('(', '')
+        .replaceAll(')', '');
+    
+    if (normalized.contains('access_clubs') || normalized.contains('access clubs')) {
+      return 'access_clubs';
+    } else if (normalized.contains('access_members') || normalized.contains('access to members')) {
+      return 'access_members';
+    } else if (normalized.contains('coach_ratings') || normalized.contains('coach ratings')) {
+      return 'coach_ratings';
+    } else if (normalized.contains('events') || normalized.contains('tournaments')) {
+      return 'events_tournaments';
+    } else if (normalized.contains('branches')) {
+      return 'branches';
+    } else if (normalized.contains('users')) {
+      return 'users';
+    } else if (normalized.contains('forum')) {
+      return 'forum';
+    } else if (normalized.contains('slack')) {
+      return 'slack';
+    }
+    
+    return normalized;
+  }
+
+  /// Fetch paid services from API
+  Future<void> _fetchPaidServices() async {
+    if (_isLoadingServices) return;
+
+    setState(() {
+      _isLoadingServices = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await _authRepository.getPaidServicesList('club');
+      
+      if (mounted) {
+        setState(() {
+          _paidServices = response.data.where((service) => service.isDeleted == 0).toList();
+          for (var service in _paidServices) {
+            final key = _getServiceKey(service.name);
+            if (!_selectedServices.containsKey(key)) {
+              _selectedServices[key] = false;
+            }
+          }
+          _isLoadingServices = false;
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.message;
+          _isLoadingServices = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to load services: ${e.toString()}';
+          _isLoadingServices = false;
+        });
+      }
+    }
+  }
+
+  /// Fetch club branches when Branches service is selected
+  Future<void> _fetchBranches() async {
+    if (_isLoadingBranches) return;
+
+    final clubId = await _storageService.getInt('club_id');
+    if (clubId == null) {
+      if (mounted) {
+        setState(() {
+          _branchesError = 'Club ID not found';
+          _isLoadingBranches = false;
+        });
+      }
+      return;
+    }
+
+    setState(() {
+      _isLoadingBranches = true;
+      _branchesError = null;
+    });
+
+    try {
+      final response = await _authRepository.getClubBranchList(clubId);
+      
+      if (mounted) {
+        setState(() {
+          _branches = response.data;
+          _isLoadingBranches = false;
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _branchesError = e.message;
+          _isLoadingBranches = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _branchesError = 'Failed to load branches: ${e.toString()}';
+          _isLoadingBranches = false;
+        });
+      }
+    }
   }
 
   double get _discountAmount => 20;
@@ -162,6 +287,9 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
                   onTap: () {
                     setState(() {
                       _isFreeMembership = false;
+                      if (_paidServices.isEmpty) {
+                        _fetchPaidServices();
+                      }
                     });
                   },
                   child: Container(
@@ -295,53 +423,62 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
           ),
           const SizedBox(height: 20),
 
-          _buildServiceOption(
-            'priority_booking',
-            'Priority Booking',
-            'You Will Be Allowed To Avail Priority Booking Slots For Your Preferred Clubs Selected @ USD 50 /Club.',
-            200,
-            ['Tennis Club', 'Baseball', 'Cricket', 'Basketball'],
-          ),
+          if (_isLoadingServices)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (_errorMessage != null)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red[300]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red[700]),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _errorMessage!,
+                      style: TextStyle(color: Colors.red[700]),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _fetchPaidServices,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            )
+          else if (_paidServices.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Text('No paid services available'),
+              ),
+            )
+          else ...[
+            // Build service options dynamically from API
+            ..._paidServices.map((service) {
+              final serviceKey = _getServiceKey(service.name);
+              final isBranches = serviceKey == 'branches';
+              
+              return _buildServiceOption(
+                serviceKey,
+                service.name,
+                service.description2.isNotEmpty ? service.description2 : service.description1,
+                service.amountValue,
+                isBranches: isBranches,
+              );
+            }),
 
-          _buildServiceOption(
-            'avail_discounts',
-            'Avail Discounts',
-            'You Will Be Able To Unlock Coach Ratings To Select Your Coach',
-            100,
-            null,
-          ),
-
-          _buildServiceOption(
-            'coach_ratings',
-            'Coach Ratings',
-            'You Will Be Able To Unlock Coach Ratings To Select Your Coach',
-            100,
-            null,
-          ),
-
-          _buildServiceOption(
-            'events_tournaments',
-            'Events & Tournaments',
-            'You will be allowed to schedule multiple events and tournaments',
-            200,
-            null,
-          ),
-
-          _buildServiceOption(
-            'forum',
-            'Forum',
-            'You Will Have Access To All Forum Discussions Within Our Platform And Able To Save Stories With Photos.',
-            100,
-            null,
-          ),
-
-          _buildServiceOption(
-            'slack',
-            'Slack',
-            'Automatic Mobile Notifications Per Month. You Will Get Email And Mobile Notification Of Our Various Services',
-            100,
-            null,
-          ),
+            const SizedBox(height: 16),
+          ],
         ],
       ),
     );
@@ -351,105 +488,218 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
     String key,
     String title,
     String description,
-    double price,
-    List<String>? tags,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Checkbox(
-                value: _selectedServices[key],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedServices[key] = value!;
-                  });
-                },
-                activeColor: const Color(0xFF8BB6D9),
-              ),
-              const SizedBox(width: 8),
-              _getServiceIcon(key),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (tags != null) ...[
-                      const SizedBox(height: 4),
+    double price, {
+    bool isBranches = false,
+  }) {
+    final isSelected = _selectedServices[key] ?? false;
+    
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedServices[key] = !isSelected;
+        });
+        
+        // Fetch branches when Branches service is selected
+        if (!isSelected && isBranches) {
+          if (_branches.isEmpty && !_isLoadingBranches) {
+            _fetchBranches();
+          }
+        }
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? const Color(0xFF8BB6D9) : Colors.grey[300]!,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? const Color(0xFF8BB6D9).withOpacity(0.05) : Colors.white,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Icon
+                _getServiceIcon(key),
+                const SizedBox(width: 12),
+                // Title and Description
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        'You Will Be Allowed To Avail Priority Booking Slots For Your Preferred Clubs Selected @ USD 50 /Club.',
-                        style: TextStyle(fontSize: 12, color: Colors.red[400]),
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[700],
+                          height: 1.4,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Price Section
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'Monthly Fee',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'USD ${price.toInt()}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
                   ],
                 ),
+              ],
+            ),
+            // Show branches selection if "Branches" service is selected
+            if (isBranches && isSelected) ...[
+              const SizedBox(height: 16),
+              _buildBranchesSection(),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBranchesSection() {
+    if (_isLoadingBranches) {
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_branchesError != null) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.red[50],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          _branchesError!,
+          style: const TextStyle(color: Colors.red),
+        ),
+      );
+    }
+
+    if (_branches.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Text(
+          'No branches available',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Select Branches:',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _branches.map((branch) => _buildBranchChip(branch)).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBranchChip(ClubBranchListItem branch) {
+    final isSelected = _selectedBranchIds.contains(branch.id);
+    
+    return InkWell(
+      onTap: () {
+        setState(() {
+          if (isSelected) {
+            _selectedBranchIds.remove(branch.id);
+          } else {
+            _selectedBranchIds.add(branch.id);
+          }
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF8BB6D9)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF8BB6D9)
+                : Colors.grey[300]!,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              branch.clubName,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: isSelected
+                    ? Colors.white
+                    : const Color(0xFF1E293B),
               ),
-              Column(
-                children: [
-                  const Text(
-                    'Monthly Fee',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  Text(
-                    'USD ${price.toInt()}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.check_circle,
+                size: 14,
+                color: Colors.white,
               ),
             ],
-          ),
-          if (tags != null) ...[
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: tags
-                  .map(
-                    (tag) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        tag,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
           ],
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -459,13 +709,9 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
     Color color;
 
     switch (key) {
-      case 'priority_booking':
-        icon = Icons.calendar_today;
+      case 'access_members':
+        icon = Icons.people;
         color = Colors.green;
-        break;
-      case 'avail_discounts':
-        icon = Icons.local_offer;
-        color = Colors.red;
         break;
       case 'coach_ratings':
         icon = Icons.star;
@@ -474,6 +720,14 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
       case 'events_tournaments':
         icon = Icons.emoji_events;
         color = Colors.amber;
+        break;
+      case 'branches':
+        icon = Icons.business;
+        color = Colors.blue;
+        break;
+      case 'users':
+        icon = Icons.person_add;
+        color = Colors.purple;
         break;
       case 'forum':
         icon = Icons.forum;
@@ -577,7 +831,7 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
           Expanded(
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -595,147 +849,6 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
         ],
       ),
     );
-  }
-
-  List<Widget> _buildBenefitsList(List<String> benefits, Color color) {
-    return benefits
-        .map(
-          (benefit) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '• ',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Expanded(
-                  child: Text(
-                    benefit,
-                    style: TextStyle(fontSize: 14, color: color, height: 1.4),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        )
-        .toList();
-  }
-
-  List<Widget> _buildPremiumFeaturesList() {
-    final features = [
-      {
-        'icon': Icons.calendar_today,
-        'title': 'Priority Booking Slot For Designated Clubs',
-        'subtitle':
-            'You Can Only Get Bookings For Available Slots. However, We Also Have Reserved Slots For Paid Members Where Priority Is Given To The Business Users Only.',
-        'color': Colors.green,
-      },
-      {
-        'icon': Icons.local_offer,
-        'title': 'Special Discounts On Court Bookings & Avail Sponsorship',
-        'subtitle':
-            'Club Offered Special Discounts Will Be Available For The Court Booking. You Can Also Avail Any Sponsorship If Available.',
-        'color': Colors.red,
-      },
-      {
-        'icon': Icons.star,
-        'title': 'Unlock Coach Ratings',
-        'subtitle':
-            'You Will Be Able To Unlock Coach Ratings To Select Your Preferred Coach.',
-        'color': Colors.orange,
-      },
-      {
-        'icon': Icons.emoji_events,
-        'title': 'Scheduling Events & Tournaments & Avail Sponsorship',
-        'subtitle':
-            'You will be able to schedule events and tournaments, avail sponsorship if available and promote the same to all members, corporate, coaches and merchandisers.',
-        'color': Colors.amber,
-      },
-      {
-        'icon': Icons.forum,
-        'title': 'Forum Discussion',
-        'subtitle':
-            'We Have Forum Discussion In The Platform Which Is Only Accessible To The Business Users. Moreover, Your Club Stories Like Tournaments, Group Play, Match Results Etc With Photographs Can Only Be Stored With Business User Membership.',
-        'color': Colors.blue,
-      },
-      {
-        'icon': Icons.notifications,
-        'title': 'Slack Mobile Notifications',
-        'subtitle':
-            'Various Alerts Like Your Booking, Tournaments, Etc Can Be Received With The Business User Membership Only.',
-        'color': Colors.purple,
-      },
-    ];
-
-    return features
-        .map(
-          (feature) => Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[200]!),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: (feature['color'] as Color).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    feature['icon'] as IconData,
-                    color: feature['color'] as Color,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              feature['title'] as String,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          const Text(
-                            '*',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        feature['subtitle'] as String,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        )
-        .toList();
   }
 
   Widget _buildBottomNavigation() {
@@ -787,11 +900,10 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: _isSubmitting ? null : () async {
+              onPressed: _isSubmitting ? null : () {
                 if (_isFreeMembership) {
-                  await _submitFreeMembership();
+                  _submitFreeMembership();
                 } else {
-                  // Navigate to payment for premium membership
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -912,75 +1024,6 @@ class _BenefitRow extends StatelessWidget {
                 fontSize: 14,
                 color: Colors.black87,
                 fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// A helper row widget for missing services
-class _MissingRow extends StatelessWidget {
-  final String text;
-  final String detail;
-  final bool hasAsterisk;
-  const _MissingRow({
-    required this.text,
-    required this.detail,
-    this.hasAsterisk = false,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 13),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.close, size: 18, color: Colors.red),
-              const SizedBox(width: 7),
-              Expanded(
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        text,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.red,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    if (hasAsterisk)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 2),
-                        child: Text(
-                          '*',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 33, top: 3),
-            child: Text(
-              detail,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.black54,
-                fontWeight: FontWeight.w400,
-                height: 1.35,
               ),
             ),
           ),

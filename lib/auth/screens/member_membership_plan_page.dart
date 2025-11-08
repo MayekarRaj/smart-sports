@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../core/exceptions/api_exception.dart';
 import 'payment_method_page.dart';
 
 class MemberMembershipPlanPage extends StatefulWidget {
@@ -10,6 +12,8 @@ class MemberMembershipPlanPage extends StatefulWidget {
 
 class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
   bool _isFreeMembership = true;
+  final AuthRepository _authRepository = AuthRepository();
+  bool _isSubmitting = false;
 
   // Privilege services and totals
   final Map<String, bool> _selectedServices = {
@@ -659,15 +663,9 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: _isSubmitting ? null : () async {
                 if (_isFreeMembership) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Free membership activated'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  await _submitFreeMembership();
                 } else {
                   Navigator.push(
                     context,
@@ -685,19 +683,74 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: const Text(
-                'Submit',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+              child: _isSubmitting && _isFreeMembership
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Submit',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _submitFreeMembership() async {
+    if (_isSubmitting) return;
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      await _authRepository.chooseMembershipType('Free');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Free membership activated'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to submit membership: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 }
 

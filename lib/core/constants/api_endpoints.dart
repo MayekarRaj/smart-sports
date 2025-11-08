@@ -36,9 +36,13 @@ class ApiEndpoints {
   // ==================== Paid Services ====================
   static const String paidServicesList = '/paid-services-list';
 
+  // ==================== Membership Type ====================
+  static const String chooseMembershipType = '/signup-chooseMembershipType';
+
   // ==================== Club and Branch Lists ====================
   static const String getAllClubList = '/signup-getAllClubList';
   static const String getMerchandizerBranchList = '/signup-getMerchandizerBranchList';
+  static const String getClubBranchList = '/signup-club-branch-list';
 
   // ==================== Bookings ====================
   static const String bookings = '/bookings';
@@ -127,10 +131,16 @@ class ApiEndpoints {
     return baseUrl;
   }
 
+  // Membership Type
+  static String getChooseMembershipTypeUrl() => '${ApiConfig.apiBaseUrl}$chooseMembershipType';
+
   // Club and Branch Lists
   static String getAllClubListUrl() => '${ApiConfig.apiBaseUrl}$getAllClubList';
   static String getMerchandizerBranchListUrl(int merchandizerId) => 
       '${ApiConfig.apiBaseUrl}$getMerchandizerBranchList/$merchandizerId';
+  static String getClubBranchListUrl(int clubId) => 
+      '${ApiConfig.apiBaseUrl}$getClubBranchList/$clubId';
+
 
   // Bookings
   static String getBookingsUrl() => '${ApiConfig.apiBaseUrl}$bookings';
