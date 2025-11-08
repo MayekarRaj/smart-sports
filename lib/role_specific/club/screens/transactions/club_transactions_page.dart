@@ -40,6 +40,14 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
   List<Map<String, dynamic>> _filteredTransactions = [];
   int _currentPage = 0;
 
+  // Financial Year filters
+  String _financialYearStartMonth = 'JAN';
+  final TextEditingController _financialYearStartYearController = TextEditingController();
+  String _financialYearEndMonth = 'DEC';
+  final TextEditingController _financialYearEndYearController = TextEditingController();
+
+  // Flexible Duration filters (using existing _fromDate and _toDate)
+
   @override
   void initState() {
     super.initState();
@@ -47,6 +55,11 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
     _tableTabs.addListener(_onTabChanged);
     _initializeData();
     _searchController.addListener(_onSearchChanged);
+    
+    // Initialize financial year with current year
+    final now = DateTime.now();
+    _financialYearStartYearController.text = now.year.toString();
+    _financialYearEndYearController.text = now.year.toString();
   }
 
   void _onTabChanged() {
@@ -87,31 +100,43 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
         return false;
       }
 
-      // Date range filter
-      if (_fromDate != null && transaction['date'].isBefore(_fromDate!)) {
-        return false;
-      }
-      if (_toDate != null && transaction['date'].isAfter(_toDate!)) {
-        return false;
+      // Date range filter (only for ALL period, period-specific filters handle their own dates)
+      if (_period == 'ALL') {
+        if (_fromDate != null && transaction['date'].isBefore(_fromDate!)) {
+          return false;
+        }
+        if (_toDate != null && transaction['date'].isAfter(_toDate!)) {
+          return false;
+        }
       }
 
-      // Period filter
+      // Period filter (applies date range based on period type)
       if (_period == 'Financial Year') {
-        // Filter for current financial year (April to March)
-        final now = DateTime.now();
-        final currentYear = now.month >= 4 ? now.year : now.year - 1;
-        final financialYearStart = DateTime(currentYear, 4, 1);
-        final financialYearEnd = DateTime(currentYear + 1, 3, 31);
+        // Filter based on selected start month/year to end month/year
+        final startYear = int.tryParse(_financialYearStartYearController.text) ?? DateTime.now().year;
+        final endYear = int.tryParse(_financialYearEndYearController.text) ?? DateTime.now().year;
+        final startMonth = _getMonthNumber(_financialYearStartMonth);
+        final endMonth = _getMonthNumber(_financialYearEndMonth);
+        
+        final financialYearStart = DateTime(startYear, startMonth, 1);
+        // Get last day of end month
+        final financialYearEnd = DateTime(endYear, endMonth + 1, 0); // Last day of end month
 
         if (transaction['date'].isBefore(financialYearStart) ||
             transaction['date'].isAfter(financialYearEnd)) {
           return false;
         }
       } else if (_period == 'Flexible Duration') {
-        // Show only last 30 days
-        final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-        if (transaction['date'].isBefore(thirtyDaysAgo)) {
+        // Filter based on selected start date to end date
+        if (_fromDate != null && transaction['date'].isBefore(_fromDate!)) {
           return false;
+        }
+        if (_toDate != null) {
+          // Include the entire end date (set to end of day)
+          final endOfDay = DateTime(_toDate!.year, _toDate!.month, _toDate!.day, 23, 59, 59);
+          if (transaction['date'].isAfter(endOfDay)) {
+            return false;
+          }
         }
       }
 
@@ -173,6 +198,8 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
   void dispose() {
     _tableTabs.dispose();
     _searchController.dispose();
+    _financialYearStartYearController.dispose();
+    _financialYearEndYearController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -235,6 +262,14 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
+  }
+
+  int _getMonthNumber(String monthAbbr) {
+    const months = {
+      'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
+      'JUL': 7, 'AUG': 8, 'SEP': 9, 'OCT': 10, 'NOV': 11, 'DEC': 12,
+    };
+    return months[monthAbbr] ?? 1;
   }
 
   void _downloadReceipt(Map<String, dynamic> transaction) {
@@ -423,6 +458,73 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
                   },
                 ),
                 const SizedBox(height: 16),
+                // Period-specific filters
+                if (_period == 'Financial Year')
+                  _FinancialYearFilters(
+                    startMonth: _financialYearStartMonth,
+                    startYear: _financialYearStartYearController,
+                    endMonth: _financialYearEndMonth,
+                    endYear: _financialYearEndYearController,
+                    onStartMonthChanged: (value) {
+                      setState(() {
+                        _financialYearStartMonth = value;
+                        _onFilterChanged();
+                      });
+                    },
+                    onStartYearChanged: () {
+                      setState(() {
+                        _onFilterChanged();
+                      });
+                    },
+                    onEndMonthChanged: (value) {
+                      setState(() {
+                        _financialYearEndMonth = value;
+                        _onFilterChanged();
+                      });
+                    },
+                    onEndYearChanged: () {
+                      setState(() {
+                        _onFilterChanged();
+                      });
+                    },
+                  ),
+                if (_period == 'Financial Year') const SizedBox(height: 16),
+                if (_period == 'Flexible Duration')
+                  _FlexibleDurationFilters(
+                    startDate: _fromDate,
+                    endDate: _toDate,
+                    onStartDateChanged: () async {
+                      final result = await showDatePicker(
+                        context: context,
+                        firstDate: DateTime(2018),
+                        lastDate: DateTime(2100),
+                        initialDate: _fromDate ?? DateTime.now(),
+                      );
+                      if (!mounted) return;
+                      if (result != null) {
+                        setState(() {
+                          _fromDate = result;
+                          _onFilterChanged();
+                        });
+                      }
+                    },
+                    onEndDateChanged: () async {
+                      final result = await showDatePicker(
+                        context: context,
+                        firstDate: DateTime(2018),
+                        lastDate: DateTime(2100),
+                        initialDate: _toDate ?? DateTime.now(),
+                      );
+                      if (!mounted) return;
+                      if (result != null) {
+                        setState(() {
+                          _toDate = result;
+                          _onFilterChanged();
+                        });
+                      }
+                    },
+                  ),
+                if (_period == 'Flexible Duration') const SizedBox(height: 16),
                 _TableTabs(controller: _tableTabs),
                 const SizedBox(height: 12),
                 _TransactionsTable(
@@ -1577,6 +1679,390 @@ class _RoundedContainer extends StatelessWidget {
       ),
       padding: padding ?? const EdgeInsets.symmetric(horizontal: 8),
       child: child,
+    );
+  }
+}
+
+class _FinancialYearFilters extends StatelessWidget {
+  final String startMonth;
+  final TextEditingController startYear;
+  final String endMonth;
+  final TextEditingController endYear;
+  final ValueChanged<String> onStartMonthChanged;
+  final VoidCallback onStartYearChanged;
+  final ValueChanged<String> onEndMonthChanged;
+  final VoidCallback onEndYearChanged;
+
+  const _FinancialYearFilters({
+    required this.startMonth,
+    required this.startYear,
+    required this.endMonth,
+    required this.endYear,
+    required this.onStartMonthChanged,
+    required this.onStartYearChanged,
+    required this.onEndMonthChanged,
+    required this.onEndYearChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const monthOptions = [
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC',
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Financial Year Filter',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1F2937),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Start Month',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: DropdownButtonFormField<String>(
+                              value: startMonth,
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                              ),
+                              items: monthOptions.map((String month) {
+                                return DropdownMenuItem<String>(
+                                  value: month,
+                                  child: Text(month),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  onStartMonthChanged(value);
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: TextFormField(
+                              controller: startYear,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                hintText: 'Year',
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                              ),
+                              onChanged: (_) => onStartYearChanged(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'End Month',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: DropdownButtonFormField<String>(
+                              value: endMonth,
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                              ),
+                              items: monthOptions.map((String month) {
+                                return DropdownMenuItem<String>(
+                                  value: month,
+                                  child: Text(month),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  onEndMonthChanged(value);
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: TextFormField(
+                              controller: endYear,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                hintText: 'Year',
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                              ),
+                              onChanged: (_) => onEndYearChanged(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FlexibleDurationFilters extends StatelessWidget {
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final VoidCallback onStartDateChanged;
+  final VoidCallback onEndDateChanged;
+
+  const _FlexibleDurationFilters({
+    required this.startDate,
+    required this.endDate,
+    required this.onStartDateChanged,
+    required this.onEndDateChanged,
+  });
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Select Date';
+    return '${_getMonthAbbr(date.month)}-${date.day.toString().padLeft(2, '0')}-${date.year}';
+  }
+
+  String _getMonthAbbr(int month) {
+    const months = [
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC',
+    ];
+    return months[month - 1];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Flexible Duration Filter',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1F2937),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Start Date',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: onStartDateChanged,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _formatDate(startDate),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: startDate == null
+                                    ? Colors.grey[400]
+                                    : Colors.black87,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 20,
+                              color: Color(0xFF64748B),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'End Date',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: onEndDateChanged,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _formatDate(endDate),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: endDate == null
+                                    ? Colors.grey[400]
+                                    : Colors.black87,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 20,
+                              color: Color(0xFF64748B),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
