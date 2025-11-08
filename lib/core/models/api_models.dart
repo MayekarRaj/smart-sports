@@ -544,9 +544,6 @@ class OperationalDetail {
 // Corporate Registration Models
 @JsonSerializable()
 class CorporateSignupRequest {
-  @JsonKey(name: 'user_id')
-  final int userId;
-  
   @JsonKey(name: 'user_role')
   final String userRole;
   
@@ -569,7 +566,6 @@ class CorporateSignupRequest {
   final CorporateContactDetails? contactDetails;
 
   CorporateSignupRequest({
-    required this.userId,
     required this.userRole,
     required this.invoiceType,
     required this.isAllowedFamilyMembers,
@@ -587,13 +583,14 @@ class CorporateSignupRequest {
 
 @JsonSerializable()
 class CorporateAddress {
-  final String address1;
+  @JsonKey(name: 'address_line_1')
+  final String addressLine1;
   
-  @JsonKey(name: 'address2')
-  final String? address2;
+  @JsonKey(name: 'address_line_2')
+  final String? addressLine2;
   
-  @JsonKey(name: 'address3')
-  final String? address3;
+  @JsonKey(name: 'address_line_3')
+  final String? addressLine3;
   
   final String city;
   final String state;
@@ -604,9 +601,9 @@ class CorporateAddress {
   final String country;
 
   CorporateAddress({
-    required this.address1,
-    this.address2,
-    this.address3,
+    required this.addressLine1,
+    this.addressLine2,
+    this.addressLine3,
     required this.city,
     required this.state,
     required this.zipCode,

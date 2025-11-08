@@ -681,18 +681,6 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
     if (!_formKey.currentState!.validate()) return;
     if (!mounted) return;
 
-    // Get user ID from auth state - capture before async operations
-    final currentUserId = ref.read(userIdProvider);
-    if (currentUserId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please sign up first'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     setState(() => _isLoading = true);
 
     try {
@@ -705,12 +693,11 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
       final invoiceType = _selectedInvoiceOption == 'Monthly Invoice To Company' ? 1 : 0;
 
       // Map family members
-      // "Allowed" = 0, "Not Allowed" = 1 (based on API example)
-      final isAllowedFamilyMembers = _familyMembersOption == 'Allowed' ? 0 : 1;
+      // "Allowed" = 1, "Not Allowed" = 0 (based on API example showing is_allowed_family_members: 1)
+      final isAllowedFamilyMembers = _familyMembersOption == 'Allowed' ? 1 : 0;
 
       // Build request
       final request = CorporateSignupRequest(
-        userId: currentUserId,
         userRole: 'corporate',
         invoiceType: invoiceType,
         isAllowedFamilyMembers: isAllowedFamilyMembers,
@@ -719,11 +706,11 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
         companyAddress: _companyAddressSameAsSignup
             ? null
             : CorporateAddress(
-                address1: _address1Controller.text.trim(),
-                address2: _address2Controller.text.trim().isNotEmpty
+                addressLine1: _address1Controller.text.trim(),
+                addressLine2: _address2Controller.text.trim().isNotEmpty
                     ? _address2Controller.text.trim()
                     : null,
-                address3: null,
+                addressLine3: null,
                 city: _cityController.text.trim(),
                 state: _stateController.text.trim(),
                 zipCode: _zipController.text.trim(),
