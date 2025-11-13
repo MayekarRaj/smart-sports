@@ -236,6 +236,54 @@ class RoleSidebar extends StatelessWidget {
             t: t,
           ),
         ];
+      case UserRole.freelancer:
+        return [
+          _tile(
+            index: 0,
+            icon: Icons.dashboard_outlined,
+            label: 'Dashboard',
+            t: t,
+          ),
+          _tile(index: 1, icon: Icons.swap_horiz, label: 'Transactions', t: t),
+          _tile(
+            index: 2,
+            icon: Icons.build_outlined,
+            label: 'Service',
+            t: t,
+          ),
+          _tile(index: 3, icon: Icons.apartment_outlined, label: 'Clubs', t: t),
+          _tile(
+            index: 4,
+            icon: Icons.calendar_month_outlined,
+            label: 'Bookings',
+            t: t,
+          ),
+          _tile(
+            index: 5,
+            icon: Icons.emoji_events_outlined,
+            label: 'Events / Tournaments',
+            t: t,
+          ),
+          _tile(
+            index: 6,
+            icon: Icons.handshake_outlined,
+            label: 'Sponsorships',
+            t: t,
+          ),
+          _tile(
+            index: 7,
+            icon: Icons.local_offer_outlined,
+            label: 'Membership Plan',
+            t: t,
+          ),
+          _tile(index: 8, icon: Icons.group_outlined, label: 'Users', t: t),
+          _tile(
+            index: 9,
+            icon: Icons.support_agent_outlined,
+            label: 'Customer Support',
+            t: t,
+          ),
+        ];
       default:
         // Default menu for other roles
         return [

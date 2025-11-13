@@ -88,6 +88,20 @@ import 'package:smart_sports/role_specific/merchandiser/screens/profile/merchand
 import 'package:smart_sports/role_specific/merchandiser/screens/sponsorships/merchandiser_sponsorships_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/clubs/merchandiser_page.dart';
 
+// Freelancer imports
+import 'package:smart_sports/role_specific/freelancer/screens/dashboard/freelancer_dashboard_page.dart';
+import 'package:smart_sports/role_specific/freelancer/screens/transaction/freelancer_transactions_page.dart';
+import 'package:smart_sports/role_specific/freelancer/screens/service/freelancer_service_page.dart';
+import 'package:smart_sports/role_specific/freelancer/screens/clubs/freelancer_clubs_page.dart';
+import 'package:smart_sports/role_specific/freelancer/screens/bookings/freelancer_bookings_page.dart';
+import 'package:smart_sports/role_specific/freelancer/screens/event_tournament/freelancer_events_page.dart';
+import 'package:smart_sports/role_specific/freelancer/screens/sponsorships/freelancer_sponsorships_page.dart';
+import 'package:smart_sports/role_specific/freelancer/screens/membership_plan/freelancer_membership_plan_page.dart';
+import 'package:smart_sports/role_specific/freelancer/screens/users/freelancer_users_page.dart';
+import 'package:smart_sports/role_specific/freelancer/screens/customer_support/freelancer_customer_support_page.dart';
+import 'package:smart_sports/role_specific/freelancer/screens/profile/freelancer_profile_page.dart'
+    as freelancer_profile;
+
 /// Centralized navigation manager for role-specific screens
 /// Handles consistent navigation behavior across all role screens
 class RoleNavigationManager {
@@ -523,7 +537,88 @@ class RoleNavigationManager {
   }
 
   static void _navigateFreelancerScreen(BuildContext context, int index) {
-    // Freelancer navigation logic can be added here when needed
+    switch (index) {
+      case 0:
+        // Dashboard
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const FreelancerDashboardPage(),
+          ),
+        );
+        break;
+      case 1:
+        // Transactions
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const FreelancerTransactionsPage(),
+          ),
+        );
+        break;
+      case 2:
+        // Service
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const FreelancerServicePage(),
+          ),
+        );
+        break;
+      case 3:
+        // Clubs
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const FreelancerClubsPage(),
+          ),
+        );
+        break;
+      case 4:
+        // Bookings
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const FreelancerBookingsPage(),
+          ),
+        );
+        break;
+      case 5:
+        // Events / Tournaments
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const FreelancerEventsPage(),
+          ),
+        );
+        break;
+      case 6:
+        // Sponsorships
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const FreelancerSponsorshipsPage(),
+          ),
+        );
+        break;
+      case 7:
+        // Membership Plan
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const FreelancerMembershipPlanPage(),
+          ),
+        );
+        break;
+      case 8:
+        // Users
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const FreelancerUsersPage(),
+          ),
+        );
+        break;
+      case 9:
+        // Customer Support
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const FreelancerCustomerSupportPage(),
+          ),
+        );
+        break;
+    }
   }
 
   /// Navigate to profile page
@@ -565,7 +660,9 @@ class RoleNavigationManager {
           break;
         case UserRole.freelancer:
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const _FreelancerProfilePage()),
+            MaterialPageRoute(
+              builder: (_) => const freelancer_profile.FreelancerProfilePage(),
+            ),
           );
           break;
       }
@@ -681,44 +778,6 @@ class _MemberProfilePage extends StatelessWidget {
   }
 }
 
-class _FreelancerProfilePage extends StatelessWidget {
-  const _FreelancerProfilePage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Freelancer Profile'),
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
-      ),
-      drawer: Drawer(
-        elevation: 0,
-        child: SafeArea(
-          child: RoleSidebar(
-            role: UserRole.freelancer,
-            selectedIndex: 10,
-            edgeToEdge: true,
-            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
-              context,
-              UserRole.freelancer,
-              i,
-            ),
-            onProfileTap: () => RoleNavigationManager.navigateToProfile(
-              context,
-              UserRole.freelancer,
-            ),
-          ),
-        ),
-      ),
-      body: const Center(child: Text('Freelancer Profile screen coming soon')),
-    );
-  }
-}
 
 class _CorporatePlaceholder extends StatelessWidget {
   final String title;

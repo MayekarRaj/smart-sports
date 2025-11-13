@@ -3,21 +3,21 @@ import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 
-class FreelancerDashboardPage extends StatefulWidget {
-  const FreelancerDashboardPage({super.key});
+class FreelancerBookingsPage extends StatefulWidget {
+  const FreelancerBookingsPage({super.key});
 
   @override
-  State<FreelancerDashboardPage> createState() =>
-      _FreelancerDashboardPageState();
+  State<FreelancerBookingsPage> createState() =>
+      _FreelancerBookingsPageState();
 }
 
-class _FreelancerDashboardPageState extends State<FreelancerDashboardPage> {
+class _FreelancerBookingsPageState extends State<FreelancerBookingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Dashboard'),
+        title: const Text('Bookings'),
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu),
@@ -30,7 +30,7 @@ class _FreelancerDashboardPageState extends State<FreelancerDashboardPage> {
         child: SafeArea(
           child: RoleSidebar(
             role: UserRole.freelancer,
-            selectedIndex: 0,
+            selectedIndex: 4,
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
@@ -44,7 +44,10 @@ class _FreelancerDashboardPageState extends State<FreelancerDashboardPage> {
           ),
         ),
       ),
-      body: const Center(child: Text('Freelancer Dashboard Content')),
+      body: const Center(
+        child: Text('Freelancer Bookings Page'),
+      ),
     );
   }
 }
+
