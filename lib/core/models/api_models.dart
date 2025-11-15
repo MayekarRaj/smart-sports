@@ -1769,3 +1769,101 @@ class ChooseMembershipTypeResponse {
 
   Map<String, dynamic> toJson() => _$ChooseMembershipTypeResponseToJson(this);
 }
+
+@JsonSerializable()
+class MemberSignupRequest {
+  @JsonKey(name: 'user_role')
+  final String userRole;
+  @JsonKey(name: 'preferred_club')
+  final List<int> preferredClub;
+  @JsonKey(name: 'is_employer_support_health_benefits')
+  final int isEmployerSupportHealthBenefits;
+  @JsonKey(name: 'hr_firstname')
+  final String hrFirstname;
+  @JsonKey(name: 'hr_lastname')
+  final String hrLastname;
+  @JsonKey(name: 'hr_emailid')
+  final String hrEmailid;
+  @JsonKey(name: 'employer_name')
+  final String employerName;
+  @JsonKey(name: 'hr_designation')
+  final String hrDesignation;
+  @JsonKey(name: 'hr_department')
+  final String hrDepartment;
+  final String designation;
+  final String department;
+  @JsonKey(name: 'office_phone_ext')
+  final String officePhoneExt;
+  @JsonKey(name: 'office_phone')
+  final String officePhone;
+  @JsonKey(name: 'mobile_phone_ext')
+  final String mobilePhoneExt;
+  @JsonKey(name: 'mobile_phone')
+  final String mobilePhone;
+  @JsonKey(name: 'company_website')
+  final String companyWebsite;
+  @JsonKey(name: 'practice_plans')
+  final List<PracticePlan> practicePlans;
+
+  MemberSignupRequest({
+    required this.userRole,
+    required this.preferredClub,
+    required this.isEmployerSupportHealthBenefits,
+    required this.hrFirstname,
+    required this.hrLastname,
+    required this.hrEmailid,
+    required this.employerName,
+    required this.hrDesignation,
+    required this.hrDepartment,
+    required this.designation,
+    required this.department,
+    required this.officePhoneExt,
+    required this.officePhone,
+    required this.mobilePhoneExt,
+    required this.mobilePhone,
+    required this.companyWebsite,
+    required this.practicePlans,
+  });
+
+  factory MemberSignupRequest.fromJson(Map<String, dynamic> json) =>
+      _$MemberSignupRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MemberSignupRequestToJson(this);
+}
+
+@JsonSerializable()
+class PracticePlan {
+  @JsonKey(name: 'practice_day')
+  final String practiceDay;
+  @JsonKey(name: 'practice_start_time')
+  final String practiceStartTime;
+  @JsonKey(name: 'practice_end_time')
+  final String practiceEndTime;
+
+  PracticePlan({
+    required this.practiceDay,
+    required this.practiceStartTime,
+    required this.practiceEndTime,
+  });
+
+  factory PracticePlan.fromJson(Map<String, dynamic> json) =>
+      _$PracticePlanFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PracticePlanToJson(this);
+}
+
+@JsonSerializable()
+class MemberSignupResponse {
+  final bool success;
+  final String message;
+
+  MemberSignupResponse({
+    required this.success,
+    required this.message,
+  });
+
+  factory MemberSignupResponse.fromJson(Map<String, dynamic> json) =>
+      _$MemberSignupResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MemberSignupResponseToJson(this);
+}

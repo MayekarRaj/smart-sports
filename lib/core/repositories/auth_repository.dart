@@ -533,5 +533,25 @@ class AuthRepository extends BaseRepository {
       statusCode: response.statusCode ?? 0,
     );
   }
+
+  /// Member signup
+  /// Returns MemberSignupResponse with success status
+  Future<MemberSignupResponse> memberSignup(MemberSignupRequest request) async {
+    final response = await networkClient.post<Map<String, dynamic>>(
+      ApiEndpoints.getMemberSignupUrl(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) => data as Map<String, dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      return MemberSignupResponse.fromJson(response.dataOrThrow);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
 }
 

@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../core/models/api_models.dart';
+import '../../core/exceptions/api_exception.dart';
+import '../../core/utils/phone_parser.dart';
+import '../../core/services/storage_service.dart';
 import 'family_details_page.dart';
 
 class MemberRegistrationPage extends StatefulWidget {
@@ -11,6 +16,9 @@ class MemberRegistrationPage extends StatefulWidget {
 class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
+  final AuthRepository _authRepository = AuthRepository();
+  final StorageService _storageService = StorageService();
+  bool _isLoading = false;
 
   // Practice Plan
   String _practiceDays = 'Weekdays';
@@ -138,16 +146,118 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
     }
   }
 
-  void _submitRegistration() {
+  Future<void> _submitRegistration() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!mounted) return;
 
-    // Navigate to family details page
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const FamilyDetailsPage(),
-      ),
-    );
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Parse phone numbers
+      final officePhone = PhoneParser.parsePhoneNumber(_officeNumberController.text);
+      final mobilePhone = PhoneParser.parsePhoneNumber(_mobileNumberController.text);
+
+      // Convert practice days to practice plans
+      // For now, if it's "Weekdays", we'll create entries for Monday-Friday
+      // If it's "Weekend", we'll create entries for Saturday-Sunday
+      // Otherwise, use the selected day as-is
+      List<PracticePlan> practicePlans = [];
+      
+      if (_practiceDays == 'Weekdays') {
+        // Create entries for Monday through Friday
+        practicePlans = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+            .map((day) => PracticePlan(
+                  practiceDay: day,
+                  practiceStartTime: _practiceStartTime,
+                  practiceEndTime: _practiceEndTime,
+                ))
+            .toList();
+      } else if (_practiceDays == 'Weekend') {
+        // Create entries for Saturday and Sunday
+        practicePlans = ['Saturday', 'Sunday']
+            .map((day) => PracticePlan(
+                  practiceDay: day,
+                  practiceStartTime: _practiceStartTime,
+                  practiceEndTime: _practiceEndTime,
+                ))
+            .toList();
+      } else {
+        // Single day
+        practicePlans = [
+          PracticePlan(
+            practiceDay: _practiceDays,
+            practiceStartTime: _practiceStartTime,
+            practiceEndTime: _practiceEndTime,
+          )
+        ];
+      }
+
+      // Build request
+      final request = MemberSignupRequest(
+        userRole: 'member',
+        preferredClub: [1, 2, 3], // Static for now as requested
+        isEmployerSupportHealthBenefits: _employerSupportsHealthBenefits ? 1 : 0,
+        hrFirstname: _employerSupportsHealthBenefits ? _hrFirstNameController.text.trim() : '',
+        hrLastname: _employerSupportsHealthBenefits ? _hrLastNameController.text.trim() : '',
+        hrEmailid: _employerSupportsHealthBenefits ? _hrMailIdController.text.trim() : '',
+        employerName: _employerSupportsHealthBenefits ? _employerController.text.trim() : '',
+        hrDesignation: '', // Not in form, using empty string
+        hrDepartment: '', // Not in form, using empty string
+        designation: _employerSupportsHealthBenefits ? _designationController.text.trim() : '',
+        department: _employerSupportsHealthBenefits ? _departmentController.text.trim() : '',
+        officePhoneExt: _employerSupportsHealthBenefits ? (officePhone['ext'] ?? '') : '',
+        officePhone: _employerSupportsHealthBenefits ? (officePhone['number'] ?? '') : '',
+        mobilePhoneExt: _employerSupportsHealthBenefits ? (mobilePhone['ext'] ?? '') : '',
+        mobilePhone: _employerSupportsHealthBenefits ? (mobilePhone['number'] ?? '') : '',
+        companyWebsite: _employerSupportsHealthBenefits ? _companyWebsiteController.text.trim() : '',
+        practicePlans: practicePlans,
+      );
+
+      final response = await _authRepository.memberSignup(request);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to family details page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const FamilyDetailsPage(),
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to submit registration: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -357,141 +467,144 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
               ),
               const SizedBox(height: 16),
 
-              // Employer Detail Section
-              _buildSectionCard(
-                title: 'Employer Detail',
-                child: _buildTextField(
-                  controller: _employerController,
-                  label: 'Employer',
-                  hint: 'Company Name',
+              // Employer Detail Section - Only show if checkbox is checked
+              if (_employerSupportsHealthBenefits) ...[
+                _buildSectionCard(
+                  title: 'Employer Detail',
+                  child: _buildTextField(
+                    controller: _employerController,
+                    label: 'Employer',
+                    hint: 'Company Name',
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // HR Manager Details Section
-              _buildSectionCard(
-                title: 'HR Manager Details',
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildTextField(
-                            controller: _hrFirstNameController,
-                            label: 'First Name',
-                            hint: 'First Name',
+                // HR Manager Details Section
+                _buildSectionCard(
+                  title: 'HR Manager Details',
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(
+                              controller: _hrFirstNameController,
+                              label: 'First Name',
+                              hint: 'First Name',
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildTextField(
-                            controller: _hrLastNameController,
-                            label: 'Last Name',
-                            hint: 'Last Name',
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildTextField(
+                              controller: _hrLastNameController,
+                              label: 'Last Name',
+                              hint: 'Last Name',
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _hrMailIdController,
-                      label: 'Mail ID',
-                      hint: 'Email address',
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                  ],
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        controller: _hrMailIdController,
+                        label: 'Mail ID',
+                        hint: 'Email address',
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Contact Details Section
-              _buildSectionCard(
-                title: 'Contact Details',
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildTextField(
-                            controller: _designationController,
-                            label: 'Designation',
-                            hint: 'Designation',
+                // Contact Details Section
+                _buildSectionCard(
+                  title: 'Contact Details',
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(
+                              controller: _designationController,
+                              label: 'Designation',
+                              hint: 'Designation',
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildTextField(
-                            controller: _departmentController,
-                            label: 'Department',
-                            hint: 'Department',
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildTextField(
+                              controller: _departmentController,
+                              label: 'Department',
+                              hint: 'Department',
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 80,
-                          child: _buildDropdownField(
-                            label: '',
-                            value: _officeCountryCode,
-                            items: ['+91', '+1', '+44', '+86'],
-                            onChanged: (value) {
-                              setState(() {
-                                _officeCountryCode = value!;
-                              });
-                            },
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 80,
+                            child: _buildDropdownField(
+                              label: '',
+                              value: _officeCountryCode,
+                              items: ['+91', '+1', '+44', '+86'],
+                              onChanged: (value) {
+                                setState(() {
+                                  _officeCountryCode = value!;
+                                });
+                              },
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildTextField(
-                            controller: _officeNumberController,
-                            label: 'Office Number',
-                            hint: '9876543210',
-                            keyboardType: TextInputType.phone,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildTextField(
+                              controller: _officeNumberController,
+                              label: 'Office Number',
+                              hint: '9876543210',
+                              keyboardType: TextInputType.phone,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 80,
-                          child: _buildDropdownField(
-                            label: '',
-                            value: _mobileCountryCode,
-                            items: ['+91', '+1', '+44', '+86'],
-                            onChanged: (value) {
-                              setState(() {
-                                _mobileCountryCode = value!;
-                              });
-                            },
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 80,
+                            child: _buildDropdownField(
+                              label: '',
+                              value: _mobileCountryCode,
+                              items: ['+91', '+1', '+44', '+86'],
+                              onChanged: (value) {
+                                setState(() {
+                                  _mobileCountryCode = value!;
+                                });
+                              },
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildTextField(
-                            controller: _mobileNumberController,
-                            label: 'Mobile Number',
-                            hint: '9876543210',
-                            keyboardType: TextInputType.phone,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildTextField(
+                              controller: _mobileNumberController,
+                              label: 'Mobile Number',
+                              hint: '9876543210',
+                              keyboardType: TextInputType.phone,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _companyWebsiteController,
-                      label: 'Company Website',
-                      hint: 'https://abc.com',
-                      keyboardType: TextInputType.url,
-                    ),
-                  ],
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        controller: _companyWebsiteController,
+                        label: 'Company Website',
+                        hint: 'https://abc.com',
+                        keyboardType: TextInputType.url,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
+              ],
               const SizedBox(height: 32),
 
               // Bottom Navigation
@@ -847,7 +960,7 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: _submitRegistration,
+              onPressed: _isLoading ? null : _submitRegistration,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -855,14 +968,23 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: const Text(
-                'Next',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Next',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         ],

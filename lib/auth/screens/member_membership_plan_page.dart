@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/repositories/auth_repository.dart';
+import '../../core/models/api_models.dart';
 import '../../core/exceptions/api_exception.dart';
 import 'payment_method_page.dart';
 
@@ -14,29 +15,91 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
   bool _isFreeMembership = true;
   final AuthRepository _authRepository = AuthRepository();
   bool _isSubmitting = false;
+  bool _isLoadingServices = false;
+  List<PaidService> _paidServices = [];
+  String? _errorMessage;
 
-  // Privilege services and totals
-  final Map<String, bool> _selectedServices = {
-    'priority_booking': false,
-    'avail_discounts': false,
-    'coach_ratings': false,
-    'events_tournaments': false,
-    'forum': false,
-    'slack': false,
-  };
+  // Privilege services and totals - dynamically populated from API
+  final Map<String, bool> _selectedServices = {};
 
   // Selected club types for Priority Booking
   final Set<String> _selectedClubTypes = {};
 
   double get _totalAmount {
     double total = 0;
-    if (_selectedServices['priority_booking'] == true) total += 200;
-    if (_selectedServices['avail_discounts'] == true) total += 100;
-    if (_selectedServices['coach_ratings'] == true) total += 100;
-    if (_selectedServices['events_tournaments'] == true) total += 200;
-    if (_selectedServices['forum'] == true) total += 100;
-    if (_selectedServices['slack'] == true) total += 100;
+    for (var service in _paidServices) {
+      final serviceKey = _getServiceKey(service.name);
+      if (_selectedServices[serviceKey] == true) {
+        total += service.amountValue;
+      }
+    }
     return total;
+  }
+
+  /// Map service name to key for selectedServices map
+  String _getServiceKey(String serviceName) {
+    final normalized = serviceName.toLowerCase()
+        .replaceAll(' ', '_')
+        .replaceAll('&', '')
+        .replaceAll('(', '')
+        .replaceAll(')', '');
+    
+    if (normalized.contains('priority_booking') || normalized.contains('priority booking')) {
+      return 'priority_booking';
+    } else if (normalized.contains('avail_discounts') || normalized.contains('avail discounts')) {
+      return 'avail_discounts';
+    } else if (normalized.contains('coach_ratings') || normalized.contains('coach ratings')) {
+      return 'coach_ratings';
+    } else if (normalized.contains('events') || normalized.contains('tournaments')) {
+      return 'events_tournaments';
+    } else if (normalized.contains('forum')) {
+      return 'forum';
+    } else if (normalized.contains('slack')) {
+      return 'slack';
+    }
+    
+    return normalized;
+  }
+
+  /// Fetch paid services from API
+  Future<void> _fetchPaidServices() async {
+    if (_isLoadingServices) return;
+
+    setState(() {
+      _isLoadingServices = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await _authRepository.getPaidServicesList('member');
+      
+      if (mounted) {
+        setState(() {
+          _paidServices = response.data.where((service) => service.isDeleted == 0).toList();
+          for (var service in _paidServices) {
+            final key = _getServiceKey(service.name);
+            if (!_selectedServices.containsKey(key)) {
+              _selectedServices[key] = false;
+            }
+          }
+          _isLoadingServices = false;
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.message;
+          _isLoadingServices = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to load services: ${e.toString()}';
+          _isLoadingServices = false;
+        });
+      }
+    }
   }
 
   double get _discountAmount => 20;
@@ -155,6 +218,10 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
                     setState(() {
                       _isFreeMembership = false;
                     });
+                    // Fetch paid services when privilege membership is selected
+                    if (_paidServices.isEmpty && !_isLoadingServices) {
+                      _fetchPaidServices();
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -284,46 +351,56 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
           ),
           const SizedBox(height: 20),
 
-          _buildServiceOption(
-            'priority_booking',
-            'Priority Booking',
-            'You Will Be Allowed To Avail Priority Booking Slots For Your Preferred Clubs Selected @ USD 50 /Club.',
-            200,
-            hasClubTypes: true,
-          ),
-          _buildServiceOption(
-            'avail_discounts',
-            'Avail Discounts',
-            'You Will Be Able To Use Special Discounts Offers Provided By Clubs.',
-            100,
-          ),
-          _buildServiceOption(
-            'coach_ratings',
-            'Coach Ratings',
-            'You Will Be Able To Unlock Coach Ratings To Select Your Coach.',
-            100,
-          ),
-          _buildServiceOption(
-            'events_tournaments',
-            'Events & Tournaments',
-            'You will be allowed to schedule multiple events and tournaments.',
-            200,
-          ),
-          _buildServiceOption(
-            'forum',
-            'Forum',
-            'You Will Have Access To All Forum Discussions Within Our Platform And Able To Save Stories With Photos.',
-            100,
-          ),
-          _buildServiceOption(
-            'slack',
-            'Slack',
-            'Automatic Mobile Notifications Per Month: You Will Get Emails And Mobile Notification Of Our Various Services.',
-            100,
-          ),
+          if (_isLoadingServices)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (_errorMessage != null)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    Text(
+                      _errorMessage!,
+                      style: TextStyle(color: Colors.red[700]),
+                    ),
+                    TextButton(
+                      onPressed: _fetchPaidServices,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (_paidServices.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Text('No paid services available'),
+              ),
+            )
+          else ...[
+            // Build service options dynamically from API
+            ..._paidServices.map((service) {
+              final serviceKey = _getServiceKey(service.name);
+              final hasClubTypes = serviceKey == 'priority_booking';
+              
+              return _buildServiceOption(
+                serviceKey,
+                service.name,
+                service.description2.isNotEmpty ? service.description2 : service.description1,
+                service.amountValue,
+                hasClubTypes: hasClubTypes,
+              );
+            }),
 
-          const SizedBox(height: 16),
-          _buildPricingSummary(),
+            const SizedBox(height: 16),
+            _buildPricingSummary(),
+          ],
         ],
       ),
     );
@@ -336,89 +413,134 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
     double price, {
     bool hasClubTypes = false,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Checkbox(
-                value: _selectedServices[key] ?? false,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedServices[key] = value ?? false;
-                  });
-                },
-                activeColor: const Color(0xFF8BB6D9),
-              ),
-              const SizedBox(width: 4),
-              _getServiceIcon(key),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    final isSelected = _selectedServices[key] ?? false;
+    
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedServices[key] = !isSelected;
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? const Color(0xFF8BB6D9) : Colors.grey[300]!,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? const Color(0xFF8BB6D9).withOpacity(0.05) : Colors.white,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Icon
+                _getServiceIcon(key),
+                const SizedBox(width: 12),
+                // Title and Description
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[700],
+                          height: 1.4,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Price Section
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                    const Text(
+                      'Monthly Fee',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      description,
-                      style: TextStyle(fontSize: 12, color: Colors.red[400]),
+                      'USD ${price.toInt()}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            // Selected indicator
+            if (isSelected)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: const Color(0xFF8BB6D9),
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Selected',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: const Color(0xFF8BB6D9),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: const [
-                  Text(
-                    'Monthly Fee',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+            if (hasClubTypes && isSelected) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildClubTypeChip('Tennis Club'),
+                  _buildClubTypeChip('Baseball'),
+                  _buildClubTypeChip('Cricket'),
+                  _buildClubTypeChip('Basketball'),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_drop_down, size: 20),
+                    onPressed: () {
+                      // Handle dropdown
+                    },
                   ),
                 ],
               ),
-              const SizedBox(width: 8),
-              Text(
-                'USD ${price.toInt()}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
             ],
-          ),
-          if (hasClubTypes && (_selectedServices[key] ?? false)) ...[
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _buildClubTypeChip('Tennis Club'),
-                _buildClubTypeChip('Baseball'),
-                _buildClubTypeChip('Cricket'),
-                _buildClubTypeChip('Basketball'),
-                IconButton(
-                  icon: const Icon(Icons.arrow_drop_down, size: 20),
-                  onPressed: () {
-                    // Handle dropdown
-                  },
-                ),
-              ],
-            ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -463,36 +585,32 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
   Widget _getServiceIcon(String key) {
     IconData icon;
     Color color;
-    switch (key) {
-      case 'priority_booking':
-        icon = Icons.calendar_today;
-        color = Colors.green;
-        break;
-      case 'avail_discounts':
-        icon = Icons.local_offer;
-        color = Colors.red;
-        break;
-      case 'coach_ratings':
-        icon = Icons.star;
-        color = Colors.orange;
-        break;
-      case 'events_tournaments':
-        icon = Icons.emoji_events;
-        color = Colors.amber;
-        break;
-      case 'forum':
-        icon = Icons.forum;
-        color = Colors.blue;
-        break;
-      case 'slack':
-        icon = Icons.notifications;
-        color = Colors.purple;
-        break;
-      default:
-        icon = Icons.help;
-        color = Colors.grey;
-        break;
+    
+    final normalizedKey = key.toLowerCase();
+    
+    if (normalizedKey.contains('priority_booking') || normalizedKey.contains('priority booking')) {
+      icon = Icons.calendar_today;
+      color = Colors.green;
+    } else if (normalizedKey.contains('avail_discounts') || normalizedKey.contains('avail discounts')) {
+      icon = Icons.local_offer;
+      color = Colors.red;
+    } else if (normalizedKey.contains('coach_ratings') || normalizedKey.contains('coach ratings')) {
+      icon = Icons.star;
+      color = Colors.orange;
+    } else if (normalizedKey.contains('events') || normalizedKey.contains('tournaments')) {
+      icon = Icons.emoji_events;
+      color = Colors.amber;
+    } else if (normalizedKey.contains('forum')) {
+      icon = Icons.forum;
+      color = Colors.blue;
+    } else if (normalizedKey.contains('slack')) {
+      icon = Icons.notifications;
+      color = Colors.purple;
+    } else {
+      icon = Icons.help;
+      color = Colors.grey;
     }
+    
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(

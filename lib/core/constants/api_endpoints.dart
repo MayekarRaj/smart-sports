@@ -33,6 +33,9 @@ class ApiEndpoints {
   static const String merchandizerSignup = '/signup-merchandizer';
   static const String merchandizerBranchSignup = '/signup-merchandizer-branch';
 
+  // ==================== Member Registration ====================
+  static const String memberSignup = '/signup-member-role';
+
   // ==================== Paid Services ====================
   static const String paidServicesList = '/paid-services-list';
 
@@ -121,6 +124,9 @@ class ApiEndpoints {
   // Merchandizer Registration
   static String getMerchandizerSignupUrl() => '${ApiConfig.apiBaseUrl}$merchandizerSignup';
   static String getMerchandizerBranchSignupUrl() => '${ApiConfig.apiBaseUrl}$merchandizerBranchSignup';
+
+  // Member Registration
+  static String getMemberSignupUrl() => '${ApiConfig.apiBaseUrl}$memberSignup';
 
   // Paid Services
   static String getPaidServicesListUrl({String? userRole}) {
