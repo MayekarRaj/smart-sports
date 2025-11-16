@@ -13,19 +13,115 @@ class FreelancerCustomerSupportPage extends StatefulWidget {
 
 class _FreelancerCustomerSupportPageState
     extends State<FreelancerCustomerSupportPage> {
+  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _titleSearchController = TextEditingController();
+  String _selectedStatus = 'Select';
+  String _selectedDay = 'Select';
+  String _selectedTab = 'Open';
+  bool _showFilters = false;
+
+  final List<String> _statusOptions = [
+    'Select',
+    'Open',
+    'In Progress',
+    'Resolved',
+    'Closed',
+  ];
+
+  final List<String> _dayOptions = [
+    'Select',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
+
+  final List<FreelancerComplaint> _complaints = [
+    FreelancerComplaint(
+      title: 'Used Offensive Language',
+      category: 'Behavior',
+      description: 'You Used Inappropriate Language During The Semi-Final Match.',
+      complaintFrom: 'Opponent Player',
+      date: '2025-04-10',
+      status: 'Open',
+    ),
+    FreelancerComplaint(
+      title: 'Late Arrival For Team Match',
+      category: 'Discipline',
+      description: 'H You Arrived 20 Minutes Late And Caused Team Formation Issues.',
+      complaintFrom: 'Team Manager',
+      date: '2025-04-11',
+      status: 'Open',
+    ),
+    FreelancerComplaint(
+      title: 'Equipment Damage',
+      category: 'Property',
+      description: 'Damaged court equipment during practice session.',
+      complaintFrom: 'Facility Manager',
+      date: '2025-04-12',
+      status: 'Resolved',
+    ),
+    FreelancerComplaint(
+      title: 'Noise Disturbance',
+      category: 'Behavior',
+      description: 'Excessive noise during quiet hours.',
+      complaintFrom: 'Neighbor',
+      date: '2025-04-13',
+      status: 'In Progress',
+    ),
+  ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _titleSearchController.dispose();
+    super.dispose();
+  }
+
+  void _showRaiseComplaintDialog() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FreelancerAddComplaintScreen(
+          onComplaintSubmitted: (complaint) {
+            setState(() {
+              _complaints.add(complaint);
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showViewComplaintScreen(FreelancerComplaint complaint) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FreelancerViewComplaintScreen(complaint: complaint),
+      ),
+    );
+  }
+
+  void _showComplaintDetails(FreelancerComplaint complaint) {
+    showDialog(
+      context: context,
+      builder: (context) => _FreelancerComplaintDetailsDialog(complaint: complaint),
+    );
+  }
+
+  List<FreelancerComplaint> get _filteredComplaints {
+    return _complaints.where((complaint) {
+      if (_selectedTab == 'Open' && complaint.status != 'Open') return false;
+      if (_selectedTab == 'Resolved' && complaint.status == 'Open') return false;
+      return true;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Customer Support'),
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
-      ),
+      backgroundColor: const Color(0xFFF9FAFB),
       drawer: Drawer(
         elevation: 0,
         child: SafeArea(
@@ -45,10 +141,928 @@ class _FreelancerCustomerSupportPageState
           ),
         ),
       ),
-      body: const Center(
-        child: Text('Freelancer Customer Support Page'),
+      appBar: AppBar(
+        title: const Text(
+          'Complain...',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF007BFF), Color(0xFF0056CC)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        centerTitle: false,
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _showFilters = !_showFilters;
+              });
+            },
+            icon: Icon(
+              _showFilters ? Icons.filter_list_off : Icons.filter_list,
+              color: Colors.white,
+            ),
+            tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
+          ),
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: ElevatedButton(
+              onPressed: _showRaiseComplaintDialog,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF007BFF),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                minimumSize: const Size(0, 32),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add, size: 14),
+                  SizedBox(width: 2),
+                  Text(
+                    'Raise',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Search bar
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: const InputDecoration(
+                      hintText: 'Search Here',
+                      hintStyle: TextStyle(color: Color(0xFF9CA3AF)),
+                      prefixIcon: Icon(Icons.search, color: Color(0xFF6B7280)),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Show 10 Entries',
+                      style: TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+                    ),
+                    Text(
+                      '${_filteredComplaints.length} complaints found',
+                      style: const TextStyle(
+                        color: Color(0xFF6B7280),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Filter section
+          if (_showFilters)
+            Container(
+              color: const Color(0xFF2D3748),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _buildFilterRow(
+                    label: 'Title',
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextField(
+                        controller: _titleSearchController,
+                        decoration: const InputDecoration(
+                          hintText: 'Search',
+                          prefixIcon: Icon(Icons.search, color: Color(0xFF6B7280)),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildFilterRow(
+                          label: 'Days',
+                          child: _buildDropdownField(
+                            value: _selectedDay,
+                            items: _dayOptions,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedDay = value ?? 'Select';
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildFilterRow(
+                          label: 'Status',
+                          child: _buildDropdownField(
+                            value: _selectedStatus,
+                            items: _statusOptions,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedStatus = value ?? 'Select';
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+          // Complaints list
+          Expanded(
+            child: Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        _buildTab('Open', _selectedTab == 'Open'),
+                        const SizedBox(width: 16),
+                        _buildTab('Resolved', _selectedTab == 'Resolved'),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: _filteredComplaints.isEmpty
+                        ? const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.inbox_outlined,
+                                  size: 64,
+                                  color: Color(0xFF9CA3AF),
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  'No complaints found',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Color(0xFF6B7280),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.only(top: 8),
+                            itemCount: _filteredComplaints.length,
+                            itemBuilder: (context, index) {
+                              final complaint = _filteredComplaints[index];
+                              return _buildComplaintCard(complaint);
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterRow({required String label, required Widget child}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        child,
+      ],
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: items.contains(value) ? value : items.first,
+          isExpanded: true,
+          items: items.map((item) {
+            return DropdownMenuItem(
+              value: item,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  item,
+                  style: const TextStyle(color: Color(0xFF1F2937), fontSize: 14),
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTab(String label, bool isSelected) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedTab = label;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF007BFF) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : const Color(0xFF6B7280),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildComplaintCard(FreelancerComplaint complaint) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      complaint.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Category: ${complaint.category}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF007BFF).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  complaint.status,
+                  style: const TextStyle(
+                    color: Color(0xFF007BFF),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            complaint.description,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF374151),
+              height: 1.4,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'From: ${complaint.complaintFrom}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ),
+              Text(
+                complaint.date,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _showComplaintDetails(complaint),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Details', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _showViewComplaintScreen(complaint),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF007BFF),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'View Complaint',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
+// Complaint Model
+class FreelancerComplaint {
+  final String title;
+  final String category;
+  final String description;
+  final String complaintFrom;
+  final String date;
+  final String status;
+
+  FreelancerComplaint({
+    required this.title,
+    required this.category,
+    required this.description,
+    required this.complaintFrom,
+    required this.date,
+    required this.status,
+  });
+}
+
+// Add Complaint Screen
+class FreelancerAddComplaintScreen extends StatefulWidget {
+  final Function(FreelancerComplaint) onComplaintSubmitted;
+
+  const FreelancerAddComplaintScreen({super.key, required this.onComplaintSubmitted});
+
+  @override
+  State<FreelancerAddComplaintScreen> createState() =>
+      _FreelancerAddComplaintScreenState();
+}
+
+class _FreelancerAddComplaintScreenState
+    extends State<FreelancerAddComplaintScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  String _selectedCategory = 'Behavior';
+
+  final List<String> _categories = [
+    'Behavior',
+    'Discipline',
+    'Property',
+    'Equipment',
+    'Staff',
+    'Facility',
+    'Safety',
+    'Other',
+  ];
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _submitComplaint() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final complaint = FreelancerComplaint(
+      title: _titleController.text.trim(),
+      category: _selectedCategory,
+      description: _descriptionController.text.trim(),
+      complaintFrom: 'Freelancer',
+      date: DateTime.now().toString().split(' ')[0],
+      status: 'Open',
+    );
+
+    widget.onComplaintSubmitted(complaint);
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Complaint submitted successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Raise Complaint'),
+        backgroundColor: const Color(0xFF007BFF),
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Complaint Title',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a title';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  border: OutlineInputBorder(),
+                ),
+                items: _categories.map((category) {
+                  return DropdownMenuItem(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCategory = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 5,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a description';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _submitComplaint,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF007BFF),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text('Submit Complaint'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// View Complaint Screen
+class FreelancerViewComplaintScreen extends StatefulWidget {
+  final FreelancerComplaint complaint;
+
+  const FreelancerViewComplaintScreen({super.key, required this.complaint});
+
+  @override
+  State<FreelancerViewComplaintScreen> createState() =>
+      _FreelancerViewComplaintScreenState();
+}
+
+class _FreelancerViewComplaintScreenState
+    extends State<FreelancerViewComplaintScreen> {
+  final TextEditingController _messageController = TextEditingController();
+  final List<FreelancerChatMessage> _messages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _messages.add(
+      FreelancerChatMessage(
+        text: 'Hello! I\'m here to help you with your complaint. How can I assist you today?',
+        isAdmin: true,
+        timestamp: DateTime.now(),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  void _sendMessage() {
+    if (_messageController.text.trim().isEmpty) return;
+    setState(() {
+      _messages.add(
+        FreelancerChatMessage(
+          text: _messageController.text.trim(),
+          isAdmin: false,
+          timestamp: DateTime.now(),
+        ),
+      );
+    });
+    _messageController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text('Complaint #${widget.complaint.hashCode.toString().substring(0, 8)}'),
+        backgroundColor: const Color(0xFF007BFF),
+        foregroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.complaint.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Status: ${widget.complaint.status}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: widget.complaint.status == 'Open'
+                        ? Colors.orange
+                        : Colors.green,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final message = _messages[index];
+                return _buildChatBubble(message);
+              },
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(top: BorderSide(color: Colors.grey[200]!)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    decoration: InputDecoration(
+                      hintText: 'Type your message...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    onSubmitted: (_) => _sendMessage(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                CircleAvatar(
+                  backgroundColor: const Color(0xFF007BFF),
+                  child: IconButton(
+                    onPressed: _sendMessage,
+                    icon: const Icon(Icons.send, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChatBubble(FreelancerChatMessage message) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment:
+            message.isAdmin ? MainAxisAlignment.start : MainAxisAlignment.end,
+        children: [
+          if (message.isAdmin) ...[
+            const CircleAvatar(
+              radius: 16,
+              backgroundColor: Colors.grey,
+              child: Icon(Icons.person, size: 16, color: Colors.white),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: message.isAdmin
+                    ? Colors.grey[200]
+                    : const Color(0xFF007BFF),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                message.text,
+                style: TextStyle(
+                  color: message.isAdmin ? Colors.black : Colors.white,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+          if (!message.isAdmin) ...[
+            const SizedBox(width: 8),
+            const CircleAvatar(
+              radius: 16,
+              backgroundColor: Color(0xFF007BFF),
+              child: Icon(Icons.person, size: 16, color: Colors.white),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// Chat Message Model
+class FreelancerChatMessage {
+  final String text;
+  final bool isAdmin;
+  final DateTime timestamp;
+
+  FreelancerChatMessage({
+    required this.text,
+    required this.isAdmin,
+    required this.timestamp,
+  });
+}
+
+// Complaint Details Dialog
+class _FreelancerComplaintDetailsDialog extends StatelessWidget {
+  final FreelancerComplaint complaint;
+
+  const _FreelancerComplaintDetailsDialog({required this.complaint});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.95,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                color: Color(0xFF007BFF),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Text(
+                    'Complaint Details',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDetailField('Title', complaint.title),
+                    const SizedBox(height: 16),
+                    _buildDetailField('Category', complaint.category),
+                    const SizedBox(height: 16),
+                    _buildDetailField('Description', complaint.description, isMultiline: true),
+                    const SizedBox(height: 16),
+                    _buildDetailField('From', complaint.complaintFrom),
+                    const SizedBox(height: 16),
+                    _buildDetailField('Date', complaint.date),
+                    const SizedBox(height: 16),
+                    _buildDetailField('Status', complaint.status),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailField(String label, String value, {bool isMultiline = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1F2937),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFD1D5DB), width: 1.5),
+          ),
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 15,
+              color: Color(0xFF1F2937),
+              height: 1.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
