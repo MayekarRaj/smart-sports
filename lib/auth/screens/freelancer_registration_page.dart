@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/api_models.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../../core/exceptions/api_exception.dart';
+import '../widgets/city_search_field.dart';
+import '../widgets/phone_code_dropdown.dart';
 import 'freelancer_membership_plan_page.dart';
 
 class FreelancerRegistrationPage extends ConsumerStatefulWidget {
@@ -43,8 +45,8 @@ class _FreelancerRegistrationPageState
   final _officeNumberController = TextEditingController();
   final _mobileNumberController = TextEditingController();
   final _websiteController = TextEditingController();
-  String _officeCountryCode = '+91';
-  String _mobileCountryCode = '+91';
+  String? _officeCountryCode;
+  String? _mobileCountryCode;
 
   @override
   void dispose() {
@@ -483,32 +485,21 @@ class _FreelancerRegistrationPageState
           Row(
             children: [
               Expanded(
-                child: _buildDropdownField(
+                child: CitySearchField(
+                  cityController: _cityController,
+                  stateController: _stateController,
+                  countryController: _countryController,
                   label: 'City',
-                  value: _cityController.text.isNotEmpty ? _cityController.text : null,
-                  items: const ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata'],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _cityController.text = value;
-                      });
-                    }
-                  },
+                  hint: 'Enter city name',
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildDropdownField(
+                child: _buildTextField(
+                  controller: _stateController,
                   label: 'State',
-                  value: _stateController.text.isNotEmpty ? _stateController.text : null,
-                  items: const ['Maharashtra', 'Delhi', 'Karnataka', 'Tamil Nadu', 'West Bengal'],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _stateController.text = value;
-                      });
-                    }
-                  },
+                  hint: 'State',
+                  enabled: false, // Auto-filled from city
                 ),
               ),
             ],
@@ -526,17 +517,11 @@ class _FreelancerRegistrationPageState
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildDropdownField(
+                child: _buildTextField(
+                  controller: _countryController,
                   label: 'Country',
-                  value: _countryController.text.isNotEmpty ? _countryController.text : null,
-                  items: const ['India', 'USA', 'UK', 'Canada', 'Australia'],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _countryController.text = value;
-                      });
-                    }
-                  },
+                  hint: 'Country',
+                  enabled: false, // Auto-filled from city
                 ),
               ),
             ],
@@ -584,14 +569,12 @@ class _FreelancerRegistrationPageState
           Row(
             children: [
               SizedBox(
-                width: 80,
-                child: _buildDropdownField(
-                  label: '',
+                width: 120,
+                child: PhoneCodeDropdown(
                   value: _officeCountryCode,
-                  items: ['+91', '+1', '+44', '+86'],
                   onChanged: (value) {
                     setState(() {
-                      _officeCountryCode = value!;
+                      _officeCountryCode = value;
                     });
                   },
                 ),
@@ -611,14 +594,12 @@ class _FreelancerRegistrationPageState
           Row(
             children: [
               SizedBox(
-                width: 80,
-                child: _buildDropdownField(
-                  label: '',
+                width: 120,
+                child: PhoneCodeDropdown(
                   value: _mobileCountryCode,
-                  items: ['+91', '+1', '+44', '+86'],
                   onChanged: (value) {
                     setState(() {
-                      _mobileCountryCode = value!;
+                      _mobileCountryCode = value;
                     });
                   },
                 ),
@@ -654,6 +635,7 @@ class _FreelancerRegistrationPageState
     required String hint,
     TextInputType keyboardType = TextInputType.text,
     String? suffixText,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -678,8 +660,8 @@ class _FreelancerRegistrationPageState
           ),
           child: TextFormField(
             controller: controller,
+            enabled: enabled && !_isLoading,
             keyboardType: keyboardType,
-            enabled: !_isLoading,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,

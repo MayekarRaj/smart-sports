@@ -447,7 +447,9 @@ class _FreelancerMembershipPlanPageState
               return _buildServiceOption(
                 serviceKey,
                 service.name,
-                service.description2.isNotEmpty ? service.description2 : service.description1,
+                (service.description2?.isNotEmpty == true) 
+                    ? service.description2! 
+                    : (service.description1 ?? ''),
                 service.amountValue,
                 hasClubTypes: hasClubTypes,
                 userCount: isUsers ? 4 : null,

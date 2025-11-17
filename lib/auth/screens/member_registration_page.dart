@@ -321,11 +321,19 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
                       },
                     ),
                     const SizedBox(height: 16),
+                    Text(
+                      'Practice Time',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
                     Row(
                       children: [
                         Expanded(
                           child: _buildTimeField(
-                            label: 'Practice Time',
+                            label: '',
                             value: _practiceStartTime,
                             onTap: () => _selectTime(context, true),
                           ),
@@ -396,13 +404,21 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
                       ),
                     ],
                     const SizedBox(height: 16),
+                    Text(
+                      'Distance',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
                     Row(
                       children: [
                         Expanded(
                           flex: 2,
                           child: _buildTextField(
                             controller: _distanceController,
-                            label: 'Distance',
+                            label: '',
                             hint: '5',
                             keyboardType: TextInputType.number,
                           ),
@@ -540,6 +556,17 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
                         ],
                       ),
                       const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Office Number',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                      ),
                       Row(
                         children: [
                           SizedBox(
@@ -559,7 +586,7 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
                           Expanded(
                             child: _buildTextField(
                               controller: _officeNumberController,
-                              label: 'Office Number',
+                              label: '',
                               hint: '9876543210',
                               keyboardType: TextInputType.phone,
                             ),
@@ -567,6 +594,17 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
                         ],
                       ),
                       const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Mobile Number',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                      ),
                       Row(
                         children: [
                           SizedBox(
@@ -586,7 +624,7 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
                           Expanded(
                             child: _buildTextField(
                               controller: _mobileNumberController,
-                              label: 'Mobile Number',
+                              label: '',
                               hint: '9876543210',
                               keyboardType: TextInputType.phone,
                             ),

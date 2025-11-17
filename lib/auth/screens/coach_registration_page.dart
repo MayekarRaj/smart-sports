@@ -6,6 +6,8 @@ import '../../core/repositories/auth_repository.dart';
 import '../../core/exceptions/api_exception.dart';
 import '../../core/utils/phone_parser.dart';
 import '../../core/utils/file_utils.dart';
+import '../widgets/city_search_field.dart';
+import '../widgets/phone_code_dropdown.dart';
 import 'membership_plan_page.dart';
 
 // Helper class for club data
@@ -81,6 +83,8 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
   final _officeNumberController = TextEditingController();
   final _mobileNumberController = TextEditingController();
   final _websiteController = TextEditingController();
+  String? _officePhoneCode;
+  String? _mobilePhoneCode;
 
   @override
   void initState() {
@@ -375,6 +379,7 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
     required String hint,
     TextInputType keyboardType = TextInputType.text,
     String? suffixText,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -396,6 +401,7 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
           ),
           child: TextFormField(
             controller: controller,
+            enabled: enabled,
             keyboardType: keyboardType,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             decoration: InputDecoration(
@@ -1012,67 +1018,50 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
             hint: 'Enter address line 2',
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDropdownField(
-                  label: 'City',
-                  value: _cityController.text.isNotEmpty ? _cityController.text : null,
-                  items: const ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix'],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _cityController.text = value;
-                      });
-                    }
-                  },
+            Row(
+              children: [
+                Expanded(
+                  child: CitySearchField(
+                    cityController: _cityController,
+                    stateController: _stateController,
+                    countryController: _countryController,
+                    label: 'City',
+                    hint: 'Enter city name',
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildDropdownField(
-                  label: 'State',
-                  value: _stateController.text.isNotEmpty ? _stateController.text : null,
-                  items: const ['NY', 'CA', 'TX', 'FL', 'IL'],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _stateController.text = value;
-                      });
-                    }
-                  },
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTextField(
+                    controller: _stateController,
+                    label: 'State',
+                    hint: 'State',
+                    enabled: false, // Auto-filled from city
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextField(
-                  controller: _zipController,
-                  label: 'Zip Code',
-                  hint: 'Enter zip code',
-                  keyboardType: TextInputType.number,
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: _zipController,
+                    label: 'Zip Code',
+                    hint: 'Enter zip code',
+                    keyboardType: TextInputType.number,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildDropdownField(
-                  label: 'Country',
-                  value: _countryController.text.isNotEmpty ? _countryController.text : null,
-                  items: const ['USA', 'Canada', 'Mexico', 'UK', 'Australia'],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _countryController.text = value;
-                      });
-                    }
-                  },
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTextField(
+                    controller: _countryController,
+                    label: 'Country',
+                    hint: 'Country',
+                    enabled: false, // Auto-filled from city
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );
@@ -1132,20 +1121,50 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
           const SizedBox(height: 16),
           Row(
             children: [
+              SizedBox(
+                width: 100,
+                child: PhoneCodeDropdown(
+                  value: _officePhoneCode,
+                  onChanged: (value) {
+                    setState(() {
+                      _officePhoneCode = value;
+                    });
+                  },
+                  label: '',
+                ),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildTextField(
                   controller: _officeNumberController,
                   label: 'Office Number',
-                  hint: 'Enter office number',
+                  hint: '1234567890',
                   keyboardType: TextInputType.phone,
                 ),
               ),
-              const SizedBox(width: 12),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              SizedBox(
+                width: 100,
+                child: PhoneCodeDropdown(
+                  value: _mobilePhoneCode,
+                  onChanged: (value) {
+                    setState(() {
+                      _mobilePhoneCode = value;
+                    });
+                  },
+                  label: '',
+                ),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildTextField(
                   controller: _mobileNumberController,
                   label: 'Mobile Number',
-                  hint: 'Enter mobile number',
+                  hint: '9876543210',
                   keyboardType: TextInputType.phone,
                 ),
               ),
@@ -1300,9 +1319,11 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Parse phone numbers
-      final officePhone = PhoneParser.parsePhoneNumber(_officeNumberController.text);
-      final mobilePhone = PhoneParser.parsePhoneNumber(_mobileNumberController.text);
+      // Get phone codes and numbers
+      final officePhoneCode = _officePhoneCode ?? '';
+      final mobilePhoneCode = _mobilePhoneCode ?? '';
+      final officePhoneNumber = _officeNumberController.text.trim();
+      final mobilePhoneNumber = _mobileNumberController.text.trim();
 
       // Convert certificate files to base64 (with size validation)
       final experienceLevels = <CoachExperienceLevel>[];
@@ -1421,23 +1442,23 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
                 : null,
         officePhoneExt: _contactDetailsSameAsSignup
             ? null
-            : officePhone['ext']?.isNotEmpty == true
-                ? officePhone['ext']
+            : officePhoneCode.isNotEmpty
+                ? officePhoneCode
                 : null,
         officePhone: _contactDetailsSameAsSignup
             ? null
-            : officePhone['number']?.isNotEmpty == true
-                ? officePhone['number']
+            : officePhoneNumber.isNotEmpty
+                ? officePhoneNumber
                 : null,
         mobilePhoneExt: _contactDetailsSameAsSignup
             ? null
-            : mobilePhone['ext']?.isNotEmpty == true
-                ? mobilePhone['ext']
+            : mobilePhoneCode.isNotEmpty
+                ? mobilePhoneCode
                 : null,
         mobilePhone: _contactDetailsSameAsSignup
             ? null
-            : mobilePhone['number']?.isNotEmpty == true
-                ? mobilePhone['number']
+            : mobilePhoneNumber.isNotEmpty
+                ? mobilePhoneNumber
                 : null,
         companyWebsite: _contactDetailsSameAsSignup
             ? null

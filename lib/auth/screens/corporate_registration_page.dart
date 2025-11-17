@@ -5,6 +5,8 @@ import '../../core/models/api_models.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../../core/exceptions/api_exception.dart';
 import '../../core/utils/phone_parser.dart';
+import '../widgets/city_search_field.dart';
+import '../widgets/phone_code_dropdown.dart';
 import 'corporate_membership_plan_page.dart';
 
 class CorporateRegistrationPage extends ConsumerStatefulWidget {
@@ -42,13 +44,11 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
   // Contact Details Controllers
   final _designationController = TextEditingController();
   final _departmentController = TextEditingController();
-  final _officeNumberController = TextEditingController(
-    text: '+91 - 9876543210',
-  );
-  final _mobileNumberController = TextEditingController(
-    text: '+91 - 9876543210',
-  );
+  final _officeNumberController = TextEditingController();
+  final _mobileNumberController = TextEditingController();
   final _websiteController = TextEditingController(text: 'https://abc.com');
+  String? _officePhoneCode;
+  String? _mobilePhoneCode;
 
   @override
   void dispose() {
@@ -349,20 +349,21 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
           Row(
             children: [
               Expanded(
-                child: _buildDropdownField(
+                child: CitySearchField(
+                  cityController: _cityController,
+                  stateController: _stateController,
+                  countryController: _countryController,
                   label: 'City',
-                  value: _cityController.text,
-                  items: ['Xyz', 'City 1', 'City 2'],
-                  onChanged: (value) => _cityController.text = value!,
+                  hint: 'Enter city name',
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildDropdownField(
+                child: _buildTextField(
+                  controller: _stateController,
                   label: 'State',
-                  value: _stateController.text,
-                  items: ['Xyz', 'State 1', 'State 2'],
-                  onChanged: (value) => _stateController.text = value!,
+                  hint: 'State',
+                  enabled: false, // Auto-filled from city
                 ),
               ),
             ],
@@ -380,11 +381,11 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildDropdownField(
+                child: _buildTextField(
+                  controller: _countryController,
                   label: 'Country',
-                  value: _countryController.text,
-                  items: ['Xyz', 'Country 1', 'Country 2'],
-                  onChanged: (value) => _countryController.text = value!,
+                  hint: 'Country',
+                  enabled: false, // Auto-filled from city
                 ),
               ),
             ],
@@ -448,6 +449,18 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
           const SizedBox(height: 16),
           Row(
             children: [
+              SizedBox(
+                width: 120,
+                child: PhoneCodeDropdown(
+                  value: _officePhoneCode,
+                  onChanged: (value) {
+                    setState(() {
+                      _officePhoneCode = value;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildTextField(
                   controller: _officeNumberController,
@@ -456,7 +469,23 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
                   keyboardType: TextInputType.phone,
                 ),
               ),
-              const SizedBox(width: 12),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              SizedBox(
+                width: 120,
+                child: PhoneCodeDropdown(
+                  value: _mobilePhoneCode,
+                  onChanged: (value) {
+                    setState(() {
+                      _mobilePhoneCode = value;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildTextField(
                   controller: _mobileNumberController,
@@ -484,6 +513,7 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
     required String label,
     required String hint,
     TextInputType keyboardType = TextInputType.text,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -505,6 +535,7 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
           ),
           child: TextFormField(
             controller: controller,
+            enabled: enabled,
             keyboardType: keyboardType,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             decoration: InputDecoration(
@@ -685,8 +716,9 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
 
     try {
       // Parse phone numbers
-      final officePhone = PhoneParser.parsePhoneNumber(_officeNumberController.text);
-      final mobilePhone = PhoneParser.parsePhoneNumber(_mobileNumberController.text);
+      // Phone numbers are now separate from codes
+      final officePhoneNumber = _officeNumberController.text.trim();
+      final mobilePhoneNumber = _mobileNumberController.text.trim();
 
       // Map invoice type
       // "Monthly Invoice To Company" = 1, "Employees Pay By Themselves" = 0
@@ -725,18 +757,10 @@ class _CorporateRegistrationPageState extends ConsumerState<CorporateRegistratio
                 department: _departmentController.text.trim().isNotEmpty
                     ? _departmentController.text.trim()
                     : null,
-                officePhoneExt: officePhone['ext']?.isNotEmpty == true
-                    ? officePhone['ext']
-                    : null,
-                officePhone: officePhone['number']?.isNotEmpty == true
-                    ? officePhone['number']
-                    : null,
-                mobilePhoneExt: mobilePhone['ext']?.isNotEmpty == true
-                    ? mobilePhone['ext']
-                    : null,
-                mobilePhone: mobilePhone['number']?.isNotEmpty == true
-                    ? mobilePhone['number']
-                    : null,
+                officePhoneExt: _officePhoneCode,
+                officePhone: officePhoneNumber.isNotEmpty ? officePhoneNumber : null,
+                mobilePhoneExt: _mobilePhoneCode,
+                mobilePhone: mobilePhoneNumber.isNotEmpty ? mobilePhoneNumber : null,
                 companyWebsite: _websiteController.text.trim().isNotEmpty
                     ? _websiteController.text.trim()
                     : null,

@@ -5,6 +5,8 @@ import '../../core/exceptions/api_exception.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/utils/phone_parser.dart';
 import '../widgets/sports_multi_select.dart';
+import '../widgets/city_search_field.dart';
+import '../widgets/phone_code_dropdown.dart';
 import 'club_membership_plan_page.dart';
 
 class ClubRegistrationPage extends StatefulWidget {
@@ -114,6 +116,10 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         'officeNumber': TextEditingController(),
         'mobileNumber': TextEditingController(),
         'website': TextEditingController(),
+      },
+      'phoneCodes': {
+        'officeCode': null as String?,
+        'mobileCode': null as String?,
       },
       'operationalTimes': [
         {'days': 'Weekdays', 'startTime': '09:00', 'endTime': '18:00'},
@@ -226,9 +232,12 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         throw ValidationException('Please add at least one operational time slot');
       }
 
-      // Parse phone numbers
-      final officePhoneParsed = PhoneParser.parsePhoneNumber(contactControllers['officeNumber']!.text);
-      final mobilePhoneParsed = PhoneParser.parsePhoneNumber(contactControllers['mobileNumber']!.text);
+      // Get phone codes and numbers
+      final phoneCodes = firstBranch['phoneCodes'] as Map<String, String?>;
+      final officePhoneCode = phoneCodes['officeCode'] ?? '';
+      final mobilePhoneCode = phoneCodes['mobileCode'] ?? '';
+      final officePhoneNumber = contactControllers['officeNumber']!.text.trim();
+      final mobilePhoneNumber = contactControllers['mobileNumber']!.text.trim();
 
       // Build operational details
       final operationalDetails = operationalTimes.map((time) {
@@ -258,10 +267,10 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           isContactDetailsIsSameUser: isContactSame ? 1 : 0,
           designation: contactControllers['designation']!.text.trim(),
           department: contactControllers['department']!.text.trim(),
-          officePhoneExt: officePhoneParsed['ext'] ?? '',
-          officePhone: officePhoneParsed['number'] ?? '',
-          mobilePhoneExt: mobilePhoneParsed['ext'] ?? '',
-          mobilePhone: mobilePhoneParsed['number'] ?? '',
+          officePhoneExt: officePhoneCode,
+          officePhone: officePhoneNumber,
+          mobilePhoneExt: mobilePhoneCode,
+          mobilePhone: mobilePhoneNumber,
           companyWebsite: contactControllers['website']!.text.trim(),
           sportsIsSameAsUser: 0, // We're providing sports
           sportsNames: sports,
@@ -299,10 +308,10 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           isContactDetailsIsSameUser: isContactSame ? 1 : 0,
           designation: contactControllers['designation']!.text.trim(),
           department: contactControllers['department']!.text.trim(),
-          officePhoneExt: officePhoneParsed['ext'] ?? '',
-          officePhone: officePhoneParsed['number'] ?? '',
-          mobilePhoneExt: mobilePhoneParsed['ext'] ?? '',
-          mobilePhone: mobilePhoneParsed['number'] ?? '',
+          officePhoneExt: officePhoneCode,
+          officePhone: officePhoneNumber,
+          mobilePhoneExt: mobilePhoneCode,
+          mobilePhone: mobilePhoneNumber,
           companyWebsite: contactControllers['website']!.text.trim(),
           sportsIsSameAsUser: 0,
           sportsNames: sports,
@@ -324,9 +333,12 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           final isAddressSame = branch['addressSameAsSignup'] as bool;
           final isContactSame = branch['contactSameAsSignup'] as bool;
 
-          // Parse phone numbers
-          final branchOfficePhoneParsed = PhoneParser.parsePhoneNumber(branchContactControllers['officeNumber']!.text);
-          final branchMobilePhoneParsed = PhoneParser.parsePhoneNumber(branchContactControllers['mobileNumber']!.text);
+          // Get phone codes and numbers
+          final branchPhoneCodes = branch['phoneCodes'] as Map<String, String?>;
+          final branchOfficePhoneCode = branchPhoneCodes['officeCode'] ?? '';
+          final branchMobilePhoneCode = branchPhoneCodes['mobileCode'] ?? '';
+          final branchOfficePhoneNumber = branchContactControllers['officeNumber']!.text.trim();
+          final branchMobilePhoneNumber = branchContactControllers['mobileNumber']!.text.trim();
 
           // Build operational details
           final branchOperationalDetails = branchOperationalTimes.map((time) {
@@ -350,10 +362,10 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             isContactSameAsUser: isContactSame ? 1 : 0,
             designation: isContactSame ? null : (branchContactControllers['designation']!.text.trim().isEmpty ? null : branchContactControllers['designation']!.text.trim()),
             department: isContactSame ? null : (branchContactControllers['department']!.text.trim().isEmpty ? null : branchContactControllers['department']!.text.trim()),
-            officePhoneExt: isContactSame ? null : ((branchOfficePhoneParsed['ext'] ?? '').isEmpty ? null : branchOfficePhoneParsed['ext']),
-            officePhone: isContactSame ? null : ((branchOfficePhoneParsed['number'] ?? '').isEmpty ? null : branchOfficePhoneParsed['number']),
-            mobilePhoneExt: isContactSame ? null : ((branchMobilePhoneParsed['ext'] ?? '').isEmpty ? null : branchMobilePhoneParsed['ext']),
-            mobilePhone: isContactSame ? null : ((branchMobilePhoneParsed['number'] ?? '').isEmpty ? null : branchMobilePhoneParsed['number']),
+            officePhoneExt: isContactSame ? null : (branchOfficePhoneCode.isEmpty ? null : branchOfficePhoneCode),
+            officePhone: isContactSame ? null : (branchOfficePhoneNumber.isEmpty ? null : branchOfficePhoneNumber),
+            mobilePhoneExt: isContactSame ? null : (branchMobilePhoneCode.isEmpty ? null : branchMobilePhoneCode),
+            mobilePhone: isContactSame ? null : (branchMobilePhoneNumber.isEmpty ? null : branchMobilePhoneNumber),
             companyWebsite: isContactSame ? null : (branchContactControllers['website']!.text.trim().isEmpty ? null : branchContactControllers['website']!.text.trim()),
             operationalDetails: branchOperationalDetails,
           );
@@ -630,6 +642,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     required String hint,
     TextInputType keyboardType = TextInputType.text,
     String? suffixText,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -651,6 +664,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           ),
           child: TextFormField(
             controller: controller,
+            enabled: enabled,
             keyboardType: keyboardType,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             decoration: InputDecoration(
@@ -744,7 +758,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           ),
           if (!(branchData['contactSameAsSignup'] as bool)) ...[
             const SizedBox(height: 16),
-            _buildContactDetailsSubSection(contactControllers),
+            _buildContactDetailsSubSection(contactControllers, branchData),
           ],
           const SizedBox(height: 16),
           _buildClubOperationalDetailsSubSection(branchData),
@@ -792,32 +806,21 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         Row(
           children: [
             Expanded(
-              child: _buildDropdownField(
+              child: CitySearchField(
+                cityController: controllers['city']!,
+                stateController: controllers['state']!,
+                countryController: controllers['country']!,
                 label: 'City',
-                value: controllers['city']!.text,
-                items: ['Xyz', 'City 1', 'City 2'],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      controllers['city']!.text = value;
-                    });
-                  }
-                },
+                hint: 'Enter city name',
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildDropdownField(
+              child: _buildTextField(
+                controller: controllers['state']!,
                 label: 'State',
-                value: controllers['state']!.text,
-                items: ['Xyz', 'State 1', 'State 2'],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      controllers['state']!.text = value;
-                    });
-                  }
-                },
+                hint: 'State',
+                enabled: false, // Auto-filled from city
               ),
             ),
           ],
@@ -835,17 +838,11 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildDropdownField(
+              child: _buildTextField(
+                controller: controllers['country']!,
                 label: 'Country',
-                value: controllers['country']!.text,
-                items: ['Xyz', 'Country 1', 'Country 2'],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      controllers['country']!.text = value;
-                    });
-                  }
-                },
+                hint: 'Country',
+                enabled: false, // Auto-filled from city
               ),
             ),
           ],
@@ -856,6 +853,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
 
   Widget _buildContactDetailsSubSection(
     Map<String, TextEditingController> controllers,
+    Map<String, dynamic> branchData,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -898,20 +896,50 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         const SizedBox(height: 16),
         Row(
           children: [
+            SizedBox(
+              width: 100,
+              child: PhoneCodeDropdown(
+                value: branchData['phoneCodes']['officeCode'] as String?,
+                onChanged: (value) {
+                  setState(() {
+                    branchData['phoneCodes']['officeCode'] = value;
+                  });
+                },
+                label: '',
+              ),
+            ),
+            const SizedBox(width: 8),
             Expanded(
               child: _buildTextField(
                 controller: controllers['officeNumber']!,
                 label: 'Office Number',
-                hint: '+91 - 1234567890',
+                hint: '1234567890',
                 keyboardType: TextInputType.phone,
               ),
             ),
-            const SizedBox(width: 12),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            SizedBox(
+              width: 100,
+              child: PhoneCodeDropdown(
+                value: branchData['phoneCodes']['mobileCode'] as String?,
+                onChanged: (value) {
+                  setState(() {
+                    branchData['phoneCodes']['mobileCode'] = value;
+                  });
+                },
+                label: '',
+              ),
+            ),
+            const SizedBox(width: 8),
             Expanded(
               child: _buildTextField(
                 controller: controllers['mobileNumber']!,
                 label: 'Mobile Number',
-                hint: '+91 - 9876543210',
+                hint: '9876543210',
                 keyboardType: TextInputType.phone,
               ),
             ),

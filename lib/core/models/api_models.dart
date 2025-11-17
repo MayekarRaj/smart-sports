@@ -1314,9 +1314,9 @@ class PaidService {
   final String iconName;
   final String name;
   @JsonKey(name: 'description_1')
-  final String description1;
+  final String? description1;
   @JsonKey(name: 'description_2')
-  final String description2;
+  final String? description2;
   final String amount;
   @JsonKey(name: 'is_active')
   final int isActive;
@@ -1332,8 +1332,8 @@ class PaidService {
     required this.userRole,
     required this.iconName,
     required this.name,
-    required this.description1,
-    required this.description2,
+    this.description1,
+    this.description2,
     required this.amount,
     required this.isActive,
     required this.isDeleted,
@@ -1866,4 +1866,406 @@ class MemberSignupResponse {
       _$MemberSignupResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$MemberSignupResponseToJson(this);
+}
+
+// ==================== Family Member Signup ====================
+
+@JsonSerializable()
+class FamilyMemberSignupRequest {
+  @JsonKey(name: 'family_members')
+  final List<FamilyMember> familyMembers;
+
+  FamilyMemberSignupRequest({
+    required this.familyMembers,
+  });
+
+  factory FamilyMemberSignupRequest.fromJson(Map<String, dynamic> json) =>
+      _$FamilyMemberSignupRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FamilyMemberSignupRequestToJson(this);
+}
+
+@JsonSerializable()
+class FamilyMember {
+  final String firstname;
+  final String lastname;
+  final String email;
+  final String dob; // Format: "YYYY-MM-DD"
+  final String gender;
+  final String designation;
+  final String department;
+  @JsonKey(name: 'mobile_phone_ext')
+  final String mobilePhoneExt;
+  @JsonKey(name: 'mobile_phone')
+  final String mobilePhone;
+  @JsonKey(name: 'office_phone_ext')
+  final String officePhoneExt;
+  @JsonKey(name: 'office_phone')
+  final String officePhone;
+  @JsonKey(name: 'membership_type')
+  final String membershipType;
+  @JsonKey(name: 'sports_interested_in')
+  final List<String> sportsInterestedIn;
+  @JsonKey(name: 'is_address_is_same_as_user')
+  final int isAddressIsSameAsUser;
+  @JsonKey(name: 'zip_code')
+  final String? zipCode;
+  final String? city;
+  final String? state;
+  final String? country;
+  @JsonKey(name: 'address_line_1')
+  final String? addressLine1;
+  @JsonKey(name: 'address_line_2')
+  final String? addressLine2;
+  @JsonKey(name: 'address_line_3')
+  final String? addressLine3;
+  @JsonKey(name: 'is_practice_plan_same_main_member')
+  final int isPracticePlanSameMainMember;
+  @JsonKey(name: 'practice_plans')
+  final List<PracticePlan> practicePlans;
+  @JsonKey(name: 'is_preferred_clubs_same_main_member')
+  final int isPreferredClubsSameMainMember;
+  @JsonKey(name: 'preferred_club')
+  final List<int> preferredClub;
+
+  FamilyMember({
+    required this.firstname,
+    required this.lastname,
+    required this.email,
+    required this.dob,
+    required this.gender,
+    required this.designation,
+    required this.department,
+    required this.mobilePhoneExt,
+    required this.mobilePhone,
+    required this.officePhoneExt,
+    required this.officePhone,
+    required this.membershipType,
+    required this.sportsInterestedIn,
+    required this.isAddressIsSameAsUser,
+    this.zipCode,
+    this.city,
+    this.state,
+    this.country,
+    this.addressLine1,
+    this.addressLine2,
+    this.addressLine3,
+    required this.isPracticePlanSameMainMember,
+    required this.practicePlans,
+    required this.isPreferredClubsSameMainMember,
+    required this.preferredClub,
+  });
+
+  factory FamilyMember.fromJson(Map<String, dynamic> json) =>
+      _$FamilyMemberFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FamilyMemberToJson(this);
+}
+
+@JsonSerializable()
+class FamilyMemberSignupResponse {
+  final bool success;
+  final String message;
+  final List<FamilyMemberResponse> data;
+
+  FamilyMemberSignupResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory FamilyMemberSignupResponse.fromJson(Map<String, dynamic> json) =>
+      _$FamilyMemberSignupResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FamilyMemberSignupResponseToJson(this);
+}
+
+@JsonSerializable()
+class FamilyMemberResponse {
+  @JsonKey(name: 'user_id')
+  final int userId;
+  @JsonKey(name: 'member_id')
+  final int memberId;
+  final String firstname;
+  final String lastname;
+  final String email;
+  final String dob;
+  final String gender;
+  @JsonKey(name: 'mobile_phone_ext')
+  final String mobilePhoneExt;
+  @JsonKey(name: 'mobile_phone')
+  final String mobilePhone;
+  @JsonKey(name: 'membership_type')
+  final String membershipType;
+  @JsonKey(name: 'sports_interested_in')
+  final String sportsInterestedIn; // JSON string
+  @JsonKey(name: 'is_address_is_same_as_user')
+  final int isAddressIsSameAsUser;
+  @JsonKey(name: 'address_id')
+  final int? addressId;
+  @JsonKey(name: 'is_practice_plan_same_main_member')
+  final int isPracticePlanSameMainMember;
+  @JsonKey(name: 'is_preferred_clubs_same_main_member')
+  final int isPreferredClubsSameMainMember;
+  @JsonKey(name: 'preferred_club')
+  final String preferredClub; // JSON string
+  @JsonKey(name: 'is_deleted')
+  final int isDeleted;
+  @JsonKey(name: 'created_at')
+  final String createdAt;
+  @JsonKey(name: 'updated_at')
+  final String updatedAt;
+  final int id;
+
+  FamilyMemberResponse({
+    required this.userId,
+    required this.memberId,
+    required this.firstname,
+    required this.lastname,
+    required this.email,
+    required this.dob,
+    required this.gender,
+    required this.mobilePhoneExt,
+    required this.mobilePhone,
+    required this.membershipType,
+    required this.sportsInterestedIn,
+    required this.isAddressIsSameAsUser,
+    this.addressId,
+    required this.isPracticePlanSameMainMember,
+    required this.isPreferredClubsSameMainMember,
+    required this.preferredClub,
+    required this.isDeleted,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.id,
+  });
+
+  factory FamilyMemberResponse.fromJson(Map<String, dynamic> json) =>
+      _$FamilyMemberResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FamilyMemberResponseToJson(this);
+}
+
+// ==================== Member Preferred Clubs ====================
+
+@JsonSerializable()
+class MemberPreferredClubsResponse {
+  final bool success;
+  final String message;
+  final MemberPreferredClubsData data;
+
+  MemberPreferredClubsResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory MemberPreferredClubsResponse.fromJson(Map<String, dynamic> json) =>
+      _$MemberPreferredClubsResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MemberPreferredClubsResponseToJson(this);
+}
+
+@JsonSerializable()
+class MemberPreferredClubsData {
+  @JsonKey(name: 'user_id')
+  final String userId;
+  final List<MemberPreferredClub> data;
+
+  MemberPreferredClubsData({
+    required this.userId,
+    required this.data,
+  });
+
+  factory MemberPreferredClubsData.fromJson(Map<String, dynamic> json) =>
+      _$MemberPreferredClubsDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MemberPreferredClubsDataToJson(this);
+}
+
+@JsonSerializable()
+class MemberPreferredClub {
+  @JsonKey(name: 'club_id')
+  final int clubId;
+  @JsonKey(name: 'club_name')
+  final String clubName;
+
+  MemberPreferredClub({
+    required this.clubId,
+    required this.clubName,
+  });
+
+  factory MemberPreferredClub.fromJson(Map<String, dynamic> json) =>
+      _$MemberPreferredClubFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MemberPreferredClubToJson(this);
+}
+
+// ==================== City Search ====================
+
+@JsonSerializable()
+class CitySearchResponse {
+  final bool success;
+  @JsonKey(name: 'search_name')
+  final String searchName;
+  final String message;
+  final List<City> data;
+
+  CitySearchResponse({
+    required this.success,
+    required this.searchName,
+    required this.message,
+    required this.data,
+  });
+
+  factory CitySearchResponse.fromJson(Map<String, dynamic> json) =>
+      _$CitySearchResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CitySearchResponseToJson(this);
+}
+
+@JsonSerializable()
+class City {
+  final int id;
+  final String name;
+  @JsonKey(name: 'state_id')
+  final int stateId;
+  @JsonKey(name: 'city_short_name')
+  final String? cityShortName;
+  final int status;
+  @JsonKey(name: 'created_on')
+  final String? createdOn;
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+  @JsonKey(name: 'updated_at')
+  final String? updatedAt;
+
+  City({
+    required this.id,
+    required this.name,
+    required this.stateId,
+    this.cityShortName,
+    required this.status,
+    this.createdOn,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory City.fromJson(Map<String, dynamic> json) =>
+      _$CityFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CityToJson(this);
+}
+
+// ==================== City Details (State & Country) ====================
+
+@JsonSerializable()
+class CityDetailsResponse {
+  final bool success;
+  final CityDetailsData data;
+
+  CityDetailsResponse({
+    required this.success,
+    required this.data,
+  });
+
+  factory CityDetailsResponse.fromJson(Map<String, dynamic> json) =>
+      _$CityDetailsResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CityDetailsResponseToJson(this);
+}
+
+@JsonSerializable()
+class CityDetailsData {
+  @JsonKey(name: 'city_name')
+  final String cityName;
+  @JsonKey(name: 'city_short_name')
+  final String? cityShortName;
+  @JsonKey(name: 'state_id')
+  final int stateId;
+  final int status;
+  @JsonKey(name: 'created_on')
+  final String? createdOn;
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+  @JsonKey(name: 'updated_at')
+  final String? updatedAt;
+  @JsonKey(name: 'state_name')
+  final String stateName;
+  @JsonKey(name: 'state_short_name')
+  final String? stateShortName;
+  @JsonKey(name: 'country_id')
+  final int countryId;
+  @JsonKey(name: 'country_name')
+  final String countryName;
+  @JsonKey(name: 'country_short_name')
+  final String? countryShortName;
+  @JsonKey(name: 'country_currency')
+  final String countryCurrency;
+  @JsonKey(name: 'currency_symbol')
+  final String currencySymbol;
+
+  CityDetailsData({
+    required this.cityName,
+    this.cityShortName,
+    required this.stateId,
+    required this.status,
+    this.createdOn,
+    this.createdAt,
+    this.updatedAt,
+    required this.stateName,
+    this.stateShortName,
+    required this.countryId,
+    required this.countryName,
+    this.countryShortName,
+    required this.countryCurrency,
+    required this.currencySymbol,
+  });
+
+  factory CityDetailsData.fromJson(Map<String, dynamic> json) =>
+      _$CityDetailsDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CityDetailsDataToJson(this);
+}
+
+// ==================== Phone Codes ====================
+
+@JsonSerializable()
+class PhoneCodeResponse {
+  final bool success;
+  final String message;
+  final List<PhoneCode> data;
+
+  PhoneCodeResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory PhoneCodeResponse.fromJson(Map<String, dynamic> json) =>
+      _$PhoneCodeResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PhoneCodeResponseToJson(this);
+}
+
+@JsonSerializable()
+class PhoneCode {
+  final int id;
+  @JsonKey(name: 'country_name')
+  final String countryName;
+  @JsonKey(name: 'country_short_name')
+  final String? countryShortName;
+  final int phonecode;
+
+  PhoneCode({
+    required this.id,
+    required this.countryName,
+    this.countryShortName,
+    required this.phonecode,
+  });
+
+  factory PhoneCode.fromJson(Map<String, dynamic> json) =>
+      _$PhoneCodeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PhoneCodeToJson(this);
 }

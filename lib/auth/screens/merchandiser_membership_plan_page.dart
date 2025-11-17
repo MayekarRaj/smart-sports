@@ -510,7 +510,9 @@ class _MerchandiserMembershipPlanPageState
               return _buildServiceOption(
                 serviceKey,
                 service.name,
-                service.description2.isNotEmpty ? service.description2 : service.description1,
+                (service.description2?.isNotEmpty == true) 
+                    ? service.description2! 
+                    : (service.description1 ?? ''),
                 service.amountValue,
                 hasClubTypes: hasClubTypes,
                 branchCount: isBranches ? 4 : null,

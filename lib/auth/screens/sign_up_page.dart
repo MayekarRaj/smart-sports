@@ -7,6 +7,8 @@ import '../../core/exceptions/api_exception.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../widgets/rounded_text_field.dart';
 import '../widgets/password_field.dart';
+import '../widgets/city_search_field.dart';
+import '../widgets/phone_code_dropdown.dart';
 import 'role_selection_page.dart';
 import 'verify_email_page.dart';
 import '../widgets/sports_multi_select.dart';
@@ -35,6 +37,8 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   final officePhone = TextEditingController();
   final mobilePhone = TextEditingController();
   final companyWebsite = TextEditingController();
+  String? _officePhoneCode;
+  String? _mobilePhoneCode;
 
   final List<String> _selectedSports = [];
   final List<String> _allSports = const [
@@ -165,9 +169,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
       country: country.text.trim().isNotEmpty ? country.text.trim() : null,
       addressLine1: address.text.trim().isNotEmpty ? address.text.trim() : null,
       addressLine2: address2.text.trim().isNotEmpty ? address2.text.trim() : null,
-      officePhoneExt: null, // Not in current form
+      officePhoneExt: _officePhoneCode,
       officePhone: officePhone.text.trim().isNotEmpty ? officePhone.text.trim() : null,
-      mobilePhoneExt: null, // Not in current form
+      mobilePhoneExt: _mobilePhoneCode,
       mobilePhone: mobilePhone.text.trim().isNotEmpty ? mobilePhone.text.trim() : null,
       companyWebsite: companyWebsite.text.trim().isNotEmpty ? companyWebsite.text.trim() : null,
     );
@@ -352,11 +356,22 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             Row(
               children: [
                 Expanded(
-                  child: RoundedTextField(controller: city, hint: 'City'),
+                  child: CitySearchField(
+                    cityController: city,
+                    stateController: state,
+                    countryController: country,
+                    label: 'City',
+                    hint: 'Enter city name',
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: RoundedTextField(controller: state, hint: 'State'),
+                  child: RoundedTextField(
+                    controller: state,
+                    hint: 'State',
+                    enabled: true,
+                    readOnly: true, // Read-only, auto-filled from city
+                  ),
                 ),
               ],
             ),
@@ -372,7 +387,12 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: RoundedTextField(controller: country, hint: 'Country'),
+                  child: RoundedTextField(
+                    controller: country,
+                    hint: 'Country',
+                    enabled: true,
+                    readOnly: true, // Read-only, auto-filled from city
+                  ),
                 ),
               ],
             ),
@@ -384,6 +404,18 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             const SizedBox(height: 8),
             Row(
               children: [
+                SizedBox(
+                  width: 120,
+                  child: PhoneCodeDropdown(
+                    value: _officePhoneCode,
+                    onChanged: (value) {
+                      setState(() {
+                        _officePhoneCode = value;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: RoundedTextField(
                     controller: officePhone,
@@ -391,7 +423,23 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     keyboardType: TextInputType.phone,
                   ),
                 ),
-                const SizedBox(width: 12),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                SizedBox(
+                  width: 120,
+                  child: PhoneCodeDropdown(
+                    value: _mobilePhoneCode,
+                    onChanged: (value) {
+                      setState(() {
+                        _mobilePhoneCode = value;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: RoundedTextField(
                     controller: mobilePhone,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../../core/models/api_models.dart';
 import '../../core/exceptions/api_exception.dart';
+import '../../core/services/storage_service.dart';
 import 'payment_method_page.dart';
 
 class MemberMembershipPlanPage extends StatefulWidget {
@@ -14,6 +15,7 @@ class MemberMembershipPlanPage extends StatefulWidget {
 class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
   bool _isFreeMembership = true;
   final AuthRepository _authRepository = AuthRepository();
+  final StorageService _storageService = StorageService();
   bool _isSubmitting = false;
   bool _isLoadingServices = false;
   List<PaidService> _paidServices = [];
@@ -22,8 +24,13 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
   // Privilege services and totals - dynamically populated from API
   final Map<String, bool> _selectedServices = {};
 
-  // Selected club types for Priority Booking
-  final Set<String> _selectedClubTypes = {};
+  // Selected clubs for Priority Booking
+  final Set<int> _selectedClubIds = {};
+  
+  // Fetched clubs data
+  List<MemberPreferredClub> _clubs = [];
+  bool _isLoadingClubs = false;
+  String? _clubsError;
 
   double get _totalAmount {
     double total = 0;
@@ -97,6 +104,51 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
         setState(() {
           _errorMessage = 'Failed to load services: ${e.toString()}';
           _isLoadingServices = false;
+        });
+      }
+    }
+  }
+
+  /// Fetch member preferred clubs when Priority Booking is selected
+  Future<void> _fetchClubs() async {
+    if (_isLoadingClubs) return;
+
+    setState(() {
+      _isLoadingClubs = true;
+      _clubsError = null;
+    });
+
+    try {
+      // Get user_id from storage
+      final userIdString = await _storageService.getString('user_id');
+      if (userIdString == null || userIdString.isEmpty) {
+        throw Exception('User ID not found');
+      }
+      final userId = int.tryParse(userIdString);
+      if (userId == null) {
+        throw Exception('Invalid user ID');
+      }
+
+      final response = await _authRepository.getMemberPreferredClubs(userId);
+      
+      if (mounted) {
+        setState(() {
+          _clubs = response.data.data;
+          _isLoadingClubs = false;
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _clubsError = e.message;
+          _isLoadingClubs = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _clubsError = 'Failed to load clubs: ${e.toString()}';
+          _isLoadingClubs = false;
         });
       }
     }
@@ -392,7 +444,9 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
               return _buildServiceOption(
                 serviceKey,
                 service.name,
-                service.description2.isNotEmpty ? service.description2 : service.description1,
+                (service.description2?.isNotEmpty == true) 
+                    ? service.description2! 
+                    : (service.description1 ?? ''),
                 service.amountValue,
                 hasClubTypes: hasClubTypes,
               );
@@ -418,7 +472,12 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
     return InkWell(
       onTap: () {
         setState(() {
+          final wasSelected = isSelected;
           _selectedServices[key] = !isSelected;
+          // Fetch clubs when Priority Booking is being selected (toggled from false to true)
+          if (key == 'priority_booking' && !wasSelected && _clubs.isEmpty && !_isLoadingClubs) {
+            _fetchClubs();
+          }
         });
       },
       borderRadius: BorderRadius.circular(12),
@@ -521,23 +580,52 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
                 ),
               ),
             if (hasClubTypes && isSelected) ...[
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildClubTypeChip('Tennis Club'),
-                  _buildClubTypeChip('Baseball'),
-                  _buildClubTypeChip('Cricket'),
-                  _buildClubTypeChip('Basketball'),
-                  IconButton(
-                    icon: const Icon(Icons.arrow_drop_down, size: 20),
-                    onPressed: () {
-                      // Handle dropdown
-                    },
+              const SizedBox(height: 16),
+              if (_isLoadingClubs)
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_clubsError != null)
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ],
-              ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline, size: 16, color: Colors.red[700]),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _clubsError!,
+                          style: TextStyle(fontSize: 12, color: Colors.red[700]),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _fetchClubs,
+                        child: const Text('Retry', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                )
+              else if (_clubs.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'No clubs available',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                )
+              else
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ..._clubs.map((club) => _buildClubChip(club)),
+                  ],
+                ),
             ],
           ],
         ),
@@ -545,15 +633,15 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
     );
   }
 
-  Widget _buildClubTypeChip(String label) {
-    final isSelected = _selectedClubTypes.contains(label);
+  Widget _buildClubChip(MemberPreferredClub club) {
+    final isSelected = _selectedClubIds.contains(club.clubId);
     return GestureDetector(
       onTap: () {
         setState(() {
           if (isSelected) {
-            _selectedClubTypes.remove(label);
+            _selectedClubIds.remove(club.clubId);
           } else {
-            _selectedClubTypes.add(label);
+            _selectedClubIds.add(club.clubId);
           }
         });
       },
@@ -571,7 +659,7 @@ class _MemberMembershipPlanPageState extends State<MemberMembershipPlanPage> {
           ),
         ),
         child: Text(
-          label,
+          club.clubName,
           style: TextStyle(
             fontSize: 12,
             color: isSelected ? Colors.white : Colors.black87,

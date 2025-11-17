@@ -354,22 +354,26 @@ class AuthRepository extends BaseRepository {
   /// Get paid services list for a user role
   /// Returns PaidServicesResponse with list of paid services
   Future<PaidServicesResponse> getPaidServicesList(String userRole) async {
-    final response = await networkClient.get<List<dynamic>>(
+    // The API returns: {"success": true, "message": "...", "data": [...]}
+    // The network client will extract responseData['data'] if fromJson is provided
+    // So we need to get the full response without fromJson
+    final response = await networkClient.get<Map<String, dynamic>>(
       ApiEndpoints.getPaidServicesListUrl(userRole: userRole),
       requiresAuth: true,
-      fromJson: (data) => data as List<dynamic>,
+      fromJson: null, // Don't parse, get full response
     );
 
     if (response.success && response.hasData) {
-      // API returns response with data array, so we handle it specially
-      final dataList = response.dataOrThrow;
+      // response.dataOrThrow is the full response Map
+      final fullResponse = response.dataOrThrow as Map<String, dynamic>;
+      final dataList = fullResponse['data'] as List<dynamic>? ?? [];
       final services = dataList
           .map((item) => PaidService.fromJson(item as Map<String, dynamic>))
           .toList();
 
       return PaidServicesResponse(
-        success: true,
-        message: response.message,
+        success: fullResponse['success'] as bool? ?? true,
+        message: fullResponse['message'] as String? ?? response.message,
         data: services,
       );
     }
@@ -546,6 +550,133 @@ class AuthRepository extends BaseRepository {
 
     if (response.success && response.hasData) {
       return MemberSignupResponse.fromJson(response.dataOrThrow);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Family member signup (Step 2 for member registration)
+  /// Returns FamilyMemberSignupResponse with list of created family members
+  Future<FamilyMemberSignupResponse> familyMemberSignup(
+    FamilyMemberSignupRequest request,
+  ) async {
+    // The API returns: {"success": true, "message": "...", "data": [...]}
+    // The network client will extract responseData['data'] if fromJson is provided
+    // So we need to get the full response without fromJson
+    final response = await networkClient.post<Map<String, dynamic>>(
+      ApiEndpoints.getFamilyMemberSignupUrl(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: null, // Don't parse, get full response
+    );
+
+    if (response.success && response.hasData) {
+      // response.dataOrThrow is the full response Map
+      final fullResponse = response.dataOrThrow as Map<String, dynamic>;
+      return FamilyMemberSignupResponse.fromJson(fullResponse);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Get member preferred clubs list
+  /// Returns MemberPreferredClubsResponse with list of preferred clubs for the member
+  Future<MemberPreferredClubsResponse> getMemberPreferredClubs(int userId) async {
+    // The API returns: {"success": true, "message": "...", "data": {...}}
+    // The network client will extract responseData['data'] if fromJson is provided
+    // So we need to get the full response without fromJson
+    final response = await networkClient.get<Map<String, dynamic>>(
+      ApiEndpoints.getMemberPreferredClubsUrl(userId),
+      requiresAuth: true,
+      fromJson: null, // Don't parse, get full response
+    );
+
+    if (response.success && response.hasData) {
+      // response.dataOrThrow is the full response Map
+      final fullResponse = response.dataOrThrow as Map<String, dynamic>;
+      return MemberPreferredClubsResponse.fromJson(fullResponse);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Search cities by name
+  /// Returns CitySearchResponse with list of matching cities
+  Future<CitySearchResponse> searchCities(String searchTerm) async {
+    // The API returns: {"success": true, "search_name": "...", "message": "...", "data": [...]}
+    // The network client will extract responseData['data'] (which is a List) if fromJson is provided
+    // So we need to handle this differently - get the full response without fromJson
+    final response = await networkClient.get<Map<String, dynamic>>(
+      ApiEndpoints.getCitySearchUrl(searchTerm),
+      requiresAuth: false,
+      fromJson: null, // Don't parse, get full response
+    );
+
+    if (response.success && response.hasData) {
+      // response.dataOrThrow is the full response Map
+      final fullResponse = response.dataOrThrow as Map<String, dynamic>;
+      return CitySearchResponse.fromJson(fullResponse);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Get city details (state and country) by city ID
+  /// Returns CityDetailsResponse with state and country information
+  Future<CityDetailsResponse> getCityDetails(int cityId) async {
+    // The API returns: {"success": true, "data": {...}}
+    // The network client will extract responseData['data'] if fromJson is provided
+    // So we need to get the full response without fromJson
+    final response = await networkClient.get<Map<String, dynamic>>(
+      ApiEndpoints.getCityDetailsUrl(cityId),
+      requiresAuth: false,
+      fromJson: null, // Don't parse, get full response
+    );
+
+    if (response.success && response.hasData) {
+      // response.dataOrThrow is the full response Map
+      final fullResponse = response.dataOrThrow as Map<String, dynamic>;
+      return CityDetailsResponse.fromJson(fullResponse);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Get phone codes for all countries
+  /// Returns PhoneCodeResponse with list of countries and their phone codes
+  Future<PhoneCodeResponse> getPhoneCodes() async {
+    final response = await networkClient.get<List<dynamic>>(
+      ApiEndpoints.getPhoneCodesUrl(),
+      requiresAuth: false,
+      fromJson: (data) => data as List<dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      final dataList = response.dataOrThrow;
+      final phoneCodes = dataList
+          .map((item) => PhoneCode.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return PhoneCodeResponse(
+        success: true,
+        message: response.message,
+        data: phoneCodes,
+      );
     }
 
     throw ApiException(

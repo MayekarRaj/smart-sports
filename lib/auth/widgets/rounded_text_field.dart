@@ -8,6 +8,7 @@ class RoundedTextField extends StatelessWidget {
   final Widget? suffix;
   final ValueChanged<String>? onChanged;
   final bool enabled;
+  final bool readOnly;
   
   const RoundedTextField({
     super.key,
@@ -18,6 +19,7 @@ class RoundedTextField extends StatelessWidget {
     this.suffix,
     this.onChanged,
     this.enabled = true,
+    this.readOnly = false,
   });
   @override
   Widget build(BuildContext context) {
@@ -33,6 +35,7 @@ class RoundedTextField extends StatelessWidget {
         validator: validator,
         onChanged: onChanged,
         enabled: enabled,
+        readOnly: readOnly,
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,

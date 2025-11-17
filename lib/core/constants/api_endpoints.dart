@@ -35,6 +35,8 @@ class ApiEndpoints {
 
   // ==================== Member Registration ====================
   static const String memberSignup = '/signup-member-role';
+  static const String familyMemberSignup = '/signup-family-member';
+  static const String memberPreferredClubs = '/signup-members-club-list';
 
   // ==================== Paid Services ====================
   static const String paidServicesList = '/paid-services-list';
@@ -93,6 +95,11 @@ class ApiEndpoints {
   static const String createTicket = '/support/tickets';
   static const String ticketDetails = '/support/tickets'; // /support/tickets/{id}
 
+  // ==================== Location & Phone ====================
+  static const String getCity = '/get-city';
+  static const String getCityDetails = '/get-country-state-by-city';
+  static const String getPhoneCodes = '/phone-code';
+
   // ==================== Helper Methods ====================
   
   // Authentication
@@ -127,6 +134,9 @@ class ApiEndpoints {
 
   // Member Registration
   static String getMemberSignupUrl() => '${ApiConfig.apiBaseUrl}$memberSignup';
+  static String getFamilyMemberSignupUrl() => '${ApiConfig.apiBaseUrl}$familyMemberSignup';
+  static String getMemberPreferredClubsUrl(int userId) => 
+      '${ApiConfig.apiBaseUrl}$memberPreferredClubs/$userId';
 
   // Paid Services
   static String getPaidServicesListUrl({String? userRole}) {
@@ -193,4 +203,12 @@ class ApiEndpoints {
   static String getSupportTicketsUrl() => '${ApiConfig.apiBaseUrl}$supportTickets';
   static String getCreateTicketUrl() => '${ApiConfig.apiBaseUrl}$createTicket';
   static String getTicketDetailsUrl(String id) => '${ApiConfig.apiBaseUrl}$ticketDetails/$id';
+
+  // Location & Phone
+  static String getCitySearchUrl(String searchTerm) => 
+      '${ApiConfig.apiBaseUrl}$getCity/$searchTerm';
+  static String getCityDetailsUrl(int cityId) => 
+      '${ApiConfig.apiBaseUrl}$getCityDetails/$cityId';
+  static String getPhoneCodesUrl() => 
+      '${ApiConfig.apiBaseUrl}$getPhoneCodes';
 }
