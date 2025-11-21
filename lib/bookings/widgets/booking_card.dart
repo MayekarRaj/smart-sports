@@ -9,6 +9,7 @@ class BookingCard extends StatefulWidget {
   final VoidCallback? onCancelBooking;
   final VoidCallback? onPurchase;
   final VoidCallback? onRepair;
+  final VoidCallback? onViewBooking;
 
   const BookingCard({
     Key? key,
@@ -16,6 +17,7 @@ class BookingCard extends StatefulWidget {
     this.onCancelBooking,
     this.onPurchase,
     this.onRepair,
+    this.onViewBooking,
   }) : super(key: key);
 
   @override
@@ -244,6 +246,38 @@ class _BookingCardState extends State<BookingCard>
                         ),
 
                         const SizedBox(height: 12),
+
+                        // View Booking Button
+                        if (widget.onViewBooking != null)
+                          Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: ElevatedButton(
+                              onPressed: widget.onViewBooking,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF007BFF),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.visibility, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'View Booking',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
 
                         // Reserved by
                         Container(

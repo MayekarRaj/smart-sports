@@ -1075,7 +1075,9 @@ class _MobileClubCard extends StatelessWidget {
                           club.isFavorite
                               ? Icons.bookmark
                               : Icons.bookmark_border,
-                          color: club.isFavorite ? const Color(0xFF1E40AF) : Colors.grey,
+                          color: club.isFavorite
+                              ? const Color(0xFF1E40AF)
+                              : Colors.grey,
                         ),
                         tooltip: club.isFavorite
                             ? 'Favourite'

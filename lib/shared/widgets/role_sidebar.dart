@@ -313,14 +313,15 @@ class RoleSidebar extends StatelessWidget {
             t: t,
           ),
           _tile(index: 6, icon: Icons.share_outlined, label: 'Referrals', t: t),
+          _tile(index: 7, icon: Icons.group_outlined, label: 'Users', t: t),
           _tile(
-            index: 7,
+            index: 8,
             icon: Icons.support_agent_outlined,
             label: 'Customer Support',
             t: t,
           ),
           _tile(
-            index: 8,
+            index: 9,
             icon: Icons.settings_outlined,
             label: 'Settings',
             t: t,

@@ -27,7 +27,7 @@ class _MemberSettingsPageState extends State<MemberSettingsPage> {
         child: SafeArea(
           child: RoleSidebar(
             role: UserRole.member,
-            selectedIndex: 8,
+            selectedIndex: 9,
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,

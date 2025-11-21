@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
@@ -22,11 +23,23 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
   String _selectedStatus = 'Select';
   String _selectedDay = 'Select';
   bool _showFilters = false;
+  String _startDate = 'Wed, March 5, 2025';
+  String _endDate = 'Wed, March 5, 2025';
+  String _startTime = 'HH:MM';
+  String _endTime = 'HH:MM';
+
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadReferrals();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _loadReferrals() {
@@ -42,13 +55,15 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
     // Apply search filter
     if (_searchQuery.isNotEmpty) {
       referrals = referrals.where((referral) {
-        return referral.referralName
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase()) ||
-            referral.referralEmail
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase()) ||
-            referral.referredBy.toLowerCase().contains(_searchQuery.toLowerCase());
+        return referral.referralName.toLowerCase().contains(
+              _searchQuery.toLowerCase(),
+            ) ||
+            referral.referralEmail.toLowerCase().contains(
+              _searchQuery.toLowerCase(),
+            ) ||
+            referral.referredBy.toLowerCase().contains(
+              _searchQuery.toLowerCase(),
+            );
       }).toList();
     }
 
@@ -78,53 +93,17 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
   }
 
   List<MemberReferral> _getMockReferrals() {
-    return [
-      MemberReferral(
-        referralName: 'John Doe',
-        referralEmail: 'john@example.com',
-        referredBy: 'You',
-        referredDate: '01/02/2025',
-        status: 'Subscribed',
-        subscribedDate: '01/02/2025',
-        referralLink: 'https://smartsports.app/referral/MEM123',
-      ),
-      MemberReferral(
-        referralName: 'Jane Smith',
-        referralEmail: 'jane@example.com',
-        referredBy: 'You',
-        referredDate: '15/03/2025',
-        status: 'Subscribed',
-        subscribedDate: '16/03/2025',
-        referralLink: 'https://smartsports.app/referral/MEM123',
-      ),
-      MemberReferral(
-        referralName: 'Mike Johnson',
-        referralEmail: 'mike@example.com',
-        referredBy: 'You',
-        referredDate: '22/03/2025',
-        status: 'Pending',
-        subscribedDate: '',
-        referralLink: 'https://smartsports.app/referral/MEM123',
-      ),
-      MemberReferral(
-        referralName: 'Sarah Wilson',
-        referralEmail: 'sarah@example.com',
-        referredBy: 'You',
-        referredDate: '05/04/2025',
-        status: 'Un-Subscribed',
-        subscribedDate: '05/04/2025',
-        referralLink: 'https://smartsports.app/referral/MEM123',
-      ),
-      MemberReferral(
-        referralName: 'David Brown',
-        referralEmail: 'david@example.com',
-        referredBy: 'You',
-        referredDate: '12/04/2025',
-        status: 'Subscribed',
-        subscribedDate: '13/04/2025',
-        referralLink: 'https://smartsports.app/referral/MEM123',
-      ),
-    ];
+    return List.generate(25, (index) {
+      return MemberReferral(
+        referralName: 'Stan Proko',
+        referralEmail: 'Jhon@Gmail.Com',
+        referredBy: 'Anthony',
+        referredDate: '01/02/2021',
+        status: index < 5 ? 'Subscribed' : 'Un-Subscribed',
+        subscribedDate: '01/02/2021',
+        referralLink: 'Www.Refferal_link',
+      );
+    });
   }
 
   @override
@@ -136,7 +115,7 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
         child: SafeArea(
           child: RoleSidebar(
             role: UserRole.member,
-            selectedIndex: 7,
+            selectedIndex: 6,
             edgeToEdge: true,
             onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
               context,
@@ -221,12 +200,6 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
       ),
       body: Column(
         children: [
-          // Statistics Cards
-          _buildStatisticsSection(),
-
-          // Referral Code Section
-          _buildReferralCodeSection(),
-
           // Search bar
           Container(
             padding: const EdgeInsets.all(16),
@@ -243,6 +216,7 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
                 ],
               ),
               child: TextField(
+                controller: _searchController,
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value;
@@ -266,77 +240,91 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
           // Filter section - Only show when toggled
           if (_showFilters)
             Container(
-              color: const Color(0xFF1E40AF),
+              color: Colors.grey.shade800,
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // Date Range filter
+                  // Title Row
+                  _buildFilterRow(
+                    label: 'Title',
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Search',
+                          hintStyle: GoogleFonts.poppins(fontSize: 12),
+                          prefixIcon: const Icon(Icons.search, size: 18),
+                          suffixIcon: const Icon(Icons.filter_list, size: 18),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Date Range Row
                   _buildFilterRow(
                     label: 'Date Range',
                     child: Row(
                       children: [
                         Expanded(
-                          child: _buildDateField(
-                            label: 'From',
-                            value: 'Wed, March 5, 2025',
-                            onTap: () {
-                              // Handle date picker
-                            },
-                          ),
+                          child: _buildDateField(_startDate, (date) {
+                            setState(() {
+                              _startDate = date;
+                            });
+                          }),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildDateField(
-                            label: 'To',
-                            value: 'Wed, March 5, 2025',
-                            onTap: () {
-                              // Handle date picker
-                            },
-                          ),
+                          child: _buildDateField(_endDate, (date) {
+                            setState(() {
+                              _endDate = date;
+                            });
+                          }),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Time filter
+                  // Time Row
                   _buildFilterRow(
                     label: 'Time',
                     child: Row(
                       children: [
                         Expanded(
-                          child: _buildTimeField(
-                            label: 'From',
-                            value: 'HH:MM',
-                            onTap: () {
-                              // Handle time picker
-                            },
-                          ),
+                          child: _buildTimeField(_startTime, (time) {
+                            setState(() {
+                              _startTime = time;
+                            });
+                          }),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildTimeField(
-                            label: 'To',
-                            value: 'HH:MM',
-                            onTap: () {
-                              // Handle time picker
-                            },
-                          ),
+                          child: _buildTimeField(_endTime, (time) {
+                            setState(() {
+                              _endTime = time;
+                            });
+                          }),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Days and Status filters
+                  // Days and Status Row
                   Row(
                     children: [
                       Expanded(
                         child: _buildFilterRow(
                           label: 'Days',
                           child: _buildDropdownField(
-                            value: _selectedDay,
-                            items: [
+                            _selectedDay,
+                            [
                               'Select',
                               'Monday',
                               'Tuesday',
@@ -346,7 +334,7 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
                               'Saturday',
                               'Sunday',
                             ],
-                            onChanged: (value) {
+                            (value) {
                               setState(() {
                                 _selectedDay = value ?? 'Select';
                               });
@@ -360,14 +348,14 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
                         child: _buildFilterRow(
                           label: 'Status',
                           child: _buildDropdownField(
-                            value: _selectedStatus,
-                            items: [
+                            _selectedStatus,
+                            [
                               'Select',
                               'Subscribed',
                               'Un-Subscribed',
                               'Pending',
                             ],
-                            onChanged: (value) {
+                            (value) {
                               setState(() {
                                 _selectedStatus = value ?? 'Select';
                               });
@@ -487,177 +475,13 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
     );
   }
 
-  Widget _buildStatisticsSection() {
-    final totalReferrals = _allReferrals.length;
-    final subscribedCount =
-        _allReferrals.where((r) => r.status == 'Subscribed').length;
-    final pendingCount =
-        _allReferrals.where((r) => r.status == 'Pending').length;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              'Total Referrals',
-              '$totalReferrals',
-              Icons.people,
-              const Color(0xFF1E40AF),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Subscribed',
-              '$subscribedCount',
-              Icons.check_circle,
-              Colors.green,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Pending',
-              '$pendingCount',
-              Icons.pending,
-              Colors.orange,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF6B7280),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReferralCodeSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Your Referral Code',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.white70,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'MEM123',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E40AF),
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () {
-                  Clipboard.setData(const ClipboardData(text: 'MEM123'));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Referral code copied!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.copy, color: Colors.white),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Share this code with friends to earn rewards!',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.white70,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildFilterRow({required String label, required Widget child}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -669,15 +493,22 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
     );
   }
 
-  Widget _buildDateField({
-    required String label,
-    required String value,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildDateField(String value, Function(String) onDateSelected) {
     return InkWell(
-      onTap: onTap,
+      onTap: () async {
+        final DateTime? picked = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2030),
+        );
+        if (picked != null) {
+          final formatted = _formatDate(picked);
+          onDateSelected(formatted);
+        }
+      },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
@@ -687,29 +518,34 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
             Expanded(
               child: Text(
                 value,
-                style: const TextStyle(color: Color(0xFF1F2937), fontSize: 14),
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.grey.shade700,
+                ),
               ),
             ),
-            const Icon(
-              Icons.calendar_today,
-              size: 16,
-              color: Color(0xFF6B7280),
-            ),
+            const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTimeField({
-    required String label,
-    required String value,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildTimeField(String value, Function(String) onTimeSelected) {
     return InkWell(
-      onTap: onTap,
+      onTap: () async {
+        final TimeOfDay? picked = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.now(),
+        );
+        if (picked != null) {
+          final formatted =
+              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+          onTimeSelected(formatted);
+        }
+      },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
@@ -719,22 +555,26 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
             Expanded(
               child: Text(
                 value,
-                style: const TextStyle(color: Color(0xFF1F2937), fontSize: 14),
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.grey.shade700,
+                ),
               ),
             ),
-            const Icon(Icons.access_time, size: 16, color: Color(0xFF6B7280)),
+            const Icon(Icons.access_time, size: 16, color: Colors.grey),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDropdownField({
-    required String value,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
-  }) {
+  Widget _buildDropdownField(
+    String value,
+    List<String> items,
+    ValueChanged<String?> onChanged,
+  ) {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -746,26 +586,27 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
           items: items.map((item) {
             return DropdownMenuItem(
               value: item,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  item,
-                  style: const TextStyle(
-                    color: Color(0xFF1F2937),
-                    fontSize: 14,
-                  ),
+              child: Text(
+                item,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.grey.shade700,
                 ),
               ),
             );
           }).toList(),
           onChanged: onChanged,
+          icon: const Icon(Icons.arrow_drop_down, size: 20),
         ),
       ),
     );
   }
 
   Widget _buildPaginationButton(
-      String label, bool enabled, VoidCallback onPressed) {
+    String label,
+    bool enabled,
+    VoidCallback onPressed,
+  ) {
     return TextButton(
       onPressed: enabled ? onPressed : null,
       style: TextButton.styleFrom(
@@ -799,6 +640,25 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
       ),
     );
   }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
 }
 
 // Referral Data Model
@@ -827,10 +687,7 @@ class _MemberReferralCard extends StatelessWidget {
   final MemberReferral referral;
   final VoidCallback? onTap;
 
-  const _MemberReferralCard({
-    required this.referral,
-    this.onTap,
-  });
+  const _MemberReferralCard({required this.referral, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -911,7 +768,10 @@ class _MemberReferralCard extends StatelessWidget {
 
                 // Referral Link
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(8),
@@ -957,11 +817,7 @@ class _MemberReferralCard extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: const Color(0xFF6B7280),
-        ),
+        Icon(icon, size: 16, color: const Color(0xFF6B7280)),
         const SizedBox(width: 8),
         Text(
           '$label: ',
@@ -974,10 +830,7 @@ class _MemberReferralCard extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF1F2937),
-            ),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF1F2937)),
           ),
         ),
       ],
@@ -1212,9 +1065,9 @@ class _InviteReferralDialogState extends State<_InviteReferralDialog> {
                                 child: Row(
                                   children: [
                                     Expanded(
-                                      child: Text(
+                                      child: const Text(
                                         'https://smartsports.app/referral/MEM123',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           color: Color(0xFF6B7280),
                                         ),
@@ -1227,7 +1080,9 @@ class _InviteReferralDialogState extends State<_InviteReferralDialog> {
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF1E40AF),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: const Icon(
                                           Icons.copy,
@@ -1359,8 +1214,8 @@ class _InviteReferralDialogState extends State<_InviteReferralDialog> {
                                         strokeWidth: 2,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                          Colors.white,
-                                        ),
+                                              Colors.white,
+                                            ),
                                       ),
                                     )
                                   : const Text(

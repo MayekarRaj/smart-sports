@@ -20,6 +20,11 @@ class _MemberCustomerSupportPageState
   String _selectedTab = 'Open';
   bool _showFilters = false;
 
+  String _startDate = 'Wed, March 5, 2025';
+  String _endDate = 'Wed, March 5, 2025';
+  String _startTime = 'HH:MM';
+  String _endTime = 'HH:MM';
+
   final List<String> _statusOptions = [
     'Select',
     'Open',
@@ -343,23 +348,19 @@ class _MemberCustomerSupportPageState
                     child: Row(
                       children: [
                         Expanded(
-                          child: _buildDateField(
-                            label: 'From',
-                            value: 'Wed, March 5, 2025',
-                            onTap: () {
-                              // Handle date picker
-                            },
-                          ),
+                          child: _buildDateField(_startDate, (date) {
+                            setState(() {
+                              _startDate = date;
+                            });
+                          }),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildDateField(
-                            label: 'To',
-                            value: 'Wed, March 5, 2025',
-                            onTap: () {
-                              // Handle date picker
-                            },
-                          ),
+                          child: _buildDateField(_endDate, (date) {
+                            setState(() {
+                              _endDate = date;
+                            });
+                          }),
                         ),
                       ],
                     ),
@@ -372,23 +373,19 @@ class _MemberCustomerSupportPageState
                     child: Row(
                       children: [
                         Expanded(
-                          child: _buildTimeField(
-                            label: 'From',
-                            value: 'HH:MM',
-                            onTap: () {
-                              // Handle time picker
-                            },
-                          ),
+                          child: _buildTimeField(_startTime, (time) {
+                            setState(() {
+                              _startTime = time;
+                            });
+                          }),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildTimeField(
-                            label: 'To',
-                            value: 'HH:MM',
-                            onTap: () {
-                              // Handle time picker
-                            },
-                          ),
+                          child: _buildTimeField(_endTime, (time) {
+                            setState(() {
+                              _endTime = time;
+                            });
+                          }),
                         ),
                       ],
                     ),
@@ -452,7 +449,7 @@ class _MemberCustomerSupportPageState
                   ),
                   const Divider(height: 1),
 
-                  // Complaints table
+                  // Complaints list
                   Expanded(
                     child: _filteredComplaints.isEmpty
                         ? const Center(
@@ -520,13 +517,20 @@ class _MemberCustomerSupportPageState
     );
   }
 
-  Widget _buildDateField({
-    required String label,
-    required String value,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildDateField(String value, Function(String) onDateSelected) {
     return InkWell(
-      onTap: onTap,
+      onTap: () async {
+        final DateTime? picked = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2030),
+        );
+        if (picked != null) {
+          final formatted = _formatDate(picked);
+          onDateSelected(formatted);
+        }
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
@@ -552,13 +556,19 @@ class _MemberCustomerSupportPageState
     );
   }
 
-  Widget _buildTimeField({
-    required String label,
-    required String value,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildTimeField(String value, Function(String) onTimeSelected) {
     return InkWell(
-      onTap: onTap,
+      onTap: () async {
+        final TimeOfDay? picked = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.now(),
+        );
+        if (picked != null) {
+          final formatted =
+              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+          onTimeSelected(formatted);
+        }
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
@@ -792,6 +802,25 @@ class _MemberCustomerSupportPageState
       context: context,
       builder: (context) => _ComplaintDetailsDialog(complaint: complaint),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }
 

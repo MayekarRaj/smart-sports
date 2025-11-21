@@ -110,6 +110,7 @@ import 'package:smart_sports/role_specific/member/screens/bookings/member_bookin
 import 'package:smart_sports/role_specific/member/screens/events/member_events_page.dart';
 import 'package:smart_sports/role_specific/member/screens/sponsorships/member_sponsorships_page.dart';
 import 'package:smart_sports/role_specific/member/screens/referrals/member_referrals_page.dart';
+import 'package:smart_sports/role_specific/member/screens/users/member_users_page.dart';
 import 'package:smart_sports/role_specific/member/screens/customer_support/member_customer_support_page.dart';
 import 'package:smart_sports/role_specific/member/screens/settings/member_settings_page.dart';
 import 'package:smart_sports/role_specific/member/screens/profile/member_profile_page.dart';
@@ -477,73 +478,61 @@ class RoleNavigationManager {
       case 0:
         // Dashboard
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MemberDashboardPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberDashboardPage()),
         );
         break;
       case 1:
         // Transactions
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MemberTransactionsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberTransactionsPage()),
         );
         break;
       case 2:
         // My Clubs
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MemberClubsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberClubsPage()),
         );
         break;
       case 3:
         // Bookings
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MemberBookingsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberBookingsPage()),
         );
         break;
       case 4:
         // Events / Tournaments
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MemberEventsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberEventsPage()),
         );
         break;
       case 5:
         // Sponsorships
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MemberSponsorshipsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberSponsorshipsPage()),
         );
         break;
       case 6:
         // Referrals
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MemberReferralsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberReferralsPage()),
         );
         break;
       case 7:
-        // Customer Support
+        // Users
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MemberCustomerSupportPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberUsersPage()),
         );
         break;
       case 8:
+        // Customer Support
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MemberCustomerSupportPage()),
+        );
+        break;
+      case 9:
         // Settings
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MemberSettingsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberSettingsPage()),
         );
         break;
     }
@@ -554,57 +543,43 @@ class RoleNavigationManager {
       case 0:
         // Dashboard
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerDashboardPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerDashboardPage()),
         );
         break;
       case 1:
         // Transactions
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerTransactionsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerTransactionsPage()),
         );
         break;
       case 2:
         // Service
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerServicePage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerServicePage()),
         );
         break;
       case 3:
         // Clubs
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerClubsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerClubsPage()),
         );
         break;
       case 4:
         // Bookings
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerBookingsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerBookingsPage()),
         );
         break;
       case 5:
         // Events / Tournaments
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerEventsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerEventsPage()),
         );
         break;
       case 6:
         // Sponsorships
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerSponsorshipsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerSponsorshipsPage()),
         );
         break;
       case 7:
@@ -618,9 +593,7 @@ class RoleNavigationManager {
       case 8:
         // Users
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerUsersPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerUsersPage()),
         );
         break;
       case 9:
@@ -667,9 +640,9 @@ class RoleNavigationManager {
           );
           break;
         case UserRole.member:
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const MemberProfilePage()),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const MemberProfilePage()));
           break;
         case UserRole.freelancer:
           Navigator.of(context).push(
@@ -684,7 +657,6 @@ class RoleNavigationManager {
 }
 
 // Placeholder widgets for other roles
-
 
 class _CorporatePlaceholder extends StatelessWidget {
   final String title;
