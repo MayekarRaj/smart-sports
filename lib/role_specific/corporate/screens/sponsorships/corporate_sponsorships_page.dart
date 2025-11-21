@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
-import 'package:smart_sports/auth/screens/auth_shell.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class CorporateSponsorshipsPage extends StatefulWidget {
+class CorporateSponsorshipsPage extends ConsumerStatefulWidget {
   const CorporateSponsorshipsPage({super.key});
 
   @override
-  State<CorporateSponsorshipsPage> createState() =>
+  ConsumerState<CorporateSponsorshipsPage> createState() =>
       _CorporateSponsorshipsPageState();
 }
 
-class _CorporateSponsorshipsPageState extends State<CorporateSponsorshipsPage> {
+class _CorporateSponsorshipsPageState extends ConsumerState<CorporateSponsorshipsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,12 +34,7 @@ class _CorporateSponsorshipsPageState extends State<CorporateSponsorshipsPage> {
               context,
               UserRole.corporate,
             ),
-            onSignOut: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthShell()),
-                (route) => false,
-              );
-            },
+            onSignOut: () => AuthUtils.handleLogout(context, ref),
           ),
         ),
       ),

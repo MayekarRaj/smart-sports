@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class ClubSponsorshipsPage extends StatefulWidget {
+class ClubSponsorshipsPage extends ConsumerStatefulWidget {
   const ClubSponsorshipsPage({super.key});
 
   @override
-  State<ClubSponsorshipsPage> createState() => _ClubSponsorshipsPageState();
+  ConsumerState<ClubSponsorshipsPage> createState() => _ClubSponsorshipsPageState();
 }
 
-class _ClubSponsorshipsPageState extends State<ClubSponsorshipsPage> {
+class _ClubSponsorshipsPageState extends ConsumerState<ClubSponsorshipsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,12 +32,7 @@ class _ClubSponsorshipsPageState extends State<ClubSponsorshipsPage> {
             ),
             onProfileTap: () =>
                 RoleNavigationManager.navigateToProfile(context, UserRole.club),
-            onSignOut: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthShell()),
-                (route) => false,
-              );
-            },
+            onSignOut: () => AuthUtils.handleLogout(context, ref),
           ),
         ),
       ),

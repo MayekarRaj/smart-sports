@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/club/widgets/club_phone_filters.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class ClubAnalyticsDashboardPage extends StatefulWidget {
+class ClubAnalyticsDashboardPage extends ConsumerStatefulWidget {
   const ClubAnalyticsDashboardPage({super.key});
 
   @override
-  State<ClubAnalyticsDashboardPage> createState() =>
+  ConsumerState<ClubAnalyticsDashboardPage> createState() =>
       _ClubAnalyticsDashboardPageState();
 }
 
@@ -18,7 +20,7 @@ class MediaUtils {
   bool get isWide => MediaQuery.of(context).size.width >= 1000;
 }
 
-class _ClubAnalyticsDashboardPageState extends State<ClubAnalyticsDashboardPage>
+class _ClubAnalyticsDashboardPageState extends ConsumerState<ClubAnalyticsDashboardPage>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late final TabController _tableTabs;
   final ScrollController _scrollController = ScrollController();
@@ -100,6 +102,7 @@ class _ClubAnalyticsDashboardPageState extends State<ClubAnalyticsDashboardPage>
             ),
             onProfileTap: () =>
                 RoleNavigationManager.navigateToProfile(context, UserRole.club),
+            onSignOut: () => AuthUtils.handleLogout(context, ref),
             edgeToEdge: true,
           ),
         ),

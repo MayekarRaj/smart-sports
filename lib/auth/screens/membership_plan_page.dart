@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'payment_method_page.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../../core/exceptions/api_exception.dart';
-import 'payment_method_page.dart';
+import '../../core/models/api_models.dart';
+import '../../core/services/storage_service.dart';
+import '../../role_specific/common/role_router.dart';
 
 class MembershipPlanPage extends StatefulWidget {
   const MembershipPlanPage({super.key});
@@ -13,7 +16,10 @@ class MembershipPlanPage extends StatefulWidget {
 class _MembershipPlanPageState extends State<MembershipPlanPage> {
   bool _isFreeMembership = true;
   final AuthRepository _authRepository = AuthRepository();
-  bool _isSubmitting = false;
+  final StorageService _storageService = StorageService();
+  bool _isLoadingServices = false;
+  List<PaidService> _paidServices = [];
+  
   final Map<String, bool> _selectedServices = {
     'priority_booking': false,
     'avail_discounts': false,
@@ -22,6 +28,144 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
     'forum': false,
     'slack': false,
   };
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch services to get their IDs
+    _fetchPaidServices();
+  }
+
+  /// Fetch paid services from API to get service IDs
+  Future<void> _fetchPaidServices() async {
+    if (_isLoadingServices) return;
+
+    setState(() {
+      _isLoadingServices = true;
+    });
+
+    try {
+      final response = await _authRepository.getPaidServicesList('club');
+      
+      if (mounted) {
+        setState(() {
+          _paidServices = response.data.where((service) => service.isDeleted == 0).toList();
+          _isLoadingServices = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingServices = false;
+        });
+        // Silently fail - we'll use hardcoded mapping if API fails
+      }
+    }
+  }
+
+  /// Map service key to service ID
+  int? _getServiceId(String serviceKey) {
+    // Try to find service by name matching
+    final serviceNameMap = {
+      'priority_booking': 'Priority Booking',
+      'avail_discounts': 'Avail Discounts',
+      'coach_ratings': 'Coach Ratings',
+      'events_tournaments': 'Events & Tournaments',
+      'forum': 'Forum',
+      'slack': 'Slack',
+    };
+
+    final serviceName = serviceNameMap[serviceKey];
+    if (serviceName != null) {
+      final service = _paidServices.firstWhere(
+        (s) => s.name.toLowerCase().contains(serviceName.toLowerCase()),
+        orElse: () => _paidServices.first,
+      );
+      return service.id;
+    }
+    return null;
+  }
+
+  /// Get club users count (default to 4 if users service is selected)
+  int? _getClubUsersCount() {
+    // Check if any service related to users is selected
+    // For now, return null as club doesn't have a specific users service
+    // This can be updated based on actual requirements
+    return null;
+  }
+
+  /// Save optional paid services
+  Future<void> _saveOptionalPaidServices() async {
+    // Get selected service IDs
+    final selectedServiceIds = <int>[];
+    for (var key in _selectedServices.keys) {
+      if (_selectedServices[key] == true) {
+        final serviceId = _getServiceId(key);
+        if (serviceId != null) {
+          selectedServiceIds.add(serviceId);
+        }
+      }
+    }
+
+    if (selectedServiceIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one service'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoadingServices = true);
+
+    try {
+      final request = SaveOptionalPaidServicesRequest(
+        userRole: 'club',
+        optionalServicesIds: selectedServiceIds,
+        clubUsersCount: _getClubUsersCount(),
+      );
+
+      await _authRepository.saveOptionalPaidServices(request);
+
+      if (mounted) {
+        setState(() => _isLoadingServices = false);
+        
+        // Save role to storage if not already saved
+        final roleStr = await _storageService.getString('user_role');
+        if (roleStr == null || roleStr.isEmpty) {
+          await _storageService.saveString('user_role', 'club');
+        }
+        
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentMethodPage(amount: _finalAmount),
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingServices = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save services: ${e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingServices = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save services: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   double get _totalAmount {
     double total = 0;
@@ -787,18 +931,13 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: _isSubmitting ? null : () async {
+              onPressed: () async {
                 if (_isFreeMembership) {
-                  await _submitFreeMembership();
+                  // Complete registration for free membership
+                  _showRegistrationComplete();
                 } else {
-                  // Navigate to payment for premium membership
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          PaymentMethodPage(amount: _finalAmount),
-                    ),
-                  );
+                  // Save optional paid services before navigating to payment
+                  await _saveOptionalPaidServices();
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -808,23 +947,14 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: _isSubmitting && _isFreeMembership
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(
-                      _isFreeMembership ? 'Submit' : 'Next',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
+              child: Text(
+                _isFreeMembership ? 'Submit' : 'Next',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ],
@@ -832,47 +962,13 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
     );
   }
 
-  Future<void> _submitFreeMembership() async {
-    if (_isSubmitting) return;
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      await _authRepository.chooseMembershipType('Free');
-      
-      if (mounted) {
-        _showRegistrationComplete();
-      }
-    } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to submit membership: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
+  void _showRegistrationComplete() async {
+    // Save role to storage if not already saved
+    final roleStr = await _storageService.getString('user_role');
+    if (roleStr == null || roleStr.isEmpty) {
+      await _storageService.saveString('user_role', 'club');
     }
-  }
-
-  void _showRegistrationComplete() {
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -883,7 +979,13 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              Navigator.of(context).pop(); // Close dialog
+              // Navigate to club dashboard
+              final dashboard = RoleRouter.dashboardFor(UserRole.club);
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => dashboard),
+                (route) => false, // Remove all previous routes
+              );
             },
             child: const Text('OK'),
           ),

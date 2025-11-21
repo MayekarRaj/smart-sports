@@ -34,13 +34,16 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   final state = TextEditingController();
   final zipCode = TextEditingController();
   final country = TextEditingController();
+  final officePhoneCode = TextEditingController();
   final officePhone = TextEditingController();
+  final mobilePhoneCode = TextEditingController();
   final mobilePhone = TextEditingController();
   final companyWebsite = TextEditingController();
-  String? _officePhoneCode;
-  String? _mobilePhoneCode;
 
   final List<String> _selectedSports = [];
+  // TODO: Re-enable API call when ready
+  // List<String> _allSports = [];
+  // bool _isLoadingSports = false;
   final List<String> _allSports = const [
     'Cricket',
     'Football',
@@ -60,6 +63,53 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   bool _isCheckingEmail = false;
 
   @override
+  void initState() {
+    super.initState();
+    // TODO: Re-enable API call when ready
+    // _loadSports();
+  }
+
+  // TODO: Re-enable API call when ready
+  // Future<void> _loadSports() async {
+  //   if (!mounted) return;
+  //   
+  //   setState(() {
+  //     _isLoadingSports = true;
+  //   });
+  //
+  //   try {
+  //     // Fetch all active sports with a large perPage to get complete list
+  //     final response = await _authRepository.getSportsList(
+  //       perPage: 1000, // Large number to get all sports
+  //       orderBy: 'id|ASC',
+  //       isActive: 1,
+  //       page: 1,
+  //     );
+  //
+  //     if (mounted) {
+  //       setState(() {
+  //         _allSports = response.data.data
+  //             .map((sport) => sport.sportsName)
+  //             .toList();
+  //         _isLoadingSports = false;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     if (mounted) {
+  //       setState(() {
+  //         _isLoadingSports = false;
+  //       });
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text('Failed to load sports: ${e.toString()}'),
+  //           backgroundColor: Colors.red,
+  //         ),
+  //       );
+  //     }
+  //   }
+  // }
+
+  @override
   void dispose() {
     for (final c in [
       firstName,
@@ -74,13 +124,29 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
       state,
       zipCode,
       country,
+      officePhoneCode,
       officePhone,
+      mobilePhoneCode,
       mobilePhone,
       companyWebsite,
     ]) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  String? _extractPhoneCode(String value) {
+    if (value.isEmpty) return null;
+    try {
+      // Format is "id_phonecode", extract phonecode part
+      final parts = value.split('_');
+      if (parts.length >= 2) {
+        return parts[1]; // Return the phonecode part
+      }
+    } catch (e) {
+      debugPrint('Error extracting phone code: $e');
+    }
+    return null;
   }
 
   Future<void> _checkEmailVerification() async {
@@ -169,9 +235,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
       country: country.text.trim().isNotEmpty ? country.text.trim() : null,
       addressLine1: address.text.trim().isNotEmpty ? address.text.trim() : null,
       addressLine2: address2.text.trim().isNotEmpty ? address2.text.trim() : null,
-      officePhoneExt: _officePhoneCode,
+      officePhoneExt: _extractPhoneCode(officePhoneCode.text.trim()),
       officePhone: officePhone.text.trim().isNotEmpty ? officePhone.text.trim() : null,
-      mobilePhoneExt: _mobilePhoneCode,
+      mobilePhoneExt: _extractPhoneCode(mobilePhoneCode.text.trim()),
       mobilePhone: mobilePhone.text.trim().isNotEmpty ? mobilePhone.text.trim() : null,
       companyWebsite: companyWebsite.text.trim().isNotEmpty ? companyWebsite.text.trim() : null,
     );
@@ -353,27 +419,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             const SizedBox(height: 8),
             RoundedTextField(controller: address2, hint: 'Address Line 2'),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: CitySearchField(
-                    cityController: city,
-                    stateController: state,
-                    countryController: country,
-                    label: 'City',
-                    hint: 'Enter city name',
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: RoundedTextField(
-                    controller: state,
-                    hint: 'State',
-                    enabled: true,
-                    readOnly: true, // Read-only, auto-filled from city
-                  ),
-                ),
-              ],
+            CitySearchField(
+              cityController: city,
+              stateController: state,
+              countryController: country,
             ),
             const SizedBox(height: 8),
             Row(
@@ -388,13 +437,20 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: RoundedTextField(
-                    controller: country,
-                    hint: 'Country',
+                    controller: state,
+                    hint: 'State',
                     enabled: true,
-                    readOnly: true, // Read-only, auto-filled from city
+                    readOnly: true,
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            RoundedTextField(
+              controller: country,
+              hint: 'Country',
+              enabled: true,
+              readOnly: true,
             ),
             const SizedBox(height: 12),
             const Text(
@@ -404,19 +460,18 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             const SizedBox(height: 8),
             Row(
               children: [
-                SizedBox(
-                  width: 120,
+                Expanded(
+                  flex: 2,
                   child: PhoneCodeDropdown(
-                    value: _officePhoneCode,
+                    value: officePhoneCode.text.isNotEmpty ? officePhoneCode.text : null,
                     onChanged: (value) {
-                      setState(() {
-                        _officePhoneCode = value;
-                      });
+                      officePhoneCode.text = value ?? '';
                     },
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
+                  flex: 3,
                   child: RoundedTextField(
                     controller: officePhone,
                     hint: 'Office Number',
@@ -428,19 +483,18 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             const SizedBox(height: 8),
             Row(
               children: [
-                SizedBox(
-                  width: 120,
+                Expanded(
+                  flex: 2,
                   child: PhoneCodeDropdown(
-                    value: _mobilePhoneCode,
+                    value: mobilePhoneCode.text.isNotEmpty ? mobilePhoneCode.text : null,
                     onChanged: (value) {
-                      setState(() {
-                        _mobilePhoneCode = value;
-                      });
+                      mobilePhoneCode.text = value ?? '';
                     },
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
+                  flex: 3,
                   child: RoundedTextField(
                     controller: mobilePhone,
                     hint: 'Mobile Number',

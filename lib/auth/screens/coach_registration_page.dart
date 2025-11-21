@@ -8,7 +8,8 @@ import '../../core/utils/phone_parser.dart';
 import '../../core/utils/file_utils.dart';
 import '../widgets/city_search_field.dart';
 import '../widgets/phone_code_dropdown.dart';
-import 'membership_plan_page.dart';
+import '../widgets/rounded_text_field.dart';
+import 'coach_membership_plan_page.dart';
 
 // Helper class for club data
 class ClubData {
@@ -56,8 +57,16 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
   bool _isLoading = false;
 
   // Coach Details Controllers
-  String _experienceLevel = 'Experienced';
+  String? _experienceLevel;
   final _numberOfUsersController = TextEditingController(text: '2');
+  
+  // Experience levels from API
+  List<MstCoachExperienceLevel> _experienceLevels = [];
+  bool _isLoadingExperienceLevels = false;
+  
+  // Club days from API
+  List<MstClubDay> _clubDays = [];
+  bool _isLoadingClubDays = false;
   
   // Certificate files (for experience levels)
   List<XFile> _certificateFiles = [];
@@ -80,17 +89,103 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
   // Contact Details Controllers
   final _designationController = TextEditingController();
   final _departmentController = TextEditingController();
+  final _officePhoneCodeController = TextEditingController();
   final _officeNumberController = TextEditingController();
+  final _mobilePhoneCodeController = TextEditingController();
   final _mobileNumberController = TextEditingController();
   final _websiteController = TextEditingController();
-  String? _officePhoneCode;
-  String? _mobilePhoneCode;
 
   @override
   void initState() {
     super.initState();
     // Add one initial club
     _addClub();
+    _loadExperienceLevels();
+    _loadClubDays();
+  }
+
+  Future<void> _loadClubDays() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingClubDays = true;
+    });
+
+    try {
+      final response = await _authRepository.getClubDays(
+        perPage: 1000,
+        orderBy: 'id|ASC',
+        isActive: 1,
+        page: 1,
+      );
+
+      if (mounted) {
+        setState(() {
+          _clubDays = response.data.data;
+          _isLoadingClubDays = false;
+          // Update default days in existing clubs if they're still using hardcoded values
+          for (var club in _clubs) {
+            for (var serviceDay in club.serviceDays) {
+              if (serviceDay.day == 'Monday' && _clubDays.isNotEmpty) {
+                serviceDay.day = _clubDays.first.name;
+              }
+            }
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingClubDays = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load club days: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadExperienceLevels() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingExperienceLevels = true;
+    });
+
+    try {
+      final response = await _authRepository.getCoachExperienceLevels(
+        perPage: 1000,
+        orderBy: 'id|ASC',
+        isActive: 1,
+        page: 1,
+      );
+
+      if (mounted) {
+        setState(() {
+          _experienceLevels = response.data.data;
+          // Set default to first experience level if available
+          if (_experienceLevels.isNotEmpty && _experienceLevel == null) {
+            _experienceLevel = _experienceLevels.first.name;
+          }
+          _isLoadingExperienceLevels = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingExperienceLevels = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load experience levels: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -123,7 +218,7 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
           sportTypeController: TextEditingController(),
           serviceDays: [
             ServiceDayTime(
-              day: 'Monday',
+              day: _clubDays.isNotEmpty ? _clubDays.first.name : 'Monday',
               startTime: const TimeOfDay(hour: 9, minute: 0),
               endTime: const TimeOfDay(hour: 17, minute: 0),
             ),
@@ -153,7 +248,7 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
     setState(() {
       _clubs[clubIndex].serviceDays.add(
         ServiceDayTime(
-          day: 'Monday',
+          day: _clubDays.isNotEmpty ? _clubDays.first.name : 'Monday',
           startTime: const TimeOfDay(hour: 9, minute: 0),
           endTime: const TimeOfDay(hour: 17, minute: 0),
         ),
@@ -222,18 +317,80 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Coach Experience Level
-                    _buildDropdownField(
-                      label: 'Coach Experience Level',
-                      value: _experienceLevel,
-                      items: [
-                        'Experienced',
-                        'Beginner',
-                        'Intermediate',
-                        'Expert',
-                      ],
-                      onChanged: (value) =>
-                          setState(() => _experienceLevel = value!),
-                    ),
+                    _isLoadingExperienceLevels
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Coach Experience Level',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.grey[200]!),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text('Loading experience levels...', style: TextStyle(color: Colors.grey)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : _experienceLevels.isEmpty
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Coach Experience Level',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF64748B),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[50],
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.grey[200]!),
+                                    ),
+                                    child: const Text(
+                                      'No experience levels available',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : _buildDropdownField(
+                                label: 'Coach Experience Level',
+                                value: _experienceLevel ?? (_experienceLevels.isNotEmpty ? _experienceLevels.first.name : null),
+                                items: _experienceLevels.map((level) => level.name).toList(),
+                                onChanged: (value) =>
+                                    setState(() => _experienceLevel = value!),
+                              ),
                     const SizedBox(height: 20),
 
                     // Add File Section
@@ -375,24 +532,25 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
 
   Widget _buildTextField({
     required TextEditingController controller,
-    required String label,
+    required String? label,
     required String hint,
     TextInputType keyboardType = TextInputType.text,
     String? suffixText,
-    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xFF64748B),
-            fontWeight: FontWeight.w500,
+        if (label != null && label.isNotEmpty) ...[
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
+          const SizedBox(height: 8),
+        ],
         Container(
           decoration: BoxDecoration(
             color: Colors.grey[50],
@@ -401,7 +559,6 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
           ),
           child: TextFormField(
             controller: controller,
-            enabled: enabled,
             keyboardType: keyboardType,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             decoration: InputDecoration(
@@ -750,25 +907,38 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextField(
+          _buildTextField(
                   controller: club.clubNameController,
                   label: 'Club Name',
                   hint: 'Enter club name',
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildTextField(
+          const SizedBox(height: 8),
+
+                _buildTextField(
                   controller: club.sportTypeController,
                   label: 'Sport Type',
                   hint: 'Enter sport type',
                 ),
-              ),
-            ],
-          ),
+              
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       child: _buildTextField(
+          //         controller: club.clubNameController,
+          //         label: 'Club Name',
+          //         hint: 'Enter club name',
+          //       ),
+          //     ),
+          //     const SizedBox(width: 12),
+          //     Expanded(
+          //       child: _buildTextField(
+          //         controller: club.sportTypeController,
+          //         label: 'Sport Type',
+          //         hint: 'Enter sport type',
+          //       ),
+          //     ),
+          //   ],
+          // ),
           const SizedBox(height: 16),
           ...club.serviceDays.asMap().entries.map((entry) {
             int dayIndex = entry.key;
@@ -807,26 +977,87 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
           Row(
             children: [
               Expanded(
-                child: _buildDropdownField(
-                  label: 'Service Day',
-                  value: serviceDay.day,
-                  items: const [
-                    'Monday',
-                    'Tuesday',
-                    'Wednesday',
-                    'Thursday',
-                    'Friday',
-                    'Saturday',
-                    'Sunday',
-                    'Weekdays',
-                    'Weekend',
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      serviceDay.day = value!;
-                    });
-                  },
-                ),
+                child: _isLoadingClubDays
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Service Day',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: const Row(
+                              children: [
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                                SizedBox(width: 12),
+                                Text('Loading...', style: TextStyle(color: Colors.grey)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                    : _clubDays.isEmpty
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Service Day',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.grey[200]!),
+                                ),
+                                child: const Text(
+                                  'No days available',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ),
+                            ],
+                          )
+                        : _buildDropdownField(
+                            label: 'Service Day',
+                            value: _clubDays.any((day) => day.name == serviceDay.day)
+                                ? serviceDay.day
+                                : _clubDays.isNotEmpty
+                                    ? _clubDays.first.name
+                                    : 'Monday',
+                            items: _clubDays.map((day) => day.name).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                serviceDay.day = value!;
+                              });
+                            },
+                          ),
               ),
               const SizedBox(width: 12),
               // Remove button (only show if more than one day)
@@ -1018,50 +1249,40 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
             hint: 'Enter address line 2',
           ),
           const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: CitySearchField(
-                    cityController: _cityController,
-                    stateController: _stateController,
-                    countryController: _countryController,
-                    label: 'City',
-                    hint: 'Enter city name',
-                  ),
+          CitySearchField(
+            cityController: _cityController,
+            stateController: _stateController,
+            countryController: _countryController,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  controller: _zipController,
+                  label: '',
+                  hint: 'Enter zip code',
+                  keyboardType: TextInputType.number,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildTextField(
-                    controller: _stateController,
-                    label: 'State',
-                    hint: 'State',
-                    enabled: false, // Auto-filled from city
-                  ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: RoundedTextField(
+                  controller: _stateController,
+                  hint: 'State',
+                  enabled: true,
+                  readOnly: true,
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField(
-                    controller: _zipController,
-                    label: 'Zip Code',
-                    hint: 'Enter zip code',
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildTextField(
-                    controller: _countryController,
-                    label: 'Country',
-                    hint: 'Country',
-                    enabled: false, // Auto-filled from city
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          RoundedTextField(
+            controller: _countryController,
+            hint: 'Country',
+            enabled: true,
+            readOnly: true,
+          ),
         ],
       ),
     );
@@ -1099,72 +1320,119 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            'Designation',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF64748B),
+            ),
+          ),
+                        const SizedBox(height: 4),
+
+          _buildTextField(
+                  controller: _designationController,
+                  label: '',
+                  hint: 'Enter designation',
+                ),
+              const SizedBox(height: 8),
+
+                Text(
+            'Department',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF64748B),
+            ),
+          ),
+              const SizedBox(height: 4),
+
+                 _buildTextField(
+                  controller: _departmentController,
+                  label: '',
+                  hint: 'Enter department',
+                ),
+          const SizedBox(height: 8),
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       child: _buildTextField(
+          //         controller: _designationController,
+          //         label: '',
+          //         hint: 'Enter designation',
+          //       ),
+          //     ),
+          //     const SizedBox(width: 12),
+          //     Expanded(
+          //       child: _buildTextField(
+          //         controller: _departmentController,
+          //         label: '',
+          //         hint: 'Enter department',
+          //       ),
+          //     ),
+          //   ],
+          // ),
+          const SizedBox(height: 16),
+          Text(
+            'Office Number',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
-                child: _buildTextField(
-                  controller: _designationController,
-                  label: 'Designation',
-                  hint: 'Enter designation',
+                flex: 2,
+                child: PhoneCodeDropdown(
+                  value: _officePhoneCodeController.text.isNotEmpty ? _officePhoneCodeController.text : null,
+                  onChanged: (value) {
+                    _officePhoneCodeController.text = value ?? '';
+                  },
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildTextField(
-                  controller: _departmentController,
-                  label: 'Department',
-                  hint: 'Enter department',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              SizedBox(
-                width: 100,
-                child: PhoneCodeDropdown(
-                  value: _officePhoneCode,
-                  onChanged: (value) {
-                    setState(() {
-                      _officePhoneCode = value;
-                    });
-                  },
-                  label: '',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
+                flex: 3,
                 child: _buildTextField(
                   controller: _officeNumberController,
-                  label: 'Office Number',
-                  hint: '1234567890',
+                  label: '',
+                  hint: 'Enter office number',
                   keyboardType: TextInputType.phone,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
+          Text(
+            'Mobile Number',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
-              SizedBox(
-                width: 100,
+              Expanded(
+                flex: 2,
                 child: PhoneCodeDropdown(
-                  value: _mobilePhoneCode,
+                  value: _mobilePhoneCodeController.text.isNotEmpty ? _mobilePhoneCodeController.text : null,
                   onChanged: (value) {
-                    setState(() {
-                      _mobilePhoneCode = value;
-                    });
+                    _mobilePhoneCodeController.text = value ?? '';
                   },
-                  label: '',
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
+                flex: 3,
                 child: _buildTextField(
                   controller: _mobileNumberController,
-                  label: 'Mobile Number',
-                  hint: '9876543210',
+                  label: '',
+                  hint: 'Enter mobile number',
                   keyboardType: TextInputType.phone,
                 ),
               ),
@@ -1305,6 +1573,17 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
       return;
     }
 
+    // Validate experience level
+    if (_experienceLevel == null || _experienceLevel!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select an experience level'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     // Validate experience levels (certificates)
     if (_certificateFiles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1319,10 +1598,24 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Get phone codes and numbers
-      final officePhoneCode = _officePhoneCode ?? '';
-      final mobilePhoneCode = _mobilePhoneCode ?? '';
+      // Extract phone codes from dropdown values
+      String? _extractPhoneCode(String value) {
+        if (value.isEmpty) return null;
+        try {
+          // Format is "id_phonecode", extract phonecode part
+          final parts = value.split('_');
+          if (parts.length >= 2) {
+            return parts[1]; // Return the phonecode part
+          }
+        } catch (e) {
+          debugPrint('Error extracting phone code: $e');
+        }
+        return null;
+      }
+
+      final officePhoneExt = _extractPhoneCode(_officePhoneCodeController.text.trim());
       final officePhoneNumber = _officeNumberController.text.trim();
+      final mobilePhoneExt = _extractPhoneCode(_mobilePhoneCodeController.text.trim());
       final mobilePhoneNumber = _mobileNumberController.text.trim();
 
       // Convert certificate files to base64 (with size validation)
@@ -1340,7 +1633,7 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
           final base64 = await FileUtils.xFileToBase64(file);
           experienceLevels.add(
             CoachExperienceLevel(
-              expLevelName: _experienceLevel,
+              expLevelName: _experienceLevel!,
               certificateName: file.name,
               certificateBase64: base64,
             ),
@@ -1442,24 +1735,16 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
                 : null,
         officePhoneExt: _contactDetailsSameAsSignup
             ? null
-            : officePhoneCode.isNotEmpty
-                ? officePhoneCode
-                : null,
+            : (officePhoneExt?.isNotEmpty == true ? officePhoneExt : null),
         officePhone: _contactDetailsSameAsSignup
             ? null
-            : officePhoneNumber.isNotEmpty
-                ? officePhoneNumber
-                : null,
+            : (officePhoneNumber.isNotEmpty ? officePhoneNumber : null),
         mobilePhoneExt: _contactDetailsSameAsSignup
             ? null
-            : mobilePhoneCode.isNotEmpty
-                ? mobilePhoneCode
-                : null,
+            : (mobilePhoneExt?.isNotEmpty == true ? mobilePhoneExt : null),
         mobilePhone: _contactDetailsSameAsSignup
             ? null
-            : mobilePhoneNumber.isNotEmpty
-                ? mobilePhoneNumber
-                : null,
+            : (mobilePhoneNumber.isNotEmpty ? mobilePhoneNumber : null),
         companyWebsite: _contactDetailsSameAsSignup
             ? null
             : _websiteController.text.trim().isNotEmpty
@@ -1484,7 +1769,7 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const MembershipPlanPage(),
+            builder: (context) => const CoachMembershipPlanPage(),
           ),
         );
       }

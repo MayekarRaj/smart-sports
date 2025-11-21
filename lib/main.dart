@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
+import 'auth/screens/splash_screen.dart';
 import 'auth/screens/auth_shell.dart';
 import 'auth/screens/forgot_password_page.dart';
 import 'auth/screens/reset_password_page.dart';
@@ -37,7 +38,7 @@ class MyApp extends StatelessWidget {
       title: 'Smart Sports',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      home: const AuthShell(),
+      home: const SplashScreen(),
       // Temporary: Add direct navigation for testing
       // home: const ClubReferralsPage(),
       // home: const coach.CoachUsersPage(), // Uncomment to test coach directly

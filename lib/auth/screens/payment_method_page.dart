@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/services/storage_service.dart';
+import '../../role_specific/common/role_router.dart';
 
 class PaymentMethodPage extends StatefulWidget {
   final double amount;
@@ -18,6 +20,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
   final _paypalIdController = TextEditingController(
     text: 'sushant.godghate@sekai-ichi.com',
   );
+  final StorageService _storageService = StorageService();
 
   bool _isProcessing = false;
 
@@ -655,6 +658,10 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
         _isProcessing = false;
       });
 
+      // Get user role from storage
+      final userRoleStr = await _storageService.getString('user_role');
+      final userRole = userRoleStr?.toUserRole() ?? UserRole.member;
+
       // Show success dialog
       showDialog(
         context: context,
@@ -684,7 +691,13 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
+                Navigator.of(context).pop(); // Close dialog
+                // Navigate to role-specific dashboard
+                final dashboard = RoleRouter.dashboardFor(userRole);
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => dashboard),
+                  (route) => false, // Remove all previous routes
+                );
               },
               child: const Text('Continue'),
             ),

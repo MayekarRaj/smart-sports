@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 import 'package:smart_sports/role_specific/club/screens/profile/club_profile_page.dart';
 import 'package:smart_sports/role_specific/club/screens/dashboard/club_analytics_dashboard_page.dart';
 import 'package:smart_sports/role_specific/club/screens/transactions/club_transactions_page.dart';
@@ -12,15 +14,15 @@ import 'package:smart_sports/role_specific/club/screens/users/club_users_page.da
 import 'package:smart_sports/role_specific/club/screens/referrals/club_referrals_page.dart';
 import 'package:smart_sports/role_specific/club/screens/settings/club_settings_page.dart';
 
-class ClubCustomerSupportPage extends StatefulWidget {
+class ClubCustomerSupportPage extends ConsumerStatefulWidget {
   const ClubCustomerSupportPage({super.key});
 
   @override
-  State<ClubCustomerSupportPage> createState() =>
+  ConsumerState<ClubCustomerSupportPage> createState() =>
       _ClubCustomerSupportPageState();
 }
 
-class _ClubCustomerSupportPageState extends State<ClubCustomerSupportPage> {
+class _ClubCustomerSupportPageState extends ConsumerState<ClubCustomerSupportPage> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _titleSearchController = TextEditingController();
   String _selectedStatus = 'Select';
@@ -166,10 +168,7 @@ class _ClubCustomerSupportPageState extends State<ClubCustomerSupportPage> {
                     ElevatedButton(
                       onPressed: () {
                         Navigator.of(dialogContext).pop(); // Close dialog
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const AuthShell()),
-                          (route) => false,
-                        );
+                        AuthUtils.handleLogout(context, ref);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,

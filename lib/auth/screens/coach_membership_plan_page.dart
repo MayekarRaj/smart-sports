@@ -3,7 +3,9 @@ import '../../core/repositories/auth_repository.dart';
 import '../../core/models/api_models.dart';
 import '../../core/exceptions/api_exception.dart';
 import '../../core/services/storage_service.dart';
+import '../../role_specific/common/role_router.dart';
 import 'payment_method_page.dart';
+import 'membership_plan_page.dart';
 
 class CoachMembershipPlanPage extends StatefulWidget {
   const CoachMembershipPlanPage({super.key});
@@ -17,7 +19,7 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
   final AuthRepository _authRepository = AuthRepository();
   final StorageService _storageService = StorageService();
   bool _isLoadingServices = false;
-  bool _isSubmitting = false;
+  bool _isSavingServices = false;
   List<PaidService> _paidServices = [];
   String? _errorMessage;
 
@@ -156,6 +158,86 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
   double get _taxAmount => (_grandTotal > 0 ? _grandTotal : 0) * 0.10;
   double get _finalAmount => (_grandTotal > 0 ? _grandTotal : 0) + _taxAmount;
 
+  /// Get coach users count from selected "users" service
+  int? _getCoachUsersCount() {
+    if (_selectedServices['users'] == true) {
+      // Return the user count shown in UI (4) or get from service if available
+      return 4; // Default value shown in UI
+    }
+    return null;
+  }
+
+  /// Save optional paid services
+  Future<void> _saveOptionalPaidServices() async {
+    // Get selected service IDs
+    final selectedServiceIds = <int>[];
+    for (var service in _paidServices) {
+      final serviceKey = _getServiceKey(service.name);
+      if (_selectedServices[serviceKey] == true) {
+        selectedServiceIds.add(service.id);
+      }
+    }
+
+    if (selectedServiceIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one service'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSavingServices = true);
+
+    try {
+      final request = SaveOptionalPaidServicesRequest(
+        userRole: 'coach',
+        optionalServicesIds: selectedServiceIds,
+        coachUsersCount: _getCoachUsersCount(),
+      );
+
+      await _authRepository.saveOptionalPaidServices(request);
+
+      if (mounted) {
+        setState(() => _isSavingServices = false);
+        
+        // Save role to storage if not already saved
+        final roleStr = await _storageService.getString('user_role');
+        if (roleStr == null || roleStr.isEmpty) {
+          await _storageService.saveString('user_role', 'coach');
+        }
+        
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentMethodPage(amount: _finalAmount),
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => _isSavingServices = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save services: ${e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSavingServices = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save services: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -171,19 +253,21 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
             ),
           ),
         ),
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
+        // leading: SizedBox(),
+        automaticallyImplyLeading: false,
+        // leading: Container(
+        //   margin: const EdgeInsets.all(8),
+        //   decoration: BoxDecoration(
+        //     color: Colors.white.withOpacity(0.2),
+        //     borderRadius: BorderRadius.circular(12),
+        //   ),
+        //   child: IconButton(
+        //     icon: const Icon(Icons.close, color: Colors.white),
+        //     onPressed: () => Navigator.pop(context),
+        //   ),
+        // ),
         title: const Text(
-          '👨‍🏫 Coach Membership Plans',
+          'Membership Details',
           style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
         ),
         centerTitle: true,
@@ -310,8 +394,12 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'With Free Coach Membership, you will continue to use our following services:',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.green),
+            'With Free Membership, you will continue to use our following services:',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.green,
+            ),
           ),
           const SizedBox(height: 18),
           Padding(
@@ -319,17 +407,26 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
-                _BenefitRow(text: 'Access basic player community'),
-                _BenefitRow(text: 'Respond to coaching requests'),
-                _BenefitRow(text: 'Browse public tournaments & match events'),
-                _BenefitRow(text: 'Gain visibility with basic coach listing'),
+                _BenefitRow(text: 'Access only to Clubs within your locality'),
+                _BenefitRow(text: 'Check Club Ratings and Reviews'),
+                _BenefitRow(text: 'Receive  request for Coach from any Members'),
+                _BenefitRow(
+                  text:
+                      'Track Sponsorship and Revenue Records',
+                ),
+                _BenefitRow(text: 'Readable Access to the forum discussion'),
               ],
             ),
           ),
           const SizedBox(height: 22),
           const Text(
-            'With Free Coach Membership, you will be missing these extra services,\nHowever you will get XX days free trial for all * features.',
-            style: TextStyle(fontSize: 14, color: Colors.red, fontWeight: FontWeight.w600),
+            'With Free Membership, You Will Be Missing Our Following Services, However You Will Avail First XX Days Of Free Trial For All * Indicated Services.',
+            style: TextStyle(
+              fontSize: 15.3,
+              color: Colors.red,
+              fontWeight: FontWeight.w700,
+              height: 1.3,
+            ),
           ),
           SizedBox(height: 14),
           CoachMobileMissingServicesList(),
@@ -425,9 +522,7 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
               return _buildServiceOption(
                 serviceKey,
                 service.name,
-                (service.description2?.isNotEmpty == true) 
-                    ? service.description2! 
-                    : (service.description1 ?? ''),
+                service.description2.isNotEmpty ? service.description2 : service.description1,
                 service.amountValue,
                 hasClubTypes: hasClubTypes,
                 userCount: isUsers ? 4 : null,
@@ -827,16 +922,30 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: _isSubmitting ? null : () async {
+              onPressed: () async {
                 if (_isFreeMembership) {
-                  await _submitFreeMembership();
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PaymentMethodPage(amount: _finalAmount),
+                  // Save role to storage if not already saved
+                  final roleStr = await _storageService.getString('user_role');
+                  if (roleStr == null || roleStr.isEmpty) {
+                    await _storageService.saveString('user_role', 'coach');
+                  }
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Free membership activated'),
+                      backgroundColor: Colors.green,
                     ),
                   );
+                  
+                  // Navigate to coach dashboard
+                  final dashboard = RoleRouter.dashboardFor(UserRole.coach);
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => dashboard),
+                    (route) => false, // Remove all previous routes
+                  );
+                } else {
+                  // Save optional paid services before navigating to payment
+                  await _saveOptionalPaidServices();
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -844,67 +953,24 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               ),
-              child: _isSubmitting && _isFreeMembership
+              child: _isSavingServices
                   ? const SizedBox(
-                      height: 20,
                       width: 20,
+                      height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : Text(_isFreeMembership ? 'Submit' : 'Next', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                  : Text(
+                      _isFreeMembership ? 'Submit' : 'Next',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                    ),
             ),
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _submitFreeMembership() async {
-    if (_isSubmitting) return;
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      await _authRepository.chooseMembershipType('Free');
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Free membership activated'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
-    } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to submit membership: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-    }
   }
 }
 

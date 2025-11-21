@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class MemberProfilePage extends StatefulWidget {
+class MemberProfilePage extends ConsumerStatefulWidget {
   const MemberProfilePage({super.key});
 
   @override
-  State<MemberProfilePage> createState() => _MemberProfilePageState();
+  ConsumerState<MemberProfilePage> createState() => _MemberProfilePageState();
 }
 
-class _MemberProfilePageState extends State<MemberProfilePage> {
+class _MemberProfilePageState extends ConsumerState<MemberProfilePage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController(text: 'John Doe');
   final _emailController = TextEditingController(text: 'john@example.com');
@@ -83,12 +85,7 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
               // Already on profile page
               Navigator.of(context).pop();
             },
-            onSignOut: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthShell()),
-                (route) => false,
-              );
-            },
+            onSignOut: () => AuthUtils.handleLogout(context, ref),
           ),
         ),
       ),

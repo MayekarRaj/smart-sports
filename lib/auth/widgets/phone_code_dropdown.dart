@@ -3,18 +3,15 @@ import '../../core/repositories/auth_repository.dart';
 import '../../core/models/api_models.dart';
 import '../../core/exceptions/api_exception.dart';
 
-/// A reusable phone code dropdown that fetches codes from API
 class PhoneCodeDropdown extends StatefulWidget {
   final String? value;
-  final Function(String?) onChanged;
-  final String? label;
+  final ValueChanged<String?>? onChanged;
   final bool enabled;
 
   const PhoneCodeDropdown({
     super.key,
     this.value,
-    required this.onChanged,
-    this.label,
+    this.onChanged,
     this.enabled = true,
   });
 
@@ -25,148 +22,265 @@ class PhoneCodeDropdown extends StatefulWidget {
 class _PhoneCodeDropdownState extends State<PhoneCodeDropdown> {
   final AuthRepository _authRepository = AuthRepository();
   List<PhoneCode> _phoneCodes = [];
-  bool _isLoading = false;
-  String? _errorMessage;
-  bool _hasLoaded = false;
+  bool _isLoading = true;
+  String? _selectedValue;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _selectedValue = widget.value;
     _loadPhoneCodes();
   }
 
+  @override
+  void didUpdateWidget(PhoneCodeDropdown oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != oldWidget.value) {
+      _selectedValue = widget.value;
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadPhoneCodes() async {
-    if (_hasLoaded) return;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
     try {
       final response = await _authRepository.getPhoneCodes();
-      
       if (mounted) {
         setState(() {
           _phoneCodes = response.data;
           _isLoading = false;
-          _hasLoaded = true;
-        });
-      }
-    } on ApiException catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.message;
-          _isLoading = false;
         });
       }
     } catch (e) {
+      debugPrint('Error loading phone codes: $e');
       if (mounted) {
         setState(() {
-          _errorMessage = 'Failed to load phone codes: ${e.toString()}';
           _isLoading = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load phone codes: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
 
-  String _formatPhoneCode(PhoneCode code) {
-    return '+${code.phonecode}';
+  String _getUniqueValue(PhoneCode phoneCode) {
+    // Use id_phonecode format to ensure uniqueness
+    return '${phoneCode.id}_${phoneCode.phonecode}';
   }
 
-  String _getUniqueValue(PhoneCode code) {
-    // Use ID to ensure uniqueness, since multiple countries can have same phone code
-    return '${code.id}_${code.phonecode}';
-  }
-
-  String? _getPhoneCodeFromValue(String? value) {
+  PhoneCode? _getPhoneCodeFromValue(String? value) {
     if (value == null) return null;
-    // Extract phone code from unique value format: "id_phonecode"
-    final parts = value.split('_');
-    if (parts.length >= 2) {
-      return '+${parts[1]}';
+    try {
+      final parts = value.split('_');
+      if (parts.length >= 2) {
+        final id = int.parse(parts[0]);
+        return _phoneCodes.firstWhere((pc) => pc.id == id);
+      }
+    } catch (e) {
+      debugPrint('Error parsing phone code value: $e');
     }
-    return value; // Fallback to original value if format is unexpected
+    return null;
+  }
+
+  String _formatPhoneCode(PhoneCode phoneCode) {
+    return '+${phoneCode.phonecode}';
+  }
+
+  List<PhoneCode> _getFilteredPhoneCodes(String query) {
+    if (query.isEmpty) return _phoneCodes;
+    final lowerQuery = query.toLowerCase();
+    return _phoneCodes.where((phoneCode) {
+      return phoneCode.countryName.toLowerCase().contains(lowerQuery) ||
+          phoneCode.phonecode.toString().contains(query) ||
+          (phoneCode.countryShortName?.toLowerCase().contains(lowerQuery) ?? false);
+    }).toList();
+  }
+
+  void _showSearchableDialog() {
+    _searchController.clear();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final filteredCodes = _getFilteredPhoneCodes(_searchController.text);
+          return Container(
+            color: Colors.white,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.7,
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Search field
+                TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Search country or code...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              setModalState(() {
+                                _searchController.clear();
+                              });
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setModalState(() {});
+                  },
+                ),
+                const SizedBox(height: 16),
+                // List of phone codes
+                Expanded(
+                  child: filteredCodes.isEmpty
+                      ? const Center(
+                          child: Text('No results found'),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: filteredCodes.length,
+                          itemBuilder: (context, index) {
+                            final phoneCode = filteredCodes[index];
+                            final uniqueValue = _getUniqueValue(phoneCode);
+                            final isSelected = _selectedValue == uniqueValue;
+                            
+                            return ListTile(
+                              leading: Text(
+                                _formatPhoneCode(phoneCode),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              title: Text(phoneCode.countryName),
+                              trailing: isSelected
+                                  ? const Icon(Icons.check, color: Colors.green)
+                                  : null,
+                              onTap: () {
+                                setState(() {
+                                  _selectedValue = uniqueValue;
+                                });
+                                widget.onChanged?.call(uniqueValue);
+                                Navigator.pop(context);
+                              },
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  PhoneCode? _getSelectedPhoneCode() {
+    if (_selectedValue == null) return null;
+    return _getPhoneCodeFromValue(_selectedValue);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (widget.label != null) ...[
-          Text(
-            widget.label!,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF64748B),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: _isLoading
-              ? const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                )
-              : _errorMessage != null
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      child: Text(
-                        _errorMessage!,
-                        style: TextStyle(color: Colors.red[700], fontSize: 12),
-                      ),
-                    )
-                  : DropdownButtonFormField<String>(
-                      value: widget.value != null && _phoneCodes.isNotEmpty
-                          ? () {
-                              try {
-                                final code = _phoneCodes.firstWhere(
-                                  (code) => _formatPhoneCode(code) == widget.value,
-                                );
-                                return _getUniqueValue(code);
-                              } catch (e) {
-                                return null;
-                              }
-                            }()
-                          : null,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                      ),
-                      items: _phoneCodes.map((code) {
-                        final codeString = _formatPhoneCode(code);
-                        final uniqueValue = _getUniqueValue(code);
-                        return DropdownMenuItem<String>(
-                          value: uniqueValue,
-                          child: Text('$codeString ${code.countryName}'),
-                        );
-                      }).toList(),
-                      onChanged: (widget.enabled && _phoneCodes.isNotEmpty) 
-                          ? (value) {
-                              if (value != null) {
-                                final phoneCode = _getPhoneCodeFromValue(value);
-                                widget.onChanged(phoneCode);
-                              }
-                            }
-                          : null,
-                    ),
+    if (_isLoading) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
         ),
-      ],
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        child: const Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 12),
+            Text('Loading...', style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+
+    if (_phoneCodes.isEmpty) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        child: const Text('No phone codes available', style: TextStyle(color: Colors.grey)),
+      );
+    }
+
+    final selectedPhoneCode = _getSelectedPhoneCode();
+    final displayText = selectedPhoneCode != null
+        ? '${_formatPhoneCode(selectedPhoneCode)} ${selectedPhoneCode.countryName}'
+        : 'Select Code';
+
+    return InkWell(
+      onTap: widget.enabled ? _showSearchableDialog : null,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                displayText,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: selectedPhoneCode != null
+                      ? Colors.black
+                      : Colors.grey.shade400,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Icon(
+              Icons.keyboard_arrow_down,
+              color: Colors.grey.shade600,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

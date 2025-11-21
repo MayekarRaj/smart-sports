@@ -22,7 +22,6 @@ class _SignInPageState extends ConsumerState<SignInPage> {
   final _formKey = GlobalKey<FormState>();
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
-  UserRole role = UserRole.member;
   bool _emailVerified = false;
   final AuthRepository _authRepository = AuthRepository();
   bool _isCheckingEmail = false;
@@ -105,17 +104,21 @@ class _SignInPageState extends ConsumerState<SignInPage> {
     // Check auth state after sign in
     final authState = ref.read(authStateProvider);
     
-    if (authState.isAuthenticated) {
+    if (authState.isAuthenticated && authState.user != null) {
       if (mounted) {
+        // Get role from API response
+        final userRoleString = authState.user!.role;
+        final userRole = userRoleString?.toUserRole() ?? UserRole.member;
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Welcome! Signed in as ${role.label}'),
+            content: Text('Welcome! Signed in as ${userRole.label}'),
             backgroundColor: Colors.green,
           ),
         );
 
-        // Navigate to role-based dashboard
-        final target = RoleRouter.dashboardFor(role);
+        // Navigate to role-based dashboard using role from API
+        final target = RoleRouter.dashboardFor(userRole);
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => target),
         );
@@ -224,31 +227,6 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<UserRole>(
-            value: role,
-            decoration: InputDecoration(
-              labelText: 'Role',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-            ),
-            items: UserRole.values.map((r) {
-              return DropdownMenuItem(
-                value: r,
-                child: Text(r.label),
-              );
-            }).toList(),
-            onChanged: isLoading
-                ? null
-                : (v) {
-                    if (v != null) setState(() => role = v);
-                  },
           ),
           const SizedBox(height: 20),
           SizedBox(

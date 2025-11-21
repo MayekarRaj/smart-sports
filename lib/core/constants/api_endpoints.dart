@@ -33,21 +33,29 @@ class ApiEndpoints {
   static const String merchandizerSignup = '/signup-merchandizer';
   static const String merchandizerBranchSignup = '/signup-merchandizer-branch';
 
-  // ==================== Member Registration ====================
-  static const String memberSignup = '/signup-member-role';
-  static const String familyMemberSignup = '/signup-family-member';
-  static const String memberPreferredClubs = '/signup-members-club-list';
-
   // ==================== Paid Services ====================
   static const String paidServicesList = '/paid-services-list';
-
-  // ==================== Membership Type ====================
-  static const String chooseMembershipType = '/signup-chooseMembershipType';
+  static const String saveOptionalPaidServices = '/save-optional-paid-services';
 
   // ==================== Club and Branch Lists ====================
   static const String getAllClubList = '/signup-getAllClubList';
   static const String getMerchandizerBranchList = '/signup-getMerchandizerBranchList';
-  static const String getClubBranchList = '/signup-club-branch-list';
+
+  // ==================== Sports ====================
+  static const String mstSports = '/mst-sports';
+
+  // ==================== Coach Experience Levels ====================
+  static const String mstCoachExperienceLevel = '/mst-coach-experience-level';
+
+  // ==================== Club Days ====================
+  static const String mstClubDays = '/mst-club-days';
+
+  // ==================== City and Location ====================
+  static const String getCity = '/get-city';
+  static const String getCountryStateByCity = '/get-country-state-by-city';
+
+  // ==================== Phone Codes ====================
+  static const String phoneCode = '/phone-code';
 
   // ==================== Bookings ====================
   static const String bookings = '/bookings';
@@ -95,11 +103,6 @@ class ApiEndpoints {
   static const String createTicket = '/support/tickets';
   static const String ticketDetails = '/support/tickets'; // /support/tickets/{id}
 
-  // ==================== Location & Phone ====================
-  static const String getCity = '/get-city';
-  static const String getCityDetails = '/get-country-state-by-city';
-  static const String getPhoneCodes = '/phone-code';
-
   // ==================== Helper Methods ====================
   
   // Authentication
@@ -132,12 +135,6 @@ class ApiEndpoints {
   static String getMerchandizerSignupUrl() => '${ApiConfig.apiBaseUrl}$merchandizerSignup';
   static String getMerchandizerBranchSignupUrl() => '${ApiConfig.apiBaseUrl}$merchandizerBranchSignup';
 
-  // Member Registration
-  static String getMemberSignupUrl() => '${ApiConfig.apiBaseUrl}$memberSignup';
-  static String getFamilyMemberSignupUrl() => '${ApiConfig.apiBaseUrl}$familyMemberSignup';
-  static String getMemberPreferredClubsUrl(int userId) => 
-      '${ApiConfig.apiBaseUrl}$memberPreferredClubs/$userId';
-
   // Paid Services
   static String getPaidServicesListUrl({String? userRole}) {
     final baseUrl = '${ApiConfig.apiBaseUrl}$paidServicesList';
@@ -146,17 +143,103 @@ class ApiEndpoints {
     }
     return baseUrl;
   }
-
-  // Membership Type
-  static String getChooseMembershipTypeUrl() => '${ApiConfig.apiBaseUrl}$chooseMembershipType';
+  
+  static String getSaveOptionalPaidServicesUrl() => '${ApiConfig.apiBaseUrl}$saveOptionalPaidServices';
 
   // Club and Branch Lists
   static String getAllClubListUrl() => '${ApiConfig.apiBaseUrl}$getAllClubList';
   static String getMerchandizerBranchListUrl(int merchandizerId) => 
       '${ApiConfig.apiBaseUrl}$getMerchandizerBranchList/$merchandizerId';
-  static String getClubBranchListUrl(int clubId) => 
-      '${ApiConfig.apiBaseUrl}$getClubBranchList/$clubId';
 
+  // Sports
+  static String getMstSportsUrl({
+    int? perPage,
+    String? orderBy,
+    String? commonSearch,
+    String? sportsName,
+    int? isActive,
+    int? page,
+  }) {
+    final baseUrl = '${ApiConfig.apiBaseUrl}$mstSports';
+    final params = <String, String>{};
+    
+    if (perPage != null) params['perPage'] = perPage.toString();
+    if (orderBy != null) params['orderBy'] = orderBy;
+    if (commonSearch != null && commonSearch.isNotEmpty) params['common_search'] = commonSearch;
+    if (sportsName != null && sportsName.isNotEmpty) params['sports_name'] = sportsName;
+    if (isActive != null) params['is_active'] = isActive.toString();
+    if (page != null) params['page'] = page.toString();
+    
+    if (params.isEmpty) return baseUrl;
+    
+    final queryString = params.entries
+        .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+    return '$baseUrl?$queryString';
+  }
+
+  // Coach Experience Levels
+  static String getMstCoachExperienceLevelUrl({
+    int? perPage,
+    String? orderBy,
+    String? commonSearch,
+    String? name,
+    int? isActive,
+    int? page,
+  }) {
+    final baseUrl = '${ApiConfig.apiBaseUrl}$mstCoachExperienceLevel';
+    final params = <String, String>{};
+    
+    if (perPage != null) params['perPage'] = perPage.toString();
+    if (orderBy != null) params['orderBy'] = orderBy;
+    if (commonSearch != null && commonSearch.isNotEmpty) params['common_search'] = commonSearch;
+    if (name != null && name.isNotEmpty) params['name'] = name;
+    if (isActive != null) params['is_active'] = isActive.toString();
+    if (page != null) params['page'] = page.toString();
+    
+    if (params.isEmpty) return baseUrl;
+    
+    final queryString = params.entries
+        .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+    return '$baseUrl?$queryString';
+  }
+
+  // Club Days
+  static String getMstClubDaysUrl({
+    int? perPage,
+    String? orderBy,
+    String? commonSearch,
+    String? name,
+    int? isActive,
+    int? page,
+  }) {
+    final baseUrl = '${ApiConfig.apiBaseUrl}$mstClubDays';
+    final params = <String, String>{};
+    
+    if (perPage != null) params['perPage'] = perPage.toString();
+    if (orderBy != null) params['orderBy'] = orderBy;
+    if (commonSearch != null && commonSearch.isNotEmpty) params['common_search'] = commonSearch;
+    if (name != null && name.isNotEmpty) params['name'] = name;
+    if (isActive != null) params['is_active'] = isActive.toString();
+    if (page != null) params['page'] = page.toString();
+    
+    if (params.isEmpty) return baseUrl;
+    
+    final queryString = params.entries
+        .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+    return '$baseUrl?$queryString';
+  }
+
+  // City and Location
+  static String getCitySearchUrl(String search) => 
+      '${ApiConfig.apiBaseUrl}$getCity/$search';
+  static String getCountryStateByCityUrl(int cityId) => 
+      '${ApiConfig.apiBaseUrl}$getCountryStateByCity/$cityId';
+
+  // Phone Codes
+  static String getPhoneCodeUrl() => '${ApiConfig.apiBaseUrl}$phoneCode';
 
   // Bookings
   static String getBookingsUrl() => '${ApiConfig.apiBaseUrl}$bookings';
@@ -203,12 +286,4 @@ class ApiEndpoints {
   static String getSupportTicketsUrl() => '${ApiConfig.apiBaseUrl}$supportTickets';
   static String getCreateTicketUrl() => '${ApiConfig.apiBaseUrl}$createTicket';
   static String getTicketDetailsUrl(String id) => '${ApiConfig.apiBaseUrl}$ticketDetails/$id';
-
-  // Location & Phone
-  static String getCitySearchUrl(String searchTerm) => 
-      '${ApiConfig.apiBaseUrl}$getCity/$searchTerm';
-  static String getCityDetailsUrl(int cityId) => 
-      '${ApiConfig.apiBaseUrl}$getCityDetails/$cityId';
-  static String getPhoneCodesUrl() => 
-      '${ApiConfig.apiBaseUrl}$getPhoneCodes';
 }

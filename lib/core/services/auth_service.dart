@@ -28,6 +28,11 @@ class AuthService {
     if (response.accessToken.isNotEmpty) {
       await _storageService.saveString('user_email', email);
       await _storageService.saveString('user_id', response.user.id.toString());
+      
+      // Save user role if available
+      if (response.user.userRole != null && response.user.userRole!.isNotEmpty) {
+        await _storageService.saveString('user_role', response.user.userRole!);
+      }
     }
     
     return response;

@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../core/models/api_models.dart';
+import 'member_membership_plan_page.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../../core/exceptions/api_exception.dart';
-import '../../core/utils/phone_parser.dart';
-import '../widgets/phone_code_dropdown.dart';
-import '../widgets/city_search_field.dart';
-import 'member_membership_plan_page.dart';
+import '../../core/models/api_models.dart';
 
 class FamilyDetailsPage extends StatefulWidget {
   const FamilyDetailsPage({super.key});
@@ -18,9 +15,7 @@ class FamilyDetailsPage extends StatefulWidget {
 class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
-  final AuthRepository _authRepository = AuthRepository();
-  final TextEditingController _numberOfMembersController = TextEditingController();
-  bool _isLoading = false;
+  final TextEditingController _numberOfMembersController = TextEditingController(text: '2');
 
   // Common checkboxes
   bool _addressSameAsSignup = true;
@@ -32,12 +27,12 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
 
   // Address data (for when checkbox is unchecked)
   final Map<String, TextEditingController> _addressControllers = {
-    'address1': TextEditingController(),
-    'address2': TextEditingController(),
-    'city': TextEditingController(),
-    'state': TextEditingController(),
-    'zip': TextEditingController(),
-    'country': TextEditingController(),
+    'address1': TextEditingController(text: 'Xyz'),
+    'address2': TextEditingController(text: 'Xyz'),
+    'city': TextEditingController(text: 'Xyz'),
+    'state': TextEditingController(text: 'Xyz'),
+    'zip': TextEditingController(text: 'Xyz'),
+    'country': TextEditingController(text: 'Xyz'),
   };
 
   // Practice plans (for when checkbox is unchecked)
@@ -45,7 +40,7 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
 
   // Preferred clubs (for when checkbox is unchecked)
   final List<String> _selectedClubs = [];
-  final TextEditingController _distanceController = TextEditingController();
+  final TextEditingController _distanceController = TextEditingController(text: '5');
   String _distanceUnit = 'Km';
 
   final List<String> _availableClubs = [
@@ -56,23 +51,110 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
     'Crimson Wolves',
   ];
 
-  final List<String> _allSports = [
-    'Tennis',
-    'Baseball',
-    'Cricket',
-    'Basketball',
-    'Football',
-    'Hockey',
-    'Badminton',
-    'Volleyball',
-  ];
+  List<String> _allSports = [];
+  bool _isLoadingSports = false;
+  final AuthRepository _authRepository = AuthRepository();
+
+  // Club days from API
+  List<MstClubDay> _clubDays = [];
+  bool _isLoadingClubDays = false;
 
   @override
   void initState() {
     super.initState();
     _numberOfMembersController.addListener(_onNumberOfMembersChanged);
     _initializeMembers();
-    _initializePracticePlans();
+    _selectedClubs.addAll(['Urban Titans', 'Steel Panthers']);
+    _loadSports();
+    _loadClubDays().then((_) {
+      // Initialize practice plans after club days are loaded
+      if (mounted) {
+        _initializePracticePlans();
+      }
+    });
+  }
+
+  Future<void> _loadClubDays() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingClubDays = true;
+    });
+
+    try {
+      final response = await _authRepository.getClubDays(
+        perPage: 1000,
+        orderBy: 'id|ASC',
+        isActive: 1,
+        page: 1,
+      );
+
+      if (mounted) {
+        setState(() {
+          _clubDays = response.data.data;
+          _isLoadingClubDays = false;
+          // Update default days in existing practice plans if they're still using hardcoded values
+          for (var plan in _practicePlans) {
+            final practiceDays = plan['practiceDays'] as String;
+            if (practiceDays == 'Weekdays' || practiceDays == 'Weekend') {
+              if (_clubDays.isNotEmpty) {
+                plan['practiceDays'] = _clubDays.first.name;
+              }
+            }
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingClubDays = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load club days: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadSports() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingSports = true;
+    });
+
+    try {
+      final response = await _authRepository.getSportsList(
+        perPage: 1000,
+        orderBy: 'id|ASC',
+        isActive: 1,
+        page: 1,
+      );
+
+      if (mounted) {
+        setState(() {
+          _allSports = response.data.data
+              .map((sport) => sport.sportsName)
+              .toList();
+          _isLoadingSports = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingSports = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load sports: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -92,11 +174,7 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
   }
 
   void _initializeMembers() {
-    final numberOfMembers = int.tryParse(_numberOfMembersController.text) ?? 1;
-    if (numberOfMembers < 1) {
-      _members.clear();
-      return;
-    }
+    final numberOfMembers = int.tryParse(_numberOfMembersController.text) ?? 2;
     _members.clear();
 
     for (int i = 0; i < numberOfMembers; i++) {
@@ -109,15 +187,15 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
       'memberNumber': memberNumber,
       'isHead': memberNumber == 1,
       'controllers': {
-        'firstName': TextEditingController(),
-        'lastName': TextEditingController(),
-        'email': TextEditingController(),
+        'firstName': TextEditingController(text: 'Peter'),
+        'lastName': TextEditingController(text: 'Stillman'),
+        'email': TextEditingController(text: 'Peter123@Gmail.Com'),
         'dateOfBirth': TextEditingController(),
         'gender': 'Male',
-        'contactNumber': TextEditingController(),
-        'countryCode': '+91', // Default value for dropdown
+        'contactNumber': TextEditingController(text: '9876543210'),
+        'countryCode': '+91',
         'membershipType': 'Adult (18 And Above)',
-        'sports': [],
+        'sports': ['Tennis', 'Baseball', 'Cricket', 'Basketball'],
       },
     };
   }
@@ -158,16 +236,17 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
   }
 
   void _initializePracticePlans() {
+    final defaultDay = _clubDays.isNotEmpty ? _clubDays.first.name : 'Monday';
     _practicePlans = [
       {
         'id': 1,
-        'practiceDays': 'Weekdays',
+        'practiceDays': defaultDay,
         'startTime': '00:00',
         'endTime': '00:00',
       },
       {
         'id': 2,
-        'practiceDays': 'Weekdays',
+        'practiceDays': defaultDay,
         'startTime': '00:00',
         'endTime': '00:00',
       },
@@ -176,9 +255,10 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
 
   void _addPracticePlan() {
     setState(() {
+      final defaultDay = _clubDays.isNotEmpty ? _clubDays.first.name : 'Monday';
       _practicePlans.add({
         'id': _practicePlans.length + 1,
-        'practiceDays': 'Weekdays',
+        'practiceDays': defaultDay,
         'startTime': '00:00',
         'endTime': '00:00',
       });
@@ -235,11 +315,7 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
   void _showClubSelection() {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
       builder: (context) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
-        ),
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -253,42 +329,28 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
               ),
             ),
             const SizedBox(height: 16),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: _availableClubs.map((club) {
-                    final isSelected = _selectedClubs.contains(club);
-                    return CheckboxListTile(
-                      title: Text(club),
-                      value: isSelected,
-                      onChanged: (value) {
-                        setState(() {
-                          if (value == true) {
-                            if (!_selectedClubs.contains(club)) {
-                              _selectedClubs.add(club);
-                            }
-                          } else {
-                            _selectedClubs.remove(club);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
+            ..._availableClubs.map((club) {
+              final isSelected = _selectedClubs.contains(club);
+              return CheckboxListTile(
+                title: Text(club),
+                value: isSelected,
+                onChanged: (value) {
+                  setState(() {
+                    if (value == true) {
+                      if (!_selectedClubs.contains(club)) {
+                        _selectedClubs.add(club);
+                      }
+                    } else {
+                      _selectedClubs.remove(club);
+                    }
+                  });
+                },
+              );
+            }).toList(),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Done'),
-              ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Done'),
             ),
           ],
         ),
@@ -320,47 +382,50 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Flexible(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: _allSports.map((sport) {
-                        final isSelected = currentSports.contains(sport);
-                        return CheckboxListTile(
-                          title: Text(sport),
-                          value: isSelected,
-                          onChanged: (value) {
-                            setModalState(() {
-                              if (value == true) {
-                                if (!currentSports.contains(sport)) {
-                                  currentSports.add(sport);
+                if (_isLoadingSports)
+                  const Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(),
+                  )
+                else if (_allSports.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: Text('No sports available'),
+                  )
+                else
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: _allSports.map((sport) {
+                          final isSelected = currentSports.contains(sport);
+                          return CheckboxListTile(
+                            title: Text(sport),
+                            value: isSelected,
+                            onChanged: (value) {
+                              setModalState(() {
+                                if (value == true) {
+                                  if (!currentSports.contains(sport)) {
+                                    currentSports.add(sport);
+                                  }
+                                } else {
+                                  currentSports.remove(sport);
                                 }
-                              } else {
-                                currentSports.remove(sport);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        member['controllers']['sports'] = currentSports;
-                      });
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Done'),
-                  ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      member['controllers']['sports'] = currentSports;
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Done'),
                 ),
               ],
             ),
@@ -370,230 +435,16 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
     );
   }
 
-  Future<void> _submitFamilyDetails() async {
+  void _submitFamilyDetails() {
     if (!_formKey.currentState!.validate()) return;
-    if (!mounted) return;
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // Convert form data to FamilyMember objects
-      List<FamilyMember> familyMembers = [];
-
-      if (_members.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please add at least one family member'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      for (var member in _members) {
-        final controllers = member['controllers'] as Map<String, dynamic>;
-        
-        // Parse date from MM-DD-YYYY to YYYY-MM-DD
-        String dob = '';
-        final dobController = controllers['dateOfBirth'] as TextEditingController;
-        if (dobController.text.isNotEmpty) {
-          try {
-            final date = DateFormat('MM-dd-yyyy').parse(dobController.text);
-            dob = DateFormat('yyyy-MM-dd').format(date);
-          } catch (e) {
-            // If parsing fails, try to use as-is or show error
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Invalid date format for member ${member['memberNumber']}'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-            setState(() => _isLoading = false);
-            return;
-          }
-        }
-
-        // Parse phone numbers
-        final mobilePhone = PhoneParser.parsePhoneNumber(
-          controllers['contactNumber']?.text ?? '',
-        );
-        final countryCode = controllers['countryCode'] as String? ?? '+91';
-
-        // Convert membership type
-        String membershipType = controllers['membershipType'] as String? ?? 'Adult (18 And Above)';
-        // Map to API format (assuming API expects: "Adult", "Youth", "Junior", etc.)
-        if (membershipType.contains('Adult')) {
-          membershipType = 'Adult';
-        } else if (membershipType.contains('Youth')) {
-          membershipType = 'Youth';
-        } else if (membershipType.contains('Child')) {
-          membershipType = 'Junior';
-        }
-
-        // Get sports
-        final sports = List<String>.from(controllers['sports'] as List? ?? []);
-
-        // Handle address
-        String? zipCode;
-        String? city;
-        String? state;
-        String? country;
-        String? addressLine1;
-        String? addressLine2;
-        String? addressLine3;
-
-        if (!_addressSameAsSignup) {
-          zipCode = _addressControllers['zip']?.text.trim();
-          city = _addressControllers['city']?.text.trim();
-          state = _addressControllers['state']?.text.trim();
-          country = _addressControllers['country']?.text.trim();
-          addressLine1 = _addressControllers['address1']?.text.trim();
-          addressLine2 = _addressControllers['address2']?.text.trim();
-          addressLine3 = null; // Not in form
-        }
-
-        // Handle practice plans
-        List<PracticePlan> practicePlans = [];
-        if (!_practicePlanSameAsMain) {
-          for (var plan in _practicePlans) {
-            final practiceDays = plan['practiceDays'] as String;
-            final startTime = plan['startTime'] as String;
-            final endTime = plan['endTime'] as String;
-
-            // Convert Weekdays/Weekend to individual days
-            List<String> days = [];
-            if (practiceDays == 'Weekdays') {
-              days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-            } else if (practiceDays == 'Weekend') {
-              days = ['Saturday', 'Sunday'];
-            } else {
-              days = [practiceDays];
-            }
-
-            // Create practice plan for each day
-            for (var day in days) {
-              practicePlans.add(
-                PracticePlan(
-                  practiceDay: day,
-                  practiceStartTime: startTime,
-                  practiceEndTime: endTime,
-                ),
-              );
-            }
-          }
-        }
-
-        // Handle preferred clubs
-        List<int> preferredClub = [];
-        if (!_preferredClubsSameAsMain) {
-          // Map club names to IDs (for now, using static mapping)
-          // In production, you'd fetch this from an API or store it
-          final clubNameToId = {
-            'Urban Titans': 1,
-            'Steel Panthers': 2,
-            'Golden Eagles': 3,
-            'Thunder Hawks': 4,
-            'Crimson Wolves': 5,
-          };
-          
-          for (var clubName in _selectedClubs) {
-            final clubId = clubNameToId[clubName];
-            if (clubId != null) {
-              preferredClub.add(clubId);
-            }
-          }
-        }
-
-        // Create FamilyMember object
-        familyMembers.add(
-          FamilyMember(
-            firstname: (controllers['firstName'] as TextEditingController).text.trim(),
-            lastname: (controllers['lastName'] as TextEditingController).text.trim(),
-            email: (controllers['email'] as TextEditingController).text.trim(),
-            dob: dob,
-            gender: controllers['gender'] as String? ?? 'Male',
-            designation: '', // Not in form, using empty string
-            department: '', // Not in form, using empty string
-            mobilePhoneExt: countryCode,
-            mobilePhone: mobilePhone['number'] ?? '',
-            officePhoneExt: countryCode, // Using same as mobile for now
-            officePhone: '', // Not in form, using empty string
-            membershipType: membershipType,
-            sportsInterestedIn: sports,
-            isAddressIsSameAsUser: _addressSameAsSignup ? 1 : 0,
-            zipCode: zipCode,
-            city: city,
-            state: state,
-            country: country,
-            addressLine1: addressLine1,
-            addressLine2: addressLine2,
-            addressLine3: addressLine3,
-            isPracticePlanSameMainMember: _practicePlanSameAsMain ? 1 : 0,
-            practicePlans: practicePlans,
-            isPreferredClubsSameMainMember: _preferredClubsSameAsMain ? 1 : 0,
-            preferredClub: preferredClub,
-          ),
-        );
-      }
-
-      // Build request
-      final request = FamilyMemberSignupRequest(
-        familyMembers: familyMembers,
-      );
-
-      // Call API
-      final response = await _authRepository.familyMemberSignup(request);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.message),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Navigate to membership plan page
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MemberMembershipPlanPage(),
-          ),
-        );
-      }
-    } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('An error occurred: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    // Navigate to membership plan page
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MemberMembershipPlanPage(),
+      ),
+    );
   }
 
   @override
@@ -646,7 +497,7 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
                 child: _buildTextField(
                   controller: _numberOfMembersController,
                   label: 'Number Of Family Members',
-                  hint: 'Enter number of family members',
+                  hint: '2',
                   keyboardType: TextInputType.number,
                 ),
               ),
@@ -791,26 +642,17 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
             ],
           ),
           const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Contact Number',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF1E293B),
-              ),  
-            ),
-          ),
           Row(
             children: [
               SizedBox(
-                width: 120,
-                child: PhoneCodeDropdown(
-                  value: controllers['countryCode'] as String?,
+                width: 80,
+                child: _buildDropdownField(
+                  label: '',
+                  value: controllers['countryCode'] as String,
+                  items: ['+91', '+1', '+44', '+86'],
                   onChanged: (value) {
                     setState(() {
-                      controllers['countryCode'] = value ?? '+91';
+                      controllers['countryCode'] = value!;
                     });
                   },
                 ),
@@ -819,8 +661,8 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
               Expanded(
                 child: _buildTextField(
                   controller: controllers['contactNumber'] as TextEditingController,
-                  label: '',
-                  hint: 'Enter contact number',
+                  label: 'Contact Number',
+                  hint: '9876543210',
                   keyboardType: TextInputType.phone,
                 ),
               ),
@@ -849,7 +691,7 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
   }
 
   Widget _buildSportsSection(Map<String, dynamic> member) {
-    final sports = List<String>.from(member['controllers']['sports'] as List? ?? []);
+    final sports = member['controllers']['sports'] as List<String>;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -875,65 +717,56 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
             child: Row(
               children: [
                 Expanded(
-                  child: sports.isEmpty
-                      ? Text(
-                          'No sports selected. Tap to select.',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        )
-                      : Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: sports.map((sport) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF8BB6D9).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: const Color(0xFF8BB6D9)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    sport,
-                                    style: const TextStyle(
-                                      color: Color(0xFF8BB6D9),
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        sports.remove(sport);
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.red,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.close,
-                                        size: 10,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: sports.map((sport) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
                         ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF8BB6D9).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFF8BB6D9)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              sport,
+                              style: const TextStyle(
+                                color: Color(0xFF8BB6D9),
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  sports.remove(sport);
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  size: 10,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
                 const Icon(
                   Icons.keyboard_arrow_down,
@@ -1009,12 +842,34 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
                   hint: 'Enter address line 2',
                 ),
                 const SizedBox(height: 16),
-                CitySearchField(
-                  cityController: _addressControllers['city']!,
-                  stateController: _addressControllers['state'],
-                  countryController: _addressControllers['country'],
-                  label: 'City',
-                  hint: 'Enter city name',
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'City',
+                        value: _addressControllers['city']!.text,
+                        items: ['Xyz', 'Mumbai', 'Delhi', 'Bangalore'],
+                        onChanged: (value) {
+                          setState(() {
+                            _addressControllers['city']!.text = value!;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'State',
+                        value: _addressControllers['state']!.text,
+                        items: ['Xyz', 'Maharashtra', 'Delhi', 'Karnataka'],
+                        onChanged: (value) {
+                          setState(() {
+                            _addressControllers['state']!.text = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -1029,23 +884,18 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _buildTextField(
-                        controller: _addressControllers['state']!,
-                        label: 'State',
-                        hint: 'State',
-                        enabled: true,
-                        readOnly: true,
+                      child: _buildDropdownField(
+                        label: 'Country',
+                        value: _addressControllers['country']!.text,
+                        items: ['Xyz', 'India', 'USA', 'UK'],
+                        onChanged: (value) {
+                          setState(() {
+                            _addressControllers['country']!.text = value!;
+                          });
+                        },
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _addressControllers['country']!,
-                  label: 'Country',
-                  hint: 'Country',
-                  enabled: true,
-                  readOnly: true,
                 ),
               ],
             ),
@@ -1165,26 +1015,87 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _buildDropdownField(
-                        label: 'Practice Days',
-                        value: plan['practiceDays'] as String,
-                        items: [
-                          'Weekdays',
-                          'Weekend',
-                          'Monday',
-                          'Tuesday',
-                          'Wednesday',
-                          'Thursday',
-                          'Friday',
-                          'Saturday',
-                          'Sunday',
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            plan['practiceDays'] = value!;
-                          });
-                        },
-                      ),
+                      _isLoadingClubDays
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Practice Days',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[50],
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.grey[200]!),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text('Loading...', style: TextStyle(color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                          : _clubDays.isEmpty
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Practice Days',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF64748B),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 16,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[50],
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.grey[200]!),
+                                      ),
+                                      child: const Text(
+                                        'No days available',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : _buildDropdownField(
+                                  label: 'Practice Days',
+                                  value: _clubDays.any((day) => day.name == plan['practiceDays'] as String)
+                                      ? plan['practiceDays'] as String
+                                      : _clubDays.isNotEmpty
+                                          ? _clubDays.first.name
+                                          : 'Monday',
+                                  items: _clubDays.map((day) => day.name).toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      plan['practiceDays'] = value!;
+                                    });
+                                  },
+                                ),
                       const SizedBox(height: 16),
                       Row(
                         children: [
@@ -1295,35 +1206,26 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: _selectedClubs.isEmpty
-                              ? Text(
-                                  'No clubs selected. Tap to select.',
-                                  style: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 14,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                )
-                              : Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: _selectedClubs.map((club) {
-                                    return Chip(
-                                      label: Text(club),
-                                      onDeleted: () {
-                                        setState(() {
-                                          _selectedClubs.remove(club);
-                                        });
-                                      },
-                                      deleteIcon: const Icon(Icons.close, size: 16),
-                                      backgroundColor: Colors.grey[200],
-                                      labelStyle: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    );
-                                  }).toList(),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _selectedClubs.map((club) {
+                              return Chip(
+                                label: Text(club),
+                                onDeleted: () {
+                                  setState(() {
+                                    _selectedClubs.remove(club);
+                                  });
+                                },
+                                deleteIcon: const Icon(Icons.close, size: 16),
+                                backgroundColor: Colors.grey[200],
+                                labelStyle: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
                                 ),
+                              );
+                            }).toList(),
+                          ),
                         ),
                         const Icon(
                           Icons.keyboard_arrow_down,
@@ -1342,7 +1244,7 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
                       child: _buildTextField(
                         controller: _distanceController,
                         label: 'Distance',
-                        hint: 'Enter distance',
+                        hint: '5',
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -1461,22 +1363,18 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
     required String label,
     required String hint,
     TextInputType keyboardType = TextInputType.text,
-    bool enabled = true,
-    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        label != '' ?
         Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF64748B),
-              fontWeight: FontWeight.w500,
-            ),
-          )
-        : SizedBox.shrink(),
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Color(0xFF64748B),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
@@ -1487,8 +1385,6 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
           child: TextFormField(
             controller: controller,
             keyboardType: keyboardType,
-            enabled: enabled,
-            readOnly: readOnly,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -1497,7 +1393,7 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
               hintText: hint,
               hintStyle: TextStyle(
                 color: Colors.grey[400],
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.w400,
               ),
               border: InputBorder.none,
@@ -1710,7 +1606,7 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _submitFamilyDetails,
+              onPressed: _submitFamilyDetails,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1718,23 +1614,14 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      'Next',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
+              child: const Text(
+                'Next',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ],

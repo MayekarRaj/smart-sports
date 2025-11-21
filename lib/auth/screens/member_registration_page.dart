@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../core/repositories/auth_repository.dart';
-import '../../core/models/api_models.dart';
-import '../../core/exceptions/api_exception.dart';
-import '../../core/utils/phone_parser.dart';
-import '../../core/services/storage_service.dart';
 import 'family_details_page.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../core/exceptions/api_exception.dart';
+import '../../core/models/api_models.dart';
 
 class MemberRegistrationPage extends StatefulWidget {
   const MemberRegistrationPage({super.key});
@@ -16,14 +14,16 @@ class MemberRegistrationPage extends StatefulWidget {
 class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
-  final AuthRepository _authRepository = AuthRepository();
-  final StorageService _storageService = StorageService();
-  bool _isLoading = false;
 
   // Practice Plan
-  String _practiceDays = 'Weekdays';
+  String? _practiceDays;
   String _practiceStartTime = '00:00';
   String _practiceEndTime = '00:00';
+
+  // Club days from API
+  final AuthRepository _authRepository = AuthRepository();
+  List<MstClubDay> _clubDays = [];
+  bool _isLoadingClubDays = false;
 
   // Preferred Club
   final List<String> _selectedClubs = [];
@@ -60,10 +60,51 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
   ];
 
   @override
+  @override
   void initState() {
     super.initState();
     // Initialize with sample selected clubs
     _selectedClubs.addAll(['Urban Titans', 'Steel Panthers']);
+    _loadClubDays();
+  }
+
+  Future<void> _loadClubDays() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingClubDays = true;
+    });
+
+    try {
+      final response = await _authRepository.getClubDays(
+        perPage: 1000,
+        orderBy: 'id|ASC',
+        isActive: 1,
+        page: 1,
+      );
+
+      if (mounted) {
+        setState(() {
+          _clubDays = response.data.data;
+          if (_practiceDays == null && _clubDays.isNotEmpty) {
+            _practiceDays = _clubDays.first.name;
+          }
+          _isLoadingClubDays = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingClubDays = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load club days: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -146,118 +187,16 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
     }
   }
 
-  Future<void> _submitRegistration() async {
+  void _submitRegistration() {
     if (!_formKey.currentState!.validate()) return;
-    if (!mounted) return;
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // Parse phone numbers
-      final officePhone = PhoneParser.parsePhoneNumber(_officeNumberController.text);
-      final mobilePhone = PhoneParser.parsePhoneNumber(_mobileNumberController.text);
-
-      // Convert practice days to practice plans
-      // For now, if it's "Weekdays", we'll create entries for Monday-Friday
-      // If it's "Weekend", we'll create entries for Saturday-Sunday
-      // Otherwise, use the selected day as-is
-      List<PracticePlan> practicePlans = [];
-      
-      if (_practiceDays == 'Weekdays') {
-        // Create entries for Monday through Friday
-        practicePlans = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-            .map((day) => PracticePlan(
-                  practiceDay: day,
-                  practiceStartTime: _practiceStartTime,
-                  practiceEndTime: _practiceEndTime,
-                ))
-            .toList();
-      } else if (_practiceDays == 'Weekend') {
-        // Create entries for Saturday and Sunday
-        practicePlans = ['Saturday', 'Sunday']
-            .map((day) => PracticePlan(
-                  practiceDay: day,
-                  practiceStartTime: _practiceStartTime,
-                  practiceEndTime: _practiceEndTime,
-                ))
-            .toList();
-      } else {
-        // Single day
-        practicePlans = [
-          PracticePlan(
-            practiceDay: _practiceDays,
-            practiceStartTime: _practiceStartTime,
-            practiceEndTime: _practiceEndTime,
-          )
-        ];
-      }
-
-      // Build request
-      final request = MemberSignupRequest(
-        userRole: 'member',
-        preferredClub: [1, 2, 3], // Static for now as requested
-        isEmployerSupportHealthBenefits: _employerSupportsHealthBenefits ? 1 : 0,
-        hrFirstname: _employerSupportsHealthBenefits ? _hrFirstNameController.text.trim() : '',
-        hrLastname: _employerSupportsHealthBenefits ? _hrLastNameController.text.trim() : '',
-        hrEmailid: _employerSupportsHealthBenefits ? _hrMailIdController.text.trim() : '',
-        employerName: _employerSupportsHealthBenefits ? _employerController.text.trim() : '',
-        hrDesignation: '', // Not in form, using empty string
-        hrDepartment: '', // Not in form, using empty string
-        designation: _employerSupportsHealthBenefits ? _designationController.text.trim() : '',
-        department: _employerSupportsHealthBenefits ? _departmentController.text.trim() : '',
-        officePhoneExt: _employerSupportsHealthBenefits ? (officePhone['ext'] ?? '') : '',
-        officePhone: _employerSupportsHealthBenefits ? (officePhone['number'] ?? '') : '',
-        mobilePhoneExt: _employerSupportsHealthBenefits ? (mobilePhone['ext'] ?? '') : '',
-        mobilePhone: _employerSupportsHealthBenefits ? (mobilePhone['number'] ?? '') : '',
-        companyWebsite: _employerSupportsHealthBenefits ? _companyWebsiteController.text.trim() : '',
-        practicePlans: practicePlans,
-      );
-
-      final response = await _authRepository.memberSignup(request);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.message),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Navigate to family details page
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const FamilyDetailsPage(),
-          ),
-        );
-      }
-    } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to submit registration: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    // Navigate to family details page
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FamilyDetailsPage(),
+      ),
+    );
   }
 
   @override
@@ -310,30 +249,89 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDropdownField(
-                      label: 'Practice Days',
-                      value: _practiceDays,
-                      items: ['Weekdays', 'Weekend', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                      onChanged: (value) {
-                        setState(() {
-                          _practiceDays = value!;
-                        });
-                      },
-                    ),
+                    _isLoadingClubDays
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Practice Days',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.grey[200]!),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text('Loading...', style: TextStyle(color: Colors.grey)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : _clubDays.isEmpty
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Practice Days',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF64748B),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[50],
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.grey[200]!),
+                                    ),
+                                    child: const Text(
+                                      'No days available',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : _buildDropdownField(
+                                label: 'Practice Days',
+                                value: _practiceDays ?? (_clubDays.isNotEmpty ? _clubDays.first.name : 'Monday'),
+                                items: _clubDays.map((day) => day.name).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _practiceDays = value!;
+                                  });
+                                },
+                              ),
                     const SizedBox(height: 16),
-                    Text(
-                      'Practice Time',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
                     Row(
                       children: [
                         Expanded(
                           child: _buildTimeField(
-                            label: '',
+                            label: 'Practice Time',
                             value: _practiceStartTime,
                             onTap: () => _selectTime(context, true),
                           ),
@@ -404,21 +402,13 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
                       ),
                     ],
                     const SizedBox(height: 16),
-                    Text(
-                      'Distance',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
                     Row(
                       children: [
                         Expanded(
                           flex: 2,
                           child: _buildTextField(
                             controller: _distanceController,
-                            label: '',
+                            label: 'Distance',
                             hint: '5',
                             keyboardType: TextInputType.number,
                           ),
@@ -483,166 +473,141 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
               ),
               const SizedBox(height: 16),
 
-              // Employer Detail Section - Only show if checkbox is checked
-              if (_employerSupportsHealthBenefits) ...[
-                _buildSectionCard(
-                  title: 'Employer Detail',
-                  child: _buildTextField(
-                    controller: _employerController,
-                    label: 'Employer',
-                    hint: 'Company Name',
-                  ),
+              // Employer Detail Section
+              _buildSectionCard(
+                title: 'Employer Detail',
+                child: _buildTextField(
+                  controller: _employerController,
+                  label: 'Employer',
+                  hint: 'Company Name',
                 ),
-                const SizedBox(height: 16),
+              ),
+              const SizedBox(height: 16),
 
-                // HR Manager Details Section
-                _buildSectionCard(
-                  title: 'HR Manager Details',
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildTextField(
-                              controller: _hrFirstNameController,
-                              label: 'First Name',
-                              hint: 'First Name',
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildTextField(
-                              controller: _hrLastNameController,
-                              label: 'Last Name',
-                              hint: 'Last Name',
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _hrMailIdController,
-                        label: 'Mail ID',
-                        hint: 'Email address',
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Contact Details Section
-                _buildSectionCard(
-                  title: 'Contact Details',
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildTextField(
-                              controller: _designationController,
-                              label: 'Designation',
-                              hint: 'Designation',
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildTextField(
-                              controller: _departmentController,
-                              label: 'Department',
-                              hint: 'Department',
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Office Number',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF1E293B),
+              // HR Manager Details Section
+              _buildSectionCard(
+                title: 'HR Manager Details',
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _hrFirstNameController,
+                            label: 'First Name',
+                            hint: 'First Name',
                           ),
                         ),
-                      ),
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 80,
-                            child: _buildDropdownField(
-                              label: '',
-                              value: _officeCountryCode,
-                              items: ['+91', '+1', '+44', '+86'],
-                              onChanged: (value) {
-                                setState(() {
-                                  _officeCountryCode = value!;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _buildTextField(
-                              controller: _officeNumberController,
-                              label: '',
-                              hint: '9876543210',
-                              keyboardType: TextInputType.phone,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Mobile Number',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF1E293B),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _hrLastNameController,
+                            label: 'Last Name',
+                            hint: 'Last Name',
                           ),
                         ),
-                      ),
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 80,
-                            child: _buildDropdownField(
-                              label: '',
-                              value: _mobileCountryCode,
-                              items: ['+91', '+1', '+44', '+86'],
-                              onChanged: (value) {
-                                setState(() {
-                                  _mobileCountryCode = value!;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _buildTextField(
-                              controller: _mobileNumberController,
-                              label: '',
-                              hint: '9876543210',
-                              keyboardType: TextInputType.phone,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _companyWebsiteController,
-                        label: 'Company Website',
-                        hint: 'https://abc.com',
-                        keyboardType: TextInputType.url,
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _hrMailIdController,
+                      label: 'Mail ID',
+                      hint: 'Email address',
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-              ],
+              ),
+              const SizedBox(height: 16),
+
+              // Contact Details Section
+              _buildSectionCard(
+                title: 'Contact Details',
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _designationController,
+                            label: 'Designation',
+                            hint: 'Designation',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _departmentController,
+                            label: 'Department',
+                            hint: 'Department',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 80,
+                          child: _buildDropdownField(
+                            label: '',
+                            value: _officeCountryCode,
+                            items: ['+91', '+1', '+44', '+86'],
+                            onChanged: (value) {
+                              setState(() {
+                                _officeCountryCode = value!;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _officeNumberController,
+                            label: 'Office Number',
+                            hint: '9876543210',
+                            keyboardType: TextInputType.phone,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 80,
+                          child: _buildDropdownField(
+                            label: '',
+                            value: _mobileCountryCode,
+                            items: ['+91', '+1', '+44', '+86'],
+                            onChanged: (value) {
+                              setState(() {
+                                _mobileCountryCode = value!;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _mobileNumberController,
+                            label: 'Mobile Number',
+                            hint: '9876543210',
+                            keyboardType: TextInputType.phone,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _companyWebsiteController,
+                      label: 'Company Website',
+                      hint: 'https://abc.com',
+                      keyboardType: TextInputType.url,
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 32),
 
               // Bottom Navigation
@@ -998,7 +963,7 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _submitRegistration,
+              onPressed: _submitRegistration,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1006,23 +971,14 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      'Next',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
+              child: const Text(
+                'Next',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ],

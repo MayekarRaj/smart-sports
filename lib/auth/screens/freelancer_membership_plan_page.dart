@@ -3,6 +3,7 @@ import '../../core/repositories/auth_repository.dart';
 import '../../core/models/api_models.dart';
 import '../../core/exceptions/api_exception.dart';
 import '../../core/services/storage_service.dart';
+import '../../role_specific/common/role_router.dart';
 import 'payment_method_page.dart';
 
 class FreelancerMembershipPlanPage extends StatefulWidget {
@@ -18,7 +19,6 @@ class _FreelancerMembershipPlanPageState
   final AuthRepository _authRepository = AuthRepository();
   final StorageService _storageService = StorageService();
   bool _isLoadingServices = false;
-  bool _isSubmitting = false;
   List<PaidService> _paidServices = [];
   String? _errorMessage;
 
@@ -156,6 +156,87 @@ class _FreelancerMembershipPlanPageState
   double get _grandTotal => _totalAmount - _discountAmount - _referralDiscount;
   double get _taxAmount => (_grandTotal > 0 ? _grandTotal : 0) * 0.10;
   double get _finalAmount => (_grandTotal > 0 ? _grandTotal : 0) + _taxAmount;
+
+  /// Get freelancer users count from selected "users" service
+  int? _getFreelancerUsersCount() {
+    if (_selectedServices['users'] == true) {
+      // Return the user count shown in UI (default is 2)
+      return 2; // Default value
+    }
+    return null;
+  }
+
+  /// Save optional paid services
+  Future<void> _saveOptionalPaidServices() async {
+    // Get selected service IDs
+    final selectedServiceIds = <int>[];
+    for (var service in _paidServices) {
+      final serviceKey = _getServiceKey(service.name);
+      if (_selectedServices[serviceKey] == true) {
+        selectedServiceIds.add(service.id);
+      }
+    }
+
+    if (selectedServiceIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one service'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoadingServices = true);
+
+    try {
+      final request = SaveOptionalPaidServicesRequest(
+        userRole: 'freelancer',
+        optionalServicesIds: selectedServiceIds,
+        freelancerUsersCount: _getFreelancerUsersCount(),
+        freelancerClubIds: _selectedClubIds.isNotEmpty ? _selectedClubIds.toList() : null,
+      );
+
+      await _authRepository.saveOptionalPaidServices(request);
+
+      if (mounted) {
+        setState(() => _isLoadingServices = false);
+        
+        // Save role to storage if not already saved
+        final roleStr = await _storageService.getString('user_role');
+        if (roleStr == null || roleStr.isEmpty) {
+          await _storageService.saveString('user_role', 'freelancer');
+        }
+        
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentMethodPage(amount: _finalAmount),
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingServices = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save services: ${e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingServices = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save services: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -447,9 +528,7 @@ class _FreelancerMembershipPlanPageState
               return _buildServiceOption(
                 serviceKey,
                 service.name,
-                (service.description2?.isNotEmpty == true) 
-                    ? service.description2! 
-                    : (service.description1 ?? ''),
+                service.description2.isNotEmpty ? service.description2 : service.description1,
                 service.amountValue,
                 hasClubTypes: hasClubTypes,
                 userCount: isUsers ? 4 : null,
@@ -867,17 +946,30 @@ class _FreelancerMembershipPlanPageState
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: _isSubmitting ? null : () async {
+              onPressed: () async {
                 if (_isFreeMembership) {
-                  await _submitFreeMembership();
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          PaymentMethodPage(amount: _finalAmount),
+                  // Save role to storage if not already saved
+                  final roleStr = await _storageService.getString('user_role');
+                  if (roleStr == null || roleStr.isEmpty) {
+                    await _storageService.saveString('user_role', 'freelancer');
+                  }
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Free membership activated'),
+                      backgroundColor: Colors.green,
                     ),
                   );
+                  
+                  // Navigate to freelancer dashboard
+                  final dashboard = RoleRouter.dashboardFor(UserRole.freelancer);
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => dashboard),
+                    (route) => false, // Remove all previous routes
+                  );
+                } else {
+                  // Save optional paid services before navigating to payment
+                  await _saveOptionalPaidServices();
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -887,18 +979,18 @@ class _FreelancerMembershipPlanPageState
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: _isSubmitting && _isFreeMembership
+              child: _isLoadingServices
                   ? const SizedBox(
-                      height: 20,
                       width: 20,
+                      height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Text(
-                      'Submit',
-                      style: TextStyle(
+                  : Text(
+                      _isFreeMembership ? 'Submit' : 'Next',
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -909,52 +1001,6 @@ class _FreelancerMembershipPlanPageState
         ],
       ),
     );
-  }
-
-  Future<void> _submitFreeMembership() async {
-    if (_isSubmitting) return;
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      await _authRepository.chooseMembershipType('Free');
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Free membership activated'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
-    } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to submit membership: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-    }
   }
 }
 

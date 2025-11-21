@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/member/screens/profile/member_profile_page.dart';
 import 'package:smart_sports/role_specific/member/screens/dashboard/member_dashboard_page.dart';
 import 'package:smart_sports/role_specific/member/screens/bookings/member_bookings_page.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class MemberReferralsPage extends StatefulWidget {
+class MemberReferralsPage extends ConsumerStatefulWidget {
   const MemberReferralsPage({super.key});
 
   @override
-  State<MemberReferralsPage> createState() => _MemberReferralsPageState();
+  ConsumerState<MemberReferralsPage> createState() => _MemberReferralsPageState();
 }
 
-class _MemberReferralsPageState extends State<MemberReferralsPage> {
+class _MemberReferralsPageState extends ConsumerState<MemberReferralsPage> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedStatus = 'All';
   String _selectedDay = 'All';
@@ -110,12 +112,7 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
                 );
               }
             },
-            onSignOut: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthShell()),
-                (route) => false,
-              );
-            },
+            onSignOut: () => AuthUtils.handleLogout(context, ref),
           ),
         ),
       ),
