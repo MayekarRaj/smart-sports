@@ -1,3 +1,4 @@
+import 'dart:io';
 import '../network/network_client.dart';
 import '../constants/api_endpoints.dart';
 import '../models/api_models.dart';
@@ -621,6 +622,86 @@ class AuthRepository extends BaseRepository {
     if (response.success) {
       final responseData = response.dataOrThrow;
       return SaveOptionalPaidServicesResponse.fromJson(responseData);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Create Stripe SetupIntent
+  /// Returns StripeSetupIntentResponse with clientSecret for card collection
+  /// No request fields required - empty body
+  Future<StripeSetupIntentResponse> createStripeSetupIntent() async {
+    final response = await networkClient.post<Map<String, dynamic>>(
+      ApiEndpoints.getStripeCreateSetupIntentUrl(),
+      body: {}, // Empty body - no request fields required
+      requiresAuth: true,
+      fromJson: (data) => data as Map<String, dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      final responseData = response.dataOrThrow;
+      return StripeSetupIntentResponse.fromJson(responseData);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Create Stripe Subscription with payment method
+  /// Returns StripeCreateSubscriptionResponse with subscription status
+  Future<StripeCreateSubscriptionResponse> createStripeSubscription(
+    StripeCreateSubscriptionRequest request,
+  ) async {
+    final response = await networkClient.post<Map<String, dynamic>>(
+      ApiEndpoints.getStripeCreateSubscriptionUrl(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) => data as Map<String, dynamic>,
+    );
+
+    if (response.success) {
+      final responseData = response.dataOrThrow;
+      return StripeCreateSubscriptionResponse.fromJson(responseData);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Save payment information after successful payment
+  /// Supports multipart/form-data for file uploads (Bank Transfer receipts)
+  Future<Map<String, dynamic>> savePaymentInformation(
+    SavePaymentInformationRequest request,
+  ) async {
+    final fields = request.toFormFields();
+    final files = <String, File>{};
+
+    // Add receipt image file if provided (Bank Transfer)
+    if (request.paymentReceiptImagePath != null &&
+        request.paymentReceiptImagePath!.isNotEmpty) {
+      final file = File(request.paymentReceiptImagePath!);
+      if (await file.exists()) {
+        files['payment_receipt_image'] = file;
+      }
+    }
+
+    final response = await networkClient.postMultipart<Map<String, dynamic>>(
+      ApiEndpoints.getSavePaymentInformationUrl(),
+      fields: fields,
+      files: files.isNotEmpty ? files : null,
+      requiresAuth: true,
+      fromJson: (data) => data as Map<String, dynamic>,
+    );
+
+    if (response.success) {
+      return response.dataOrThrow;
     }
 
     throw ApiException(

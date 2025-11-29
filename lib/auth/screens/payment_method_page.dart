@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../core/services/storage_service.dart';
-import '../../role_specific/common/role_router.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../core/models/api_models.dart';
+import 'payment_confirmation_page.dart';
 
 class PaymentMethodPage extends StatefulWidget {
   final double amount;
@@ -13,25 +18,45 @@ class PaymentMethodPage extends StatefulWidget {
 
 class _PaymentMethodPageState extends State<PaymentMethodPage> {
   String _selectedPaymentMethod = 'CREDIT / DEBIT CARD';
-  final _nameOnCardController = TextEditingController();
-  final _cardNumberController = TextEditingController();
-  final _expiryDateController = TextEditingController();
-  final _cvvController = TextEditingController();
   final _paypalIdController = TextEditingController(
     text: 'sushant.godghate@sekai-ichi.com',
   );
+  final _referenceNumberController = TextEditingController();
   final StorageService _storageService = StorageService();
+  final AuthRepository _authRepository = AuthRepository();
+  final ImagePicker _imagePicker = ImagePicker();
 
-  bool _isProcessing = false;
+  bool _isLoadingSetupIntent = false;
+  String? _clientSecret;
+  String? _customerId;
+  String? _stripePaymentMethodId;
+  File? _receiptImage;
+  CardFieldInputDetails? _cardFieldDetails;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize SetupIntent when credit card is selected by default
+    if (_selectedPaymentMethod == 'CREDIT / DEBIT CARD') {
+      _initializeStripeIfNeeded();
+    }
+    
+    // CardField handles validation automatically
+  }
 
   @override
   void dispose() {
-    _nameOnCardController.dispose();
-    _cardNumberController.dispose();
-    _expiryDateController.dispose();
-    _cvvController.dispose();
     _paypalIdController.dispose();
+    _referenceNumberController.dispose();
     super.dispose();
+  }
+
+  /// Initialize Stripe SetupIntent when credit card payment is selected
+  /// MANDATORY - SetupIntent must be created before user can proceed
+  Future<void> _initializeStripeIfNeeded() async {
+    if (_selectedPaymentMethod == 'CREDIT / DEBIT CARD' && _clientSecret == null && !_isLoadingSetupIntent) {
+      await _createSetupIntent();
+    }
   }
 
   @override
@@ -87,14 +112,12 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
 
               // Payment Form
               if (_selectedPaymentMethod == 'CREDIT / DEBIT CARD')
-                _buildCreditCardForm()
+                _buildStripeCardForm()
+              else if (_selectedPaymentMethod == 'BANK TRANSFER')
+                _buildBankTransferForm()
               else
                 _buildPayPalForm(),
 
-              const SizedBox(height: 24),
-
-              // Final Payment Details
-              _buildFinalPaymentDetails(),
               const SizedBox(height: 32),
 
               // Bottom Navigation
@@ -145,16 +168,15 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Total Amount To Pay',
-                  style: TextStyle(
+                Text("USD", style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),),
                 Text(
-                  'USD ${widget.amount.toInt()}',
+                  widget.amount > 0 
+                    ? '${widget.amount.toStringAsFixed(2)}'
+                    : '0.00',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -203,6 +225,12 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
           ),
           const Divider(height: 1),
           _buildPaymentMethodOption(
+            'BANK TRANSFER',
+            Icons.account_balance,
+            _selectedPaymentMethod == 'BANK TRANSFER',
+          ),
+          const Divider(height: 1),
+          _buildPaymentMethodOption(
             'PAYPAL',
             Icons.payment,
             _selectedPaymentMethod == 'PAYPAL',
@@ -218,10 +246,14 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
     bool isSelected,
   ) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         setState(() {
           _selectedPaymentMethod = method;
         });
+        // Initialize Stripe SetupIntent MANDATORY when credit card is selected
+        if (method == 'CREDIT / DEBIT CARD') {
+          await _initializeStripeIfNeeded();
+        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -267,7 +299,126 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
     );
   }
 
-  Widget _buildCreditCardForm() {
+  Widget _buildStripeCardForm() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_isLoadingSetupIntent)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(40.0),
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text(
+                      'Initializing payment...',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (_clientSecret == null)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.orange.shade700),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Unable to initialize payment. Please try again.',
+                          style: TextStyle(color: Colors.orange.shade700),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _createSetupIntent,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text(
+                        'Retry',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Card Details',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  // decoration: BoxDecoration(
+                  //   color: Colors.grey[50],
+                  //   borderRadius: BorderRadius.circular(8),
+                  //   border: Border.all(color: Colors.grey[300]!),
+                  // ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  child: CardField(
+                    onCardChanged: (card) {
+                      setState(() {
+                        _cardFieldDetails = card;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Your card details are securely processed by Stripe.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBankTransferForm() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -285,82 +436,83 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTextField(
-            controller: _nameOnCardController,
-            label: 'Name On Card',
-            hint: 'Blank Fields',
+            controller: _referenceNumberController,
+            label: 'Reference Number',
+            hint: 'Enter bank transfer reference number',
+            keyboardType: TextInputType.text,
           ),
           const SizedBox(height: 16),
-
-          _buildTextField(
-            controller: _cardNumberController,
-            label: 'Card Number',
-            hint: 'Blank Fields',
-            keyboardType: TextInputType.number,
-            suffixIcon: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'assets/images/visa.png',
-                  width: 32,
-                  height: 20,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.credit_card, color: Colors.blue),
-                ),
-                const SizedBox(width: 4),
-                Image.asset(
-                  'assets/images/mastercard.png',
-                  width: 32,
-                  height: 20,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.credit_card, color: Colors.red),
-                ),
-                const SizedBox(width: 4),
-                Image.asset(
-                  'assets/images/jcb.png',
-                  width: 32,
-                  height: 20,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.credit_card, color: Colors.green),
-                ),
-                const SizedBox(width: 4),
-                Image.asset(
-                  'assets/images/amex.png',
-                  width: 32,
-                  height: 20,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.credit_card, color: Colors.orange),
-                ),
-                const SizedBox(width: 12),
-              ],
+          const Text(
+            'Payment Receipt',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextField(
-                  controller: _expiryDateController,
-                  label: 'Expiry Date',
-                  hint: 'Blank Fields',
-                  keyboardType: TextInputType.number,
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: _pickReceiptImage,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _receiptImage != null
+                      ? Colors.green
+                      : Colors.grey.shade300,
+                  width: _receiptImage != null ? 2 : 1,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTextField(
-                  controller: _cvvController,
-                  label: 'CVV',
-                  hint: 'Blank Fields',
-                  keyboardType: TextInputType.number,
-                  suffixIcon: const Padding(
-                    padding: EdgeInsets.only(right: 12),
-                    child: Icon(Icons.credit_card, color: Colors.grey),
-                  ),
-                ),
-              ),
-            ],
+              child: _receiptImage != null
+                  ? Column(
+                      children: [
+                        Image.file(
+                          _receiptImage!,
+                          height: 150,
+                          fit: BoxFit.contain,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _receiptImage!.path.split('/').last,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: _pickReceiptImage,
+                          child: const Text('Change Image'),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.cloud_upload, color: Colors.grey),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Upload Payment Receipt',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+            ),
           ),
+          if (_receiptImage == null)
+            const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Text(
+                'Required for Bank Transfer',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.orange,
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -429,94 +581,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
     );
   }
 
-  Widget _buildFinalPaymentDetails() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Final Payment Details',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 16),
 
-          Row(
-            children: [
-              Expanded(
-                child: _buildDetailField(
-                  'Payment Method:',
-                  _selectedPaymentMethod,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildDetailField(
-                  'Payment Status:',
-                  _isProcessing ? 'PROCESSING' : 'BEING PROCESSED',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: _buildDetailField('Payment Date:', '2022 Nov 17'),
-              ),
-              const SizedBox(width: 16),
-              Expanded(child: _buildDetailField('Payment Time:', 'HH:MM:SS')),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailField(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -592,118 +657,165 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              side: const BorderSide(color: Colors.grey),
-            ),
-            child: const Text(
-              'BACK',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
+          flex: 2,
           child: ElevatedButton(
-            onPressed: _isProcessing ? null : _processPayment,
+            onPressed: _validateAndNavigate,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: const Color(0xFF8BB6D9),
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
+              elevation: 2,
             ),
-            child: _isProcessing
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : const Text(
-                    'PAY NOW',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'CONTINUE',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  void _processPayment() async {
-    setState(() {
-      _isProcessing = true;
-    });
-
-    // Simulate payment processing
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      setState(() {
-        _isProcessing = false;
-      });
-
-      // Get user role from storage
-      final userRoleStr = await _storageService.getString('user_role');
-      final userRole = userRoleStr?.toUserRole() ?? UserRole.member;
-
-      // Show success dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: const Text('Payment Successful!'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 64),
-              const SizedBox(height: 16),
-              Text(
-                'Your payment of USD ${widget.amount.toInt()} has been processed successfully.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Your membership has been activated!',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.green,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+  void _validateAndNavigate() async {
+    // Validate based on payment method
+    if (_selectedPaymentMethod == 'CREDIT / DEBIT CARD') {
+      // MANDATORY: SetupIntent must be created before proceeding
+      if (_clientSecret == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please wait for payment to initialize. If it fails, please retry.'),
+            backgroundColor: Colors.orange,
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                // Navigate to role-specific dashboard
-                final dashboard = RoleRouter.dashboardFor(userRole);
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => dashboard),
-                  (route) => false, // Remove all previous routes
-                );
-              },
-              child: const Text('Continue'),
-            ),
-          ],
+        );
+        return;
+      }
+      
+      // Validate card details are complete using CardField
+      if (_cardFieldDetails == null || !_cardFieldDetails!.complete) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter complete card details'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+    } else if (_selectedPaymentMethod == 'BANK TRANSFER') {
+      if (_referenceNumberController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter reference number'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+      if (_receiptImage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please upload payment receipt'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+    }
+
+    // Navigate to confirmation page
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PaymentConfirmationPage(
+            amount: widget.amount,
+            paymentMethod: _selectedPaymentMethod,
+            referenceNumber: _referenceNumberController.text.trim().isNotEmpty
+                ? _referenceNumberController.text.trim()
+                : null,
+            receiptImage: _receiptImage,
+            clientSecret: _clientSecret,
+            stripePaymentMethodId: _stripePaymentMethodId,
+            cardFieldDetails: _cardFieldDetails,
+          ),
         ),
       );
     }
   }
+
+  /// Create Stripe SetupIntent
+  Future<void> _createSetupIntent() async {
+    if (_isLoadingSetupIntent) return;
+
+    setState(() {
+      _isLoadingSetupIntent = true;
+    });
+
+    try {
+      final response = await _authRepository.createStripeSetupIntent();
+      
+      if (mounted) {
+        setState(() {
+          _clientSecret = response.clientSecret;
+          _customerId = response.customerId;
+          _isLoadingSetupIntent = false;
+        });
+
+        // Note: We don't need to initialize payment sheet for SetupIntent
+        // The clientSecret is used directly in confirmSetupIntent
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingSetupIntent = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to initialize payment: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Pick receipt image for Bank Transfer
+  Future<void> _pickReceiptImage() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        setState(() {
+          _receiptImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
 }

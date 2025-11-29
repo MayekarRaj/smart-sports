@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../config/api_config.dart';
 import '../exceptions/api_exception.dart';
 import '../models/api_response.dart';
@@ -37,9 +39,10 @@ class NetworkClient {
   Future<Map<String, String>> _buildHeaders({
     Map<String, String>? additionalHeaders,
     bool requiresAuth = true,
+    bool isMultipart = false,
   }) async {
     final headers = <String, String>{
-      'Content-Type': 'application/json',
+      if (!isMultipart) 'Content-Type': 'application/json',
       'Accept': 'application/json',
       ...?additionalHeaders,
     };
@@ -196,6 +199,131 @@ class NetworkClient {
         message: 'Network error: ${e.toString()}',
         statusCode: 0,
       );
+    }
+  }
+
+  /// POST request with multipart/form-data support for file uploads
+  /// 
+  /// [fields] - Map of form fields (String keys and values)
+  /// [files] - Map of file fields where key is the field name and value is File object
+  /// [fileFieldName] - Optional field name for single file upload (if files map is not used)
+  /// [file] - Optional single File object (if fileFieldName is provided)
+  Future<ApiResponse<T>> postMultipart<T>(
+    String endpoint, {
+    Map<String, String>? fields,
+    Map<String, File>? files,
+    String? fileFieldName,
+    File? file,
+    T Function(dynamic)? fromJson,
+    bool requiresAuth = true,
+    Map<String, String>? additionalHeaders,
+  }) async {
+    try {
+      final uri = Uri.parse(endpoint);
+      final request = http.MultipartRequest('POST', uri);
+
+      // Build headers (without Content-Type, as multipart sets it automatically)
+      final headers = await _buildHeaders(
+        additionalHeaders: additionalHeaders,
+        requiresAuth: requiresAuth,
+        isMultipart: true,
+      );
+      request.headers.addAll(headers);
+
+      // Add form fields
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      // Add files
+      if (files != null) {
+        for (final entry in files.entries) {
+          final fileField = entry.key;
+          final fileToUpload = entry.value;
+          
+          if (await fileToUpload.exists()) {
+            final fileStream = http.ByteStream(fileToUpload.openRead());
+            final fileLength = await fileToUpload.length();
+            final fileName = fileToUpload.path.split('/').last;
+            final contentType = _getContentType(fileName);
+            
+            final multipartFile = http.MultipartFile(
+              fileField,
+              fileStream,
+              fileLength,
+              filename: fileName,
+              contentType: contentType,
+            );
+            request.files.add(multipartFile);
+          }
+        }
+      }
+
+      // Handle single file upload (legacy support)
+      if (fileFieldName != null && file != null) {
+        if (await file.exists()) {
+          final fileStream = http.ByteStream(file.openRead());
+          final fileLength = await file.length();
+          final fileName = file.path.split('/').last;
+          final contentType = _getContentType(fileName);
+          
+          final multipartFile = http.MultipartFile(
+            fileFieldName,
+            fileStream,
+            fileLength,
+            filename: fileName,
+            contentType: contentType,
+          );
+          request.files.add(multipartFile);
+        }
+      }
+
+      if (ApiConfig.enableRequestLogging) {
+        print('🚀 POST (Multipart) $uri');
+        print('📤 Headers: ${request.headers}');
+        print('📤 Fields: ${request.fields}');
+        print('📤 Files: ${request.files.map((f) => f.filename).join(", ")}');
+      }
+
+      final streamedResponse = await _client
+          .send(request)
+          .timeout(ApiConfig.connectTimeout);
+
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (ApiConfig.enableRequestLogging) {
+        print('📥 Status: ${response.statusCode}');
+        print('📥 Body: ${response.body}');
+      }
+
+      return _handleResponse<T>(response, fromJson);
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(
+        message: 'Network error: ${e.toString()}',
+        statusCode: 0,
+      );
+    }
+  }
+
+  /// Get content type based on file extension
+  MediaType _getContentType(String fileName) {
+    final extension = fileName.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+        return MediaType('image', 'jpeg');
+      case 'png':
+        return MediaType('image', 'png');
+      case 'gif':
+        return MediaType('image', 'gif');
+      case 'pdf':
+        return MediaType('application', 'pdf');
+      case 'webp':
+        return MediaType('image', 'webp');
+      default:
+        return MediaType('application', 'octet-stream');
     }
   }
 

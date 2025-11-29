@@ -37,6 +37,11 @@ class ApiEndpoints {
   static const String paidServicesList = '/paid-services-list';
   static const String saveOptionalPaidServices = '/save-optional-paid-services';
 
+  // ==================== Stripe Payment ====================
+  static const String stripeCreateSetupIntent = '/stripe/create-setup-intent';
+  static const String stripeCreateSubscription = '/stripe/create-subscription';
+  static const String savePaymentInformation = '/signup-savePaymentInformation';
+
   // ==================== Club and Branch Lists ====================
   static const String getAllClubList = '/signup-getAllClubList';
   static const String getMerchandizerBranchList = '/signup-getMerchandizerBranchList';
@@ -145,6 +150,11 @@ class ApiEndpoints {
   }
   
   static String getSaveOptionalPaidServicesUrl() => '${ApiConfig.apiBaseUrl}$saveOptionalPaidServices';
+
+  // Stripe Payment
+  static String getStripeCreateSetupIntentUrl() => '${ApiConfig.apiBaseUrl}$stripeCreateSetupIntent';
+  static String getStripeCreateSubscriptionUrl() => '${ApiConfig.apiBaseUrl}$stripeCreateSubscription';
+  static String getSavePaymentInformationUrl() => '${ApiConfig.apiBaseUrl}$savePaymentInformation';
 
   // Club and Branch Lists
   static String getAllClubListUrl() => '${ApiConfig.apiBaseUrl}$getAllClubList';

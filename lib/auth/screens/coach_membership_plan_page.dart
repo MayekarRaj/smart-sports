@@ -522,7 +522,7 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
               return _buildServiceOption(
                 serviceKey,
                 service.name,
-                service.description2.isNotEmpty ? service.description2 : service.description1,
+                (service.description2?.isNotEmpty ?? false) ? service.description2! : (service.description1 ?? ''),
                 service.amountValue,
                 hasClubTypes: hasClubTypes,
                 userCount: isUsers ? 4 : null,

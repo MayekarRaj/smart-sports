@@ -1371,9 +1371,9 @@ class PaidService {
   final String iconName;
   final String name;
   @JsonKey(name: 'description_1')
-  final String description1;
+  final String? description1;
   @JsonKey(name: 'description_2')
-  final String description2;
+  final String? description2;
   final String amount;
   @JsonKey(name: 'is_active')
   final int isActive;
@@ -1389,8 +1389,8 @@ class PaidService {
     required this.userRole,
     required this.iconName,
     required this.name,
-    required this.description1,
-    required this.description2,
+    this.description1,
+    this.description2,
     required this.amount,
     required this.isActive,
     required this.isDeleted,
@@ -2086,4 +2086,114 @@ class ClubDaysListResponse {
       _$ClubDaysListResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$ClubDaysListResponseToJson(this);
+}
+
+// ==================== Stripe Payment Models ====================
+@JsonSerializable()
+class StripeSetupIntentResponse {
+  final bool success;
+  
+  @JsonKey(name: 'clientSecret')
+  final String clientSecret;
+  
+  @JsonKey(name: 'customerId')
+  final String customerId;
+
+  StripeSetupIntentResponse({
+    required this.success,
+    required this.clientSecret,
+    required this.customerId,
+  });
+
+  factory StripeSetupIntentResponse.fromJson(Map<String, dynamic> json) =>
+      _$StripeSetupIntentResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$StripeSetupIntentResponseToJson(this);
+}
+
+@JsonSerializable()
+class StripeCreateSubscriptionRequest {
+  @JsonKey(name: 'stripe_payment_method_id')
+  final String stripePaymentMethodId;
+  
+  @JsonKey(name: 'payment_method')
+  final String paymentMethod;
+  
+  // Optional: Subscription items if backend needs them
+  // The backend should ideally get items from saved services, but we can include if needed
+  @JsonKey(name: 'items', includeIfNull: false)
+  final List<Map<String, dynamic>>? items;
+
+  StripeCreateSubscriptionRequest({
+    required this.stripePaymentMethodId,
+    required this.paymentMethod,
+    this.items,
+  });
+
+  factory StripeCreateSubscriptionRequest.fromJson(Map<String, dynamic> json) =>
+      _$StripeCreateSubscriptionRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$StripeCreateSubscriptionRequestToJson(this);
+}
+
+@JsonSerializable()
+class StripeCreateSubscriptionResponse {
+  final bool success;
+  final String message;
+  
+  @JsonKey(name: 'clientSecret', includeIfNull: false)
+  final String? clientSecret; // For SCA if required
+  
+  @JsonKey(name: 'subscription_id', includeIfNull: false)
+  final String? subscriptionId;
+  
+  @JsonKey(name: 'subscription_status', includeIfNull: false)
+  final String? subscriptionStatus;
+
+  StripeCreateSubscriptionResponse({
+    required this.success,
+    required this.message,
+    this.clientSecret,
+    this.subscriptionId,
+    this.subscriptionStatus,
+  });
+
+  factory StripeCreateSubscriptionResponse.fromJson(Map<String, dynamic> json) =>
+      _$StripeCreateSubscriptionResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$StripeCreateSubscriptionResponseToJson(this);
+}
+
+// Save Payment Information Request
+// Note: This is used for multipart/form-data, so we don't use @JsonSerializable
+// Instead, we'll build the form data manually in the repository
+class SavePaymentInformationRequest {
+  final String paymentMethod; // "Bank Transfer" | "Stripe" | "Paypal"
+  final String? referenceNumber; // Required only for Bank Transfer
+  final String? stripePaymentMethodId; // Required only for Stripe
+  final String? paymentReceiptImagePath; // File path for Bank Transfer receipt
+
+  SavePaymentInformationRequest({
+    required this.paymentMethod,
+    this.referenceNumber,
+    this.stripePaymentMethodId,
+    this.paymentReceiptImagePath,
+  });
+
+  /// Convert to form fields map (excluding file)
+  Map<String, String> toFormFields() {
+    final fields = <String, String>{
+      'payment_method': paymentMethod,
+    };
+
+    if (referenceNumber != null && referenceNumber!.isNotEmpty) {
+      fields['reference_number'] = referenceNumber!;
+    }
+
+    if (stripePaymentMethodId != null && stripePaymentMethodId!.isNotEmpty) {
+      fields['stripe_payment_method_id'] = stripePaymentMethodId!;
+    }
+
+    return fields;
+  }
 }

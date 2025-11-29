@@ -72,36 +72,40 @@ class _CitySearchFieldState extends State<CitySearchField> {
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: TypeAheadField<City>(
-        textFieldConfiguration: TextFieldConfiguration(
-          controller: widget.cityController,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-          decoration: InputDecoration(
-            hintText: 'City',
-            hintStyle: TextStyle(
-              color: Colors.grey.shade400,
+        controller: widget.cityController,
+        builder: (context, controller, focusNode) {
+          return TextField(
+            controller: controller,
+            focusNode: focusNode,
+            style: const TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w400,
+              fontWeight: FontWeight.w500,
             ),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 18,
+            decoration: InputDecoration(
+              hintText: 'City',
+              hintStyle: TextStyle(
+                color: Colors.grey.shade400,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 18,
+              ),
+              suffixIcon: _isLoading
+                  ? const Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : null,
             ),
-            suffixIcon: _isLoading
-                ? const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  )
-                : null,
-          ),
-        ),
+          );
+        },
         suggestionsCallback: _getCitySuggestions,
         itemBuilder: (context, City city) {
           return ListTile(
@@ -109,24 +113,20 @@ class _CitySearchFieldState extends State<CitySearchField> {
             dense: true,
           );
         },
-        onSuggestionSelected: _onCitySelected,
+        onSelected: _onCitySelected,
         hideOnEmpty: false,
         hideOnLoading: false,
         loadingBuilder: (context) => const Padding(
           padding: EdgeInsets.all(16.0),
           child: Center(child: CircularProgressIndicator()),
         ),
-        noItemsFoundBuilder: (context) => const Padding(
+        emptyBuilder: (context) => const Padding(
           padding: EdgeInsets.all(16.0),
           child: Text('No cities found'),
         ),
         errorBuilder: (context, error) => Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text('Error: ${error.toString()}'),
-        ),
-        suggestionsBoxDecoration: SuggestionsBoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          elevation: 4,
         ),
       ),
     );

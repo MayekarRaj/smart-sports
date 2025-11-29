@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import '../models/api_models.dart';
 import '../services/auth_service.dart';
 import '../repositories/auth_repository.dart';
