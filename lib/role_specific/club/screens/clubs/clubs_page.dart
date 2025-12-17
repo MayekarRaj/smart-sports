@@ -40,6 +40,12 @@ class _ClubsPageState extends State<ClubsPage> {
       discount: '10% Off SPECIAL DISCOUNT',
       coaches: 4,
       imageUrl: 'assets/images/elite_sports_arena.jpg',
+      coachImages: [
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+      ],
     ),
     ClubData(
       name: 'Elite Sports Arena',
@@ -54,6 +60,12 @@ class _ClubsPageState extends State<ClubsPage> {
       discount: '10% Off SPECIAL DISCOUNT',
       coaches: 4,
       imageUrl: 'assets/images/elite_sports_arena.jpg',
+      coachImages: [
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+      ],
     ),
     ClubData(
       name: 'Elite Sports Arena',
@@ -68,6 +80,12 @@ class _ClubsPageState extends State<ClubsPage> {
       discount: '10% Off SPECIAL DISCOUNT',
       coaches: 4,
       imageUrl: 'assets/images/elite_sports_arena.jpg',
+      coachImages: [
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+      ],
     ),
   ];
 
@@ -1118,6 +1136,49 @@ class MobileClubCard extends StatelessWidget {
                       _buildStatChip('Courts', '${club.courts}'),
                     ],
                   ),
+
+                  // COACH Section
+                  if ((club.coachImages).isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      'COACH',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        if ((club.coachImages).isNotEmpty)
+                          _buildCoachAvatar((club.coachImages)[0]),
+                        if ((club.coachImages).length > 1)
+                          Transform.translate(
+                            offset: const Offset(-8, 0),
+                            child: _buildCoachAvatar((club.coachImages)[1]),
+                          ),
+                        if ((club.coachImages).length > 2)
+                          Transform.translate(
+                            offset: const Offset(-16, 0),
+                            child: _buildCoachAvatar((club.coachImages)[2]),
+                          ),
+                        if ((club.coachImages).length > 3)
+                          Transform.translate(
+                            offset: const Offset(-24, 0),
+                            child: _buildCoachAvatar((club.coachImages)[3]),
+                          ),
+                        if (club.coaches > (club.coachImages).length)
+                          Transform.translate(
+                            offset: Offset(-8.0 * (club.coachImages).length.clamp(0, 4), 0),
+                            child: _buildCoachAvatar(
+                              null,
+                              remainingCount: club.coaches - (club.coachImages).length,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1171,6 +1232,58 @@ class MobileClubCard extends StatelessWidget {
     );
   }
 
+  Widget _buildCoachAvatar(String? imageUrl, {int? remainingCount}) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: imageUrl != null
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade300,
+                  child: const Icon(
+                    Icons.person,
+                    size: 30,
+                    color: Colors.grey,
+                  ),
+                ),
+              )
+            : Container(
+                color: Colors.grey.shade300,
+                child: Center(
+                  child: remainingCount != null && remainingCount > 0
+                      ? Text(
+                          '+$remainingCount',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.person,
+                          size: 30,
+                          color: Colors.grey,
+                        ),
+                ),
+              ),
+      ),
+    );
+  }
+
   Widget _buildActionButton(IconData icon, String label) {
     return ElevatedButton.icon(
       onPressed: () {},
@@ -1200,6 +1313,7 @@ class ClubData {
   final String discount;
   final int coaches;
   final String imageUrl;
+  final List<String>? _coachImages;
 
   ClubData({
     required this.name,
@@ -1214,5 +1328,8 @@ class ClubData {
     required this.discount,
     required this.coaches,
     required this.imageUrl,
-  });
+    List<String>? coachImages,
+  }) : _coachImages = coachImages;
+
+  List<String> get coachImages => _coachImages ?? [];
 }

@@ -42,11 +42,25 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
 
   // Financial Year filters
   String _financialYearStartMonth = 'JAN';
-  final TextEditingController _financialYearStartYearController = TextEditingController();
+  final TextEditingController _financialYearStartYearController =
+      TextEditingController();
   String _financialYearEndMonth = 'DEC';
-  final TextEditingController _financialYearEndYearController = TextEditingController();
+  final TextEditingController _financialYearEndYearController =
+      TextEditingController();
 
   // Flexible Duration filters (using existing _fromDate and _toDate)
+
+  // Column-specific filters
+  final TextEditingController _transactionIdFilterController =
+      TextEditingController();
+  final TextEditingController _amountFilterController = TextEditingController();
+  final TextEditingController _paymentMethodFilterController =
+      TextEditingController();
+  final TextEditingController _paymentStatusFilterController =
+      TextEditingController();
+  DateTime? _startDateFilter;
+  DateTime? _endDateFilter;
+  DateTime? _paymentDateFilter;
 
   @override
   void initState() {
@@ -55,11 +69,23 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
     _tableTabs.addListener(_onTabChanged);
     _initializeData();
     _searchController.addListener(_onSearchChanged);
-    
+
+    // Add listeners for column filters
+    _transactionIdFilterController.addListener(_onColumnFilterChanged);
+    _amountFilterController.addListener(_onColumnFilterChanged);
+    _paymentMethodFilterController.addListener(_onColumnFilterChanged);
+    _paymentStatusFilterController.addListener(_onColumnFilterChanged);
+
     // Initialize financial year with current year
     final now = DateTime.now();
     _financialYearStartYearController.text = now.year.toString();
     _financialYearEndYearController.text = now.year.toString();
+  }
+
+  void _onColumnFilterChanged() {
+    setState(() {
+      _applyFilters();
+    });
   }
 
   void _onTabChanged() {
@@ -95,6 +121,96 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
         }
       }
 
+      // Column-specific filters
+      // Transaction ID filter
+      if (_transactionIdFilterController.text.isNotEmpty) {
+        if (!transaction['id'].toLowerCase().contains(
+          _transactionIdFilterController.text.toLowerCase(),
+        )) {
+          return false;
+        }
+      }
+
+      // Amount filter
+      if (_amountFilterController.text.isNotEmpty) {
+        if (!transaction['amount'].toLowerCase().contains(
+          _amountFilterController.text.toLowerCase(),
+        )) {
+          return false;
+        }
+      }
+
+      // Payment Method filter
+      if (_paymentMethodFilterController.text.isNotEmpty) {
+        if (!transaction['paymentMethod'].toLowerCase().contains(
+          _paymentMethodFilterController.text.toLowerCase(),
+        )) {
+          return false;
+        }
+      }
+
+      // Payment Status filter
+      if (_paymentStatusFilterController.text.isNotEmpty) {
+        if (!transaction['status'].toLowerCase().contains(
+          _paymentStatusFilterController.text.toLowerCase(),
+        )) {
+          return false;
+        }
+      }
+
+      // Start Date filter
+      if (_startDateFilter != null) {
+        final transactionDate = DateTime(
+          transaction['date'].year,
+          transaction['date'].month,
+          transaction['date'].day,
+        );
+        final filterDate = DateTime(
+          _startDateFilter!.year,
+          _startDateFilter!.month,
+          _startDateFilter!.day,
+        );
+        if (transactionDate.isBefore(filterDate)) {
+          return false;
+        }
+      }
+
+      // End Date filter
+      if (_endDateFilter != null) {
+        final transactionDate = DateTime(
+          transaction['date'].year,
+          transaction['date'].month,
+          transaction['date'].day,
+        );
+        final filterDate = DateTime(
+          _endDateFilter!.year,
+          _endDateFilter!.month,
+          _endDateFilter!.day,
+        );
+        if (transactionDate.isAfter(filterDate)) {
+          return false;
+        }
+      }
+
+      // Payment Date filter
+      if (_paymentDateFilter != null) {
+        final transactionDate = DateTime(
+          transaction['date'].year,
+          transaction['date'].month,
+          transaction['date'].day,
+        );
+        final filterDate = DateTime(
+          _paymentDateFilter!.year,
+          _paymentDateFilter!.month,
+          _paymentDateFilter!.day,
+        );
+        if (transactionDate.year != filterDate.year ||
+            transactionDate.month != filterDate.month ||
+            transactionDate.day != filterDate.day) {
+          return false;
+        }
+      }
+
       // Status filter
       if (_status != 'Select' && transaction['status'] != _status) {
         return false;
@@ -113,14 +229,22 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
       // Period filter (applies date range based on period type)
       if (_period == 'Financial Year') {
         // Filter based on selected start month/year to end month/year
-        final startYear = int.tryParse(_financialYearStartYearController.text) ?? DateTime.now().year;
-        final endYear = int.tryParse(_financialYearEndYearController.text) ?? DateTime.now().year;
+        final startYear =
+            int.tryParse(_financialYearStartYearController.text) ??
+            DateTime.now().year;
+        final endYear =
+            int.tryParse(_financialYearEndYearController.text) ??
+            DateTime.now().year;
         final startMonth = _getMonthNumber(_financialYearStartMonth);
         final endMonth = _getMonthNumber(_financialYearEndMonth);
-        
+
         final financialYearStart = DateTime(startYear, startMonth, 1);
         // Get last day of end month
-        final financialYearEnd = DateTime(endYear, endMonth + 1, 0); // Last day of end month
+        final financialYearEnd = DateTime(
+          endYear,
+          endMonth + 1,
+          0,
+        ); // Last day of end month
 
         if (transaction['date'].isBefore(financialYearStart) ||
             transaction['date'].isAfter(financialYearEnd)) {
@@ -133,7 +257,14 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
         }
         if (_toDate != null) {
           // Include the entire end date (set to end of day)
-          final endOfDay = DateTime(_toDate!.year, _toDate!.month, _toDate!.day, 23, 59, 59);
+          final endOfDay = DateTime(
+            _toDate!.year,
+            _toDate!.month,
+            _toDate!.day,
+            23,
+            59,
+            59,
+          );
           if (transaction['date'].isAfter(endOfDay)) {
             return false;
           }
@@ -200,6 +331,10 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
     _searchController.dispose();
     _financialYearStartYearController.dispose();
     _financialYearEndYearController.dispose();
+    _transactionIdFilterController.dispose();
+    _amountFilterController.dispose();
+    _paymentMethodFilterController.dispose();
+    _paymentStatusFilterController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -266,8 +401,18 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
 
   int _getMonthNumber(String monthAbbr) {
     const months = {
-      'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
-      'JUL': 7, 'AUG': 8, 'SEP': 9, 'OCT': 10, 'NOV': 11, 'DEC': 12,
+      'JAN': 1,
+      'FEB': 2,
+      'MAR': 3,
+      'APR': 4,
+      'MAY': 5,
+      'JUN': 6,
+      'JUL': 7,
+      'AUG': 8,
+      'SEP': 9,
+      'OCT': 10,
+      'NOV': 11,
+      'DEC': 12,
     };
     return months[monthAbbr] ?? 1;
   }
@@ -527,11 +672,118 @@ class _ClubTransactionsPageState extends State<ClubTransactionsPage>
                 if (_period == 'Flexible Duration') const SizedBox(height: 16),
                 _TableTabs(controller: _tableTabs),
                 const SizedBox(height: 12),
+                _TableFilterRow(
+                  transactionIdFilterController: _transactionIdFilterController,
+                  amountFilterController: _amountFilterController,
+                  paymentMethodFilterController: _paymentMethodFilterController,
+                  paymentStatusFilterController: _paymentStatusFilterController,
+                  startDateFilter: _startDateFilter,
+                  endDateFilter: _endDateFilter,
+                  paymentDateFilter: _paymentDateFilter,
+                  onStartDateFilterChanged: () async {
+                    final result = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(2018),
+                      lastDate: DateTime(2100),
+                      initialDate: _startDateFilter ?? DateTime.now(),
+                    );
+                    if (!mounted) return;
+                    if (result != null) {
+                      setState(() {
+                        _startDateFilter = result;
+                        _onFilterChanged();
+                      });
+                    }
+                  },
+                  onEndDateFilterChanged: () async {
+                    final result = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(2018),
+                      lastDate: DateTime(2100),
+                      initialDate: _endDateFilter ?? DateTime.now(),
+                    );
+                    if (!mounted) return;
+                    if (result != null) {
+                      setState(() {
+                        _endDateFilter = result;
+                        _onFilterChanged();
+                      });
+                    }
+                  },
+                  onPaymentDateFilterChanged: () async {
+                    final result = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(2018),
+                      lastDate: DateTime(2100),
+                      initialDate: _paymentDateFilter ?? DateTime.now(),
+                    );
+                    if (!mounted) return;
+                    if (result != null) {
+                      setState(() {
+                        _paymentDateFilter = result;
+                        _onFilterChanged();
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
                 _TransactionsTable(
                   isWide: isWide,
                   transactions: _filteredTransactions,
                   showEntries: _showEntries,
                   currentPage: _currentPage,
+                  transactionIdFilterController: _transactionIdFilterController,
+                  amountFilterController: _amountFilterController,
+                  paymentMethodFilterController: _paymentMethodFilterController,
+                  paymentStatusFilterController: _paymentStatusFilterController,
+                  startDateFilter: _startDateFilter,
+                  endDateFilter: _endDateFilter,
+                  paymentDateFilter: _paymentDateFilter,
+                  onStartDateFilterChanged: () async {
+                    final result = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(2018),
+                      lastDate: DateTime(2100),
+                      initialDate: _startDateFilter ?? DateTime.now(),
+                    );
+                    if (!mounted) return;
+                    if (result != null) {
+                      setState(() {
+                        _startDateFilter = result;
+                        _onFilterChanged();
+                      });
+                    }
+                  },
+                  onEndDateFilterChanged: () async {
+                    final result = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(2018),
+                      lastDate: DateTime(2100),
+                      initialDate: _endDateFilter ?? DateTime.now(),
+                    );
+                    if (!mounted) return;
+                    if (result != null) {
+                      setState(() {
+                        _endDateFilter = result;
+                        _onFilterChanged();
+                      });
+                    }
+                  },
+                  onPaymentDateFilterChanged: () async {
+                    final result = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(2018),
+                      lastDate: DateTime(2100),
+                      initialDate: _paymentDateFilter ?? DateTime.now(),
+                    );
+                    if (!mounted) return;
+                    if (result != null) {
+                      setState(() {
+                        _paymentDateFilter = result;
+                        _onFilterChanged();
+                      });
+                    }
+                  },
                   onPageChanged: (page) {
                     setState(() {
                       _currentPage = page;
@@ -976,11 +1228,484 @@ class _TableTabs extends StatelessWidget {
   }
 }
 
+class _TableFilterRow extends StatelessWidget {
+  final TextEditingController transactionIdFilterController;
+  final TextEditingController amountFilterController;
+  final TextEditingController paymentMethodFilterController;
+  final TextEditingController paymentStatusFilterController;
+  final DateTime? startDateFilter;
+  final DateTime? endDateFilter;
+  final DateTime? paymentDateFilter;
+  final VoidCallback onStartDateFilterChanged;
+  final VoidCallback onEndDateFilterChanged;
+  final VoidCallback onPaymentDateFilterChanged;
+
+  const _TableFilterRow({
+    required this.transactionIdFilterController,
+    required this.amountFilterController,
+    required this.paymentMethodFilterController,
+    required this.paymentStatusFilterController,
+    required this.startDateFilter,
+    required this.endDateFilter,
+    required this.paymentDateFilter,
+    required this.onStartDateFilterChanged,
+    required this.onEndDateFilterChanged,
+    required this.onPaymentDateFilterChanged,
+  });
+
+  String _formatDateForFilter(DateTime? date) {
+    if (date == null) return '';
+    return '${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}-${date.year}';
+  }
+
+  Widget _buildSearchFilter({
+    required TextEditingController controller,
+    required String hintText,
+    bool isMobile = false,
+  }) {
+    final height = isMobile ? 36.0 : 40.0;
+    final fontSize = isMobile ? 13.0 : 14.0;
+    final iconSize = isMobile ? 16.0 : 18.0;
+    final padding = isMobile ? 10.0 : 12.0;
+
+    return Container(
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey[300]!, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        style: TextStyle(
+          fontSize: fontSize,
+          color: Colors.black87,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(
+            color: Colors.grey[600],
+            fontSize: fontSize,
+            fontWeight: FontWeight.w400,
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            size: iconSize,
+            color: const Color(0xFF6B7280),
+          ),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: padding,
+            vertical: isMobile ? 8 : 10,
+          ),
+          isDense: true,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateFilter({
+    required DateTime? date,
+    required VoidCallback onTap,
+    bool isMobile = false,
+  }) {
+    final height = isMobile ? 36.0 : 40.0;
+    final fontSize = isMobile ? 13.0 : 14.0;
+    final iconSize = isMobile ? 16.0 : 18.0;
+    final padding = isMobile ? 10.0 : 12.0;
+    final spacing = isMobile ? 6.0 : 8.0;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey[300]!, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: padding,
+          vertical: isMobile ? 8 : 10,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                _formatDateForFilter(date),
+                style: TextStyle(
+                  fontSize: fontSize,
+                  color: date == null ? Colors.grey[600] : Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            SizedBox(width: spacing),
+            Icon(
+              Icons.calendar_today,
+              size: iconSize,
+              color: const Color(0xFF6B7280),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterCell({
+    required Widget child,
+    bool showFilterIcon = true,
+    bool isMobile = false,
+  }) {
+    final padding = isMobile ? 10.0 : 12.0;
+    final iconSize = isMobile ? 18.0 : 20.0;
+    final spacing = isMobile ? 8.0 : 10.0;
+
+    return Container(
+      padding: EdgeInsets.all(padding),
+      constraints: BoxConstraints(minHeight: isMobile ? 44 : 48),
+      child: showFilterIcon
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(child: child),
+                SizedBox(width: spacing),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(
+                    Icons.filter_list,
+                    size: iconSize,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            )
+          : child,
+    );
+  }
+
+  Widget _buildFilterItem({
+    required Widget child,
+    required String label,
+    bool showFilterIcon = true,
+    bool isMobile = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(bottom: isMobile ? 8.0 : 10.0, left: 4),
+          child: Row(
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: isMobile ? 11.5 : 12.5,
+                  color: Colors.white.withOpacity(0.95),
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+        _buildFilterCell(
+          showFilterIcon: showFilterIcon,
+          isMobile: isMobile,
+          child: child,
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 700;
+
+    final containerPadding = isMobile ? 16.0 : 20.0;
+    final spacing = isMobile ? 12.0 : 16.0;
+
+    if (isMobile) {
+      // Mobile: Split into 2 rows - 4 filters in first row, 3 in second row
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [const Color(0xFF374151), const Color(0xFF4B5563)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: EdgeInsets.all(containerPadding),
+        child: Column(
+          children: [
+            // First Row: 4 filters
+            Row(
+              children: [
+                Expanded(
+                  child: _buildFilterItem(
+                    label: 'Transaction ID',
+                    showFilterIcon: true,
+                    isMobile: isMobile,
+                    child: _buildSearchFilter(
+                      controller: transactionIdFilterController,
+                      hintText: 'Search',
+                      isMobile: isMobile,
+                    ),
+                  ),
+                ),
+                SizedBox(width: spacing),
+                Expanded(
+                  child: _buildFilterItem(
+                    label: 'Start Date',
+                    showFilterIcon: false,
+                    isMobile: isMobile,
+                    child: _buildDateFilter(
+                      date: startDateFilter,
+                      onTap: onStartDateFilterChanged,
+                      isMobile: isMobile,
+                    ),
+                  ),
+                ),
+                SizedBox(width: spacing),
+                Expanded(
+                  child: _buildFilterItem(
+                    label: 'End Date',
+                    showFilterIcon: false,
+                    isMobile: isMobile,
+                    child: _buildDateFilter(
+                      date: endDateFilter,
+                      onTap: onEndDateFilterChanged,
+                      isMobile: isMobile,
+                    ),
+                  ),
+                ),
+                SizedBox(width: spacing),
+                Expanded(
+                  child: _buildFilterItem(
+                    label: 'Amount',
+                    showFilterIcon: true,
+                    isMobile: isMobile,
+                    child: _buildSearchFilter(
+                      controller: amountFilterController,
+                      hintText: 'Search',
+                      isMobile: isMobile,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: spacing + 8),
+            // Second Row: 3 filters
+            Row(
+              children: [
+                Expanded(
+                  child: _buildFilterItem(
+                    label: 'Payment Method',
+                    showFilterIcon: true,
+                    isMobile: isMobile,
+                    child: _buildSearchFilter(
+                      controller: paymentMethodFilterController,
+                      hintText: 'Search',
+                      isMobile: isMobile,
+                    ),
+                  ),
+                ),
+                SizedBox(width: spacing),
+                Expanded(
+                  child: _buildFilterItem(
+                    label: 'Payment Status',
+                    showFilterIcon: true,
+                    isMobile: isMobile,
+                    child: _buildSearchFilter(
+                      controller: paymentStatusFilterController,
+                      hintText: 'Search',
+                      isMobile: isMobile,
+                    ),
+                  ),
+                ),
+                SizedBox(width: spacing),
+                Expanded(
+                  child: _buildFilterItem(
+                    label: 'Payment Date',
+                    showFilterIcon: false,
+                    isMobile: isMobile,
+                    child: _buildDateFilter(
+                      date: paymentDateFilter,
+                      onTap: onPaymentDateFilterChanged,
+                      isMobile: isMobile,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Desktop: All filters in one row
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [const Color(0xFF374151), const Color(0xFF4B5563)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: EdgeInsets.all(containerPadding),
+        child: Row(
+          children: [
+            Expanded(
+              child: _buildFilterItem(
+                label: 'Transaction ID',
+                showFilterIcon: true,
+                isMobile: isMobile,
+                child: _buildSearchFilter(
+                  controller: transactionIdFilterController,
+                  hintText: 'Search',
+                  isMobile: isMobile,
+                ),
+              ),
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: _buildFilterItem(
+                label: 'Start Date',
+                showFilterIcon: false,
+                isMobile: isMobile,
+                child: _buildDateFilter(
+                  date: startDateFilter,
+                  onTap: onStartDateFilterChanged,
+                  isMobile: isMobile,
+                ),
+              ),
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: _buildFilterItem(
+                label: 'End Date',
+                showFilterIcon: false,
+                isMobile: isMobile,
+                child: _buildDateFilter(
+                  date: endDateFilter,
+                  onTap: onEndDateFilterChanged,
+                  isMobile: isMobile,
+                ),
+              ),
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: _buildFilterItem(
+                label: 'Amount',
+                showFilterIcon: true,
+                isMobile: isMobile,
+                child: _buildSearchFilter(
+                  controller: amountFilterController,
+                  hintText: 'Search',
+                  isMobile: isMobile,
+                ),
+              ),
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: _buildFilterItem(
+                label: 'Payment Method',
+                showFilterIcon: true,
+                isMobile: isMobile,
+                child: _buildSearchFilter(
+                  controller: paymentMethodFilterController,
+                  hintText: 'Search',
+                  isMobile: isMobile,
+                ),
+              ),
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: _buildFilterItem(
+                label: 'Payment Status',
+                showFilterIcon: true,
+                isMobile: isMobile,
+                child: _buildSearchFilter(
+                  controller: paymentStatusFilterController,
+                  hintText: 'Search',
+                  isMobile: isMobile,
+                ),
+              ),
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: _buildFilterItem(
+                label: 'Payment Date',
+                showFilterIcon: false,
+                isMobile: isMobile,
+                child: _buildDateFilter(
+                  date: paymentDateFilter,
+                  onTap: onPaymentDateFilterChanged,
+                  isMobile: isMobile,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+}
+
 class _TransactionsTable extends StatelessWidget {
   final bool isWide;
   final List<Map<String, dynamic>> transactions;
   final int showEntries;
   final int currentPage;
+  final TextEditingController transactionIdFilterController;
+  final TextEditingController amountFilterController;
+  final TextEditingController paymentMethodFilterController;
+  final TextEditingController paymentStatusFilterController;
+  final DateTime? startDateFilter;
+  final DateTime? endDateFilter;
+  final DateTime? paymentDateFilter;
+  final VoidCallback onStartDateFilterChanged;
+  final VoidCallback onEndDateFilterChanged;
+  final VoidCallback onPaymentDateFilterChanged;
   final ValueChanged<int> onPageChanged;
   final ValueChanged<int> onEntriesChanged;
   final Function(Map<String, dynamic>) onShowInvoice;
@@ -991,6 +1716,16 @@ class _TransactionsTable extends StatelessWidget {
     required this.transactions,
     required this.showEntries,
     required this.currentPage,
+    required this.transactionIdFilterController,
+    required this.amountFilterController,
+    required this.paymentMethodFilterController,
+    required this.paymentStatusFilterController,
+    required this.startDateFilter,
+    required this.endDateFilter,
+    required this.paymentDateFilter,
+    required this.onStartDateFilterChanged,
+    required this.onEndDateFilterChanged,
+    required this.onPaymentDateFilterChanged,
     required this.onPageChanged,
     required this.onEntriesChanged,
     required this.onShowInvoice,
@@ -1031,266 +1766,217 @@ class _TransactionsTable extends StatelessWidget {
     }
   }
 
+  Widget _buildCustomTable(
+    BuildContext context,
+    List<Map<String, dynamic>> paginatedTransactions,
+    bool isNarrow,
+  ) {
+    return Table(
+      columnWidths: const {
+        0: FlexColumnWidth(1.5),
+        1: FlexColumnWidth(1.3),
+        2: FlexColumnWidth(1.3),
+        3: FlexColumnWidth(1.2),
+        4: FlexColumnWidth(1.5),
+        5: FlexColumnWidth(1.8),
+        6: FlexColumnWidth(1.3),
+      },
+      border: TableBorder(
+        top: BorderSide(color: Colors.grey[300]!),
+        bottom: BorderSide(color: Colors.grey[300]!),
+        horizontalInside: BorderSide(color: Colors.grey[200]!),
+        verticalInside: BorderSide(color: Colors.grey[200]!),
+      ),
+      children: [
+        // Header Row
+        TableRow(
+          decoration: const BoxDecoration(color: Color(0xFFF3F4F6)),
+          children: [
+            _buildHeaderCell('Transaction ID'),
+            _buildHeaderCell('Start Date'),
+            _buildHeaderCell('End Date'),
+            _buildHeaderCell('Amount'),
+            _buildHeaderCell('Payment Method'),
+            _buildHeaderCell('Payment Status'),
+            _buildHeaderCell('Payment Date'),
+          ],
+        ),
+        // Data Rows
+        ...paginatedTransactions.asMap().entries.map((entry) {
+          final i = entry.key;
+          final transaction = entry.value;
+          final odd = i % 2 == 1;
+          return TableRow(
+            decoration: BoxDecoration(
+              color: odd ? const Color(0xFFF9FAFB) : Colors.white,
+            ),
+            children: [
+              _buildDataCell(
+                child: Text(
+                  transaction['id'],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: Color(0xFF1E40AF),
+                  ),
+                ),
+              ),
+              _buildDataCell(
+                child: Text(
+                  _formatDate(transaction['date']),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    color: Color(0xFF374151),
+                  ),
+                ),
+              ),
+              _buildDataCell(
+                child: Text(
+                  _formatDate(
+                    transaction['date'].add(const Duration(days: 365)),
+                  ),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    color: Color(0xFF374151),
+                  ),
+                ),
+              ),
+              _buildDataCell(
+                child: Text(
+                  transaction['amount'],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: Color(0xFF059669),
+                  ),
+                ),
+              ),
+              _buildDataCell(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getPaymentMethodColor(
+                      transaction['paymentMethod'],
+                    ).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    transaction['paymentMethod'],
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: _getPaymentMethodColor(
+                        transaction['paymentMethod'],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              _buildDataCell(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(
+                          transaction['status'],
+                        ).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        transaction['status'],
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: _getStatusColor(transaction['status']),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: () => onShowInvoice(transaction),
+                      child: const Text(
+                        'Invoice',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF1E40AF),
+                          fontWeight: FontWeight.w500,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: () => onDownloadReceipt(transaction),
+                      child: const Text(
+                        'Receipt',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF1E40AF),
+                          fontWeight: FontWeight.w500,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _buildDataCell(
+                child: Text(
+                  _formatDate(transaction['date']),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    color: Color(0xFF374151),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Widget _buildHeaderCell(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 16,
+          color: Color(0xFF1F2937),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDataCell({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isNarrow = MediaQuery.of(context).size.width < 700;
-    final columns = [
-      DataColumn(
-        label: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: const Text(
-            'Transaction ID',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-              color: Color(0xFF1F2937),
-            ),
-          ),
-        ),
-      ),
-      DataColumn(
-        label: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: const Text(
-            'Start Date',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-              color: Color(0xFF1F2937),
-            ),
-          ),
-        ),
-      ),
-      DataColumn(
-        label: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: const Text(
-            'End Date',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-              color: Color(0xFF1F2937),
-            ),
-          ),
-        ),
-      ),
-      DataColumn(
-        label: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: const Text(
-            'Amount',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-              color: Color(0xFF1F2937),
-            ),
-          ),
-        ),
-      ),
-      DataColumn(
-        label: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: const Text(
-            'Payment Method',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-              color: Color(0xFF1F2937),
-            ),
-          ),
-        ),
-      ),
-      DataColumn(
-        label: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: const Text(
-            'Payment Status',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-              color: Color(0xFF1F2937),
-            ),
-          ),
-        ),
-      ),
-      DataColumn(
-        label: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: const Text(
-            'Actions',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-              color: Color(0xFF1F2937),
-            ),
-          ),
-        ),
-      ),
-    ];
 
     final startIndex = currentPage * showEntries;
     final endIndex = (startIndex + showEntries).clamp(0, transactions.length);
     final paginatedTransactions = transactions.sublist(startIndex, endIndex);
 
-    final rows = paginatedTransactions.asMap().entries.map((entry) {
-      final i = entry.key;
-      final transaction = entry.value;
-      final odd = i % 2 == 1;
-
-      return DataRow(
-        color: MaterialStatePropertyAll(
-          odd ? const Color(0xFFF9FAFB) : Colors.white,
-        ),
-        cells: [
-          DataCell(
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                transaction['id'],
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: Color(0xFF1E40AF),
-                ),
-              ),
-            ),
-          ),
-          DataCell(
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                _formatDate(transaction['date']),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                  color: Color(0xFF374151),
-                ),
-              ),
-            ),
-          ),
-          DataCell(
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                _formatDate(transaction['date'].add(const Duration(days: 365))),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                  color: Color(0xFF374151),
-                ),
-              ),
-            ),
-          ),
-          DataCell(
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                transaction['amount'],
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: Color(0xFF059669),
-                ),
-              ),
-            ),
-          ),
-          DataCell(
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getPaymentMethodColor(
-                        transaction['paymentMethod'],
-                      ).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      transaction['paymentMethod'],
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: _getPaymentMethodColor(
-                          transaction['paymentMethod'],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          DataCell(
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(
-                        transaction['status'],
-                      ).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      transaction['status'],
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: _getStatusColor(transaction['status']),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          DataCell(
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  _ActionButton(
-                    icon: Icons.receipt,
-                    label: 'Invoice',
-                    onTap: () {
-                      onShowInvoice(transaction);
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  _ActionButton(
-                    icon: Icons.download,
-                    label: 'Receipt',
-                    onTap: () {
-                      onDownloadReceipt(transaction);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      );
-    }).toList();
-
-    final table = DataTable(
-      columns: columns,
-      rows: rows,
-      headingRowColor: MaterialStateProperty.all(const Color(0xFFF3F4F6)),
-      columnSpacing: 24,
-      dataRowMinHeight: 64,
-      dataRowMaxHeight: 64,
-      horizontalMargin: 16,
-    );
+    // Build custom table with filter row
+    final table = _buildCustomTable(context, paginatedTransactions, isNarrow);
 
     return Container(
       decoration: BoxDecoration(
@@ -1419,20 +2105,30 @@ class _TransactionsTable extends StatelessWidget {
                           const SizedBox(height: 10),
                           Row(
                             children: [
-                              _ActionButton(
-                                icon: Icons.receipt,
-                                label: 'Invoice',
-                                onTap: () {
-                                  onShowInvoice(transaction);
-                                },
+                              InkWell(
+                                onTap: () => onShowInvoice(transaction),
+                                child: const Text(
+                                  'Invoice',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xFF1E40AF),
+                                    fontWeight: FontWeight.w500,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
                               ),
                               const SizedBox(width: 8),
-                              _ActionButton(
-                                icon: Icons.download,
-                                label: 'Receipt',
-                                onTap: () {
-                                  onDownloadReceipt(transaction);
-                                },
+                              InkWell(
+                                onTap: () => onDownloadReceipt(transaction),
+                                child: const Text(
+                                  'Receipt',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xFF1E40AF),
+                                    fontWeight: FontWeight.w500,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -1454,8 +2150,11 @@ class _TransactionsTable extends StatelessWidget {
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(minWidth: 1100),
-                        child: SingleChildScrollView(child: table),
+                        constraints: const BoxConstraints(minWidth: 1200),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: table,
+                        ),
                       ),
                     ),
                   ),

@@ -11,6 +11,7 @@ import '../../shared/navigation/role_navigation_manager.dart';
 import 'add_booking_screen.dart';
 import 'purchase_screen.dart';
 import 'repair_screen.dart';
+import 'view_booking_screen.dart';
 
 class BookingManagementScreen extends StatefulWidget {
   final UserRole? role;
@@ -169,22 +170,24 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
         try {
           // Extract date parts from string like "Thu, Apr 24, 2025"
           final parts = bookingDateString.split(', ');
-          
+
           if (parts.length >= 2) {
             // parts[1] is "Apr 24, 2025" - need to handle the comma in the date
             final datePart = parts[1].trim(); // "Apr 24, 2025"
-            
+
             // Split by comma first to separate day and year
             final dateParts = datePart.split(',');
             if (dateParts.length >= 2) {
               // dateParts[0] = "Apr 24", dateParts[1] = " 2025"
-              final monthDayParts = dateParts[0].trim().split(' '); // ["Apr", "24"]
+              final monthDayParts = dateParts[0].trim().split(
+                ' ',
+              ); // ["Apr", "24"]
               final yearStr = dateParts[1].trim(); // "2025"
-              
+
               if (monthDayParts.length >= 2) {
                 final monthStr = monthDayParts[0]; // "Apr"
                 final dayStr = monthDayParts[1]; // "24"
-                
+
                 // Convert month string to number
                 final monthMap = {
                   'Jan': 1,
@@ -203,12 +206,12 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
                 final month = monthMap[monthStr] ?? 1;
                 final day = int.tryParse(dayStr) ?? 1;
                 final year = int.tryParse(yearStr) ?? now.year;
-                
+
                 bookingDate = DateTime(year, month, day);
               }
             }
           }
-          
+
           // If parsing still failed, try alternative format or use fallback
           if (bookingDate == null) {
             // Try using intl package DateFormat as fallback
@@ -220,15 +223,25 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
                 final monthStr = match.group(2)!;
                 final dayStr = match.group(3)!;
                 final yearStr = match.group(4)!;
-                
+
                 final monthMap = {
-                  'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
-                  'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+                  'Jan': 1,
+                  'Feb': 2,
+                  'Mar': 3,
+                  'Apr': 4,
+                  'May': 5,
+                  'Jun': 6,
+                  'Jul': 7,
+                  'Aug': 8,
+                  'Sep': 9,
+                  'Oct': 10,
+                  'Nov': 11,
+                  'Dec': 12,
                 };
                 final month = monthMap[monthStr] ?? 1;
                 final day = int.tryParse(dayStr) ?? 1;
                 final year = int.tryParse(yearStr) ?? now.year;
-                
+
                 bookingDate = DateTime(year, month, day);
               }
             } catch (e) {
@@ -496,58 +509,39 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
         _performFiltering(); // Call _performFiltering directly instead of _filterBookings
       },
       borderRadius: BorderRadius.circular(25),
-      child: Stack(
-        children: [
-          // Background line indicator (only for active tab)
-          if (isSelected)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 3,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade800,
-                  borderRadius: BorderRadius.circular(1.5),
-                ),
-              ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF007BFF) : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          border: isSelected
+              ? null
+              : Border.all(color: Colors.grey.shade300, width: 1),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black87,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+              letterSpacing: 0.2,
             ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? Colors.grey.shade800
-                  : Colors.white,
-              borderRadius: BorderRadius.circular(25),
-              border: isSelected
-                  ? null
-                  : Border.all(
-                      color: Colors.grey.shade300,
-                      width: 1,
-                    ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Text(
-              text,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.grey.shade700,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
-        ],
+        ),
       ),
     );
   }
@@ -774,6 +768,17 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
                                     },
                                     onPurchase: _showPurchaseBottomSheet,
                                     onRepair: _showRepairBottomSheet,
+                                    onViewBooking: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ViewBookingScreen(
+                                                booking: booking,
+                                                role: widget.role,
+                                              ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 );
                               },

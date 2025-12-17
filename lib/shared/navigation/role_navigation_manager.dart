@@ -102,6 +102,19 @@ import 'package:smart_sports/role_specific/freelancer/screens/customer_support/f
 import 'package:smart_sports/role_specific/freelancer/screens/profile/freelancer_profile_page.dart'
     as freelancer_profile;
 
+// Member imports
+import 'package:smart_sports/role_specific/member/screens/dashboard/member_dashboard_page.dart';
+import 'package:smart_sports/role_specific/member/screens/transactions/member_transactions_page.dart';
+import 'package:smart_sports/role_specific/member/screens/clubs/member_clubs_page.dart';
+import 'package:smart_sports/role_specific/member/screens/bookings/member_bookings_page.dart';
+import 'package:smart_sports/role_specific/member/screens/events/member_events_page.dart';
+import 'package:smart_sports/role_specific/member/screens/sponsorships/member_sponsorships_page.dart';
+import 'package:smart_sports/role_specific/member/screens/referrals/member_referrals_page.dart';
+import 'package:smart_sports/role_specific/member/screens/users/member_users_page.dart';
+import 'package:smart_sports/role_specific/member/screens/customer_support/member_customer_support_page.dart';
+import 'package:smart_sports/role_specific/member/screens/settings/member_settings_page.dart';
+import 'package:smart_sports/role_specific/member/screens/profile/member_profile_page.dart';
+
 /// Centralized navigation manager for role-specific screens
 /// Handles consistent navigation behavior across all role screens
 class RoleNavigationManager {
@@ -465,72 +478,61 @@ class RoleNavigationManager {
       case 0:
         // Dashboard
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) =>
-                const _MemberPlaceholder(title: 'Dashboard', currentIndex: 0),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberDashboardPage()),
         );
         break;
       case 1:
         // Transactions
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const _MemberPlaceholder(
-              title: 'Transactions',
-              currentIndex: 1,
-            ),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberTransactionsPage()),
         );
         break;
       case 2:
-        // Courts
+        // My Clubs
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) =>
-                const _MemberPlaceholder(title: 'Courts', currentIndex: 2),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberClubsPage()),
         );
         break;
       case 3:
-        // Clubs
+        // Bookings
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) =>
-                const _MemberPlaceholder(title: 'Clubs', currentIndex: 3),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberBookingsPage()),
         );
         break;
       case 4:
-        // Bookings
+        // Events / Tournaments
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) =>
-                const _MemberPlaceholder(title: 'Bookings', currentIndex: 4),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberEventsPage()),
         );
         break;
       case 5:
-        // Events
+        // Sponsorships
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) =>
-                const _MemberPlaceholder(title: 'Events', currentIndex: 5),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberSponsorshipsPage()),
         );
         break;
       case 6:
         // Referrals
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) =>
-                const _MemberPlaceholder(title: 'Referrals', currentIndex: 6),
-          ),
+          MaterialPageRoute(builder: (_) => const MemberReferralsPage()),
         );
         break;
       case 7:
-        // Profile
+        // Users
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const _MemberProfilePage()),
+          MaterialPageRoute(builder: (_) => const MemberUsersPage()),
+        );
+        break;
+      case 8:
+        // Customer Support
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MemberCustomerSupportPage()),
+        );
+        break;
+      case 9:
+        // Settings
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MemberSettingsPage()),
         );
         break;
     }
@@ -541,57 +543,43 @@ class RoleNavigationManager {
       case 0:
         // Dashboard
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerDashboardPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerDashboardPage()),
         );
         break;
       case 1:
         // Transactions
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerTransactionsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerTransactionsPage()),
         );
         break;
       case 2:
         // Service
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerServicePage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerServicePage()),
         );
         break;
       case 3:
         // Clubs
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerClubsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerClubsPage()),
         );
         break;
       case 4:
         // Bookings
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerBookingsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerBookingsPage()),
         );
         break;
       case 5:
         // Events / Tournaments
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerEventsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerEventsPage()),
         );
         break;
       case 6:
         // Sponsorships
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerSponsorshipsPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerSponsorshipsPage()),
         );
         break;
       case 7:
@@ -605,9 +593,7 @@ class RoleNavigationManager {
       case 8:
         // Users
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const FreelancerUsersPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const FreelancerUsersPage()),
         );
         break;
       case 9:
@@ -656,7 +642,7 @@ class RoleNavigationManager {
         case UserRole.member:
           Navigator.of(
             context,
-          ).push(MaterialPageRoute(builder: (_) => const _MemberProfilePage()));
+          ).push(MaterialPageRoute(builder: (_) => const MemberProfilePage()));
           break;
         case UserRole.freelancer:
           Navigator.of(context).push(
@@ -670,114 +656,7 @@ class RoleNavigationManager {
   }
 }
 
-// Placeholder widgets for each role
-
-class _MemberPlaceholder extends StatelessWidget {
-  final String title;
-  final int currentIndex;
-
-  const _MemberPlaceholder({required this.title, required this.currentIndex});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: const Color(0xFF283048),
-        foregroundColor: Colors.white,
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
-      ),
-      drawer: Drawer(
-        elevation: 0,
-        child: SafeArea(
-          child: RoleSidebar(
-            role: UserRole.member,
-            selectedIndex: currentIndex,
-            edgeToEdge: true,
-            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
-              context,
-              UserRole.member,
-              i,
-            ),
-            onProfileTap: () => RoleNavigationManager.navigateToProfile(
-              context,
-              UserRole.member,
-            ),
-          ),
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.construction, size: 64, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            Text(
-              '$title Screen',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Coming Soon',
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MemberProfilePage extends StatelessWidget {
-  const _MemberProfilePage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Member Profile'),
-        backgroundColor: const Color(0xFF283048),
-        foregroundColor: Colors.white,
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
-      ),
-      drawer: Drawer(
-        elevation: 0,
-        child: SafeArea(
-          child: RoleSidebar(
-            role: UserRole.member,
-            selectedIndex: 7,
-            edgeToEdge: true,
-            onSelectIndex: (i) => RoleNavigationManager.navigateToScreen(
-              context,
-              UserRole.member,
-              i,
-            ),
-            onProfileTap: () => RoleNavigationManager.navigateToProfile(
-              context,
-              UserRole.member,
-            ),
-          ),
-        ),
-      ),
-      body: const Center(child: Text('Member Profile screen coming soon')),
-    );
-  }
-}
-
+// Placeholder widgets for other roles
 
 class _CorporatePlaceholder extends StatelessWidget {
   final String title;

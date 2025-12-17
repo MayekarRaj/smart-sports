@@ -60,11 +60,11 @@ class RoleSidebarThemes {
       case UserRole.member:
         return const SidebarThemeData(
           background: LinearGradient(
-            colors: [Color(0xFF283048), Color(0xFF859398)],
+            colors: [Color(0xFF009A69), Color(0xFF232534)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          tileBackground: Color(0xFF1D2230),
+          tileBackground: Color(0xFF232534),
           iconColor: Colors.white,
           textColor: Colors.white,
           dividerColor: Color(0x33FFFFFF),

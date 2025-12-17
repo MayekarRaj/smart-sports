@@ -143,6 +143,33 @@ class MobileCourtHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Court Image
+          Container(
+            width: double.infinity,
+            height: 200,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey.shade200,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey.shade300,
+                    child: const Icon(
+                      Icons.sports_basketball,
+                      size: 60,
+                      color: Colors.grey,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -194,6 +221,42 @@ class MobileCourtHeader extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          // COACH Section
+          const Text(
+            'COACH',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _buildCoachAvatar(
+                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+              ),
+              Transform.translate(
+                offset: const Offset(-8, 0),
+                child: _buildCoachAvatar(
+                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+                ),
+              ),
+              Transform.translate(
+                offset: const Offset(-16, 0),
+                child: _buildCoachAvatar(
+                  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+                ),
+              ),
+              Transform.translate(
+                offset: const Offset(-24, 0),
+                child: _buildCoachAvatar(
+                  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+                ),
+              ),
+            ],
+          ),
 
           const SizedBox(height: 16),
 
@@ -222,6 +285,36 @@ class MobileCourtHeader extends StatelessWidget {
           const SizedBox(height: 4),
           _buildScheduleItem('Sunday & Holidays', 'Off'),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCoachAvatar(String imageUrl) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey.shade300,
+              child: const Icon(Icons.person, size: 30, color: Colors.grey),
+            );
+          },
+        ),
       ),
     );
   }

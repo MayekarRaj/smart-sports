@@ -11,6 +11,7 @@ import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/bookings/screens/add_booking_screen.dart';
 import 'package:smart_sports/bookings/screens/purchase_screen.dart';
 import 'package:smart_sports/bookings/screens/repair_screen.dart';
+import 'package:smart_sports/bookings/screens/view_booking_screen.dart';
 
 class FreelancerBookingsPage extends StatefulWidget {
   const FreelancerBookingsPage({super.key});
@@ -503,32 +504,44 @@ class _FreelancerBookingsPageState extends State<FreelancerBookingsPage>
         _performFiltering();
       },
       borderRadius: BorderRadius.circular(25),
-      child: Stack(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFF007BFF)
-                  : Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(25),
-              border: Border.all(
-                color: isSelected
-                    ? const Color(0xFF007BFF)
-                    : Colors.grey.shade300,
-              ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF007BFF)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          border: isSelected
+              ? null
+              : Border.all(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              color: isSelected ? Colors.white : Colors.black87,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+              letterSpacing: 0.2,
             ),
-            child: Text(
-              text,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                color: isSelected ? Colors.white : Colors.black87,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
-        ],
+        ),
       ),
     );
   }
@@ -693,6 +706,16 @@ class _FreelancerBookingsPageState extends State<FreelancerBookingsPage>
                                     },
                                     onPurchase: _showPurchaseBottomSheet,
                                     onRepair: _showRepairBottomSheet,
+                                    onViewBooking: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => ViewBookingScreen(
+                                            booking: booking,
+                                            role: UserRole.freelancer,
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 );
                               },
