@@ -2,14 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
-import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
-import 'package:smart_sports/role_specific/member/screens/profile/member_profile_page.dart';
-import 'package:smart_sports/role_specific/member/screens/dashboard/member_dashboard_page.dart';
-import 'package:smart_sports/role_specific/member/screens/bookings/member_bookings_page.dart';
 import 'package:smart_sports/core/utils/auth_utils.dart';
+import 'package:smart_sports/role_specific/common/role_router.dart';
 
 class MemberReferralsPage extends ConsumerStatefulWidget {
   const MemberReferralsPage({super.key});
@@ -18,7 +14,8 @@ class MemberReferralsPage extends ConsumerStatefulWidget {
   ConsumerState<MemberReferralsPage> createState() => _MemberReferralsPageState();
 }
 
-class _MemberReferralsPageState extends State<MemberReferralsPage> {
+class _MemberReferralsPageState extends ConsumerState<MemberReferralsPage> {
+  final TextEditingController _searchController = TextEditingController();
   List<MemberReferral> _allReferrals = [];
   List<MemberReferral> _filteredReferrals = [];
   String _searchQuery = '';
@@ -26,10 +23,6 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
   final int _itemsPerPage = 10;
 
   // Filter states
-  String _selectedStatus = 'Select';
-  String _selectedDay = 'Select';
-class _MemberReferralsPageState extends ConsumerState<MemberReferralsPage> {
-  final TextEditingController _searchController = TextEditingController();
   String _selectedStatus = 'All';
   String _selectedDay = 'All';
   bool _showFilters = false;
@@ -37,8 +30,6 @@ class _MemberReferralsPageState extends ConsumerState<MemberReferralsPage> {
   String _endDate = 'Wed, March 5, 2025';
   String _startTime = 'HH:MM';
   String _endTime = 'HH:MM';
-
-  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -78,14 +69,14 @@ class _MemberReferralsPageState extends ConsumerState<MemberReferralsPage> {
     }
 
     // Apply status filter
-    if (_selectedStatus != 'Select') {
+    if (_selectedStatus != 'All' && _selectedStatus.isNotEmpty) {
       referrals = referrals
           .where((referral) => referral.status == _selectedStatus)
           .toList();
     }
 
     // Apply day filter
-    if (_selectedDay != 'Select') {
+    if (_selectedDay != 'All' && _selectedDay.isNotEmpty) {
       // Implement day filtering logic here
       // For now, we'll keep all referrals regardless of day
     }
@@ -136,26 +127,32 @@ class _MemberReferralsPageState extends ConsumerState<MemberReferralsPage> {
               context,
               UserRole.member,
             ),
-            onSelectIndex: (i) async {
-              final navigator = Navigator.of(context);
-              final currentContext = context;
-              navigator.pop();
-              await Future.delayed(const Duration(milliseconds: 160));
-              if (mounted) {
-                _navigateFromSidebar(currentContext, i);
-              }
+            onSignOut: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                        AuthUtils.handleLogout(context, ref);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
+                ),
+              );
             },
-            onProfileTap: () async {
-              final navigator = Navigator.of(context);
-              navigator.pop();
-              await Future.delayed(const Duration(milliseconds: 160));
-              if (mounted) {
-                navigator.push(
-                  MaterialPageRoute(builder: (_) => const MemberProfilePage()),
-                );
-              }
-            },
-            onSignOut: () => AuthUtils.handleLogout(context, ref),
           ),
         ),
       ),
