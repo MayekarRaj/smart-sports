@@ -144,7 +144,7 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -182,7 +182,7 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF1E40AF),
+                foregroundColor: const Color(0xFF009A69),
                 elevation: 2,
                 shadowColor: Colors.black26,
                 shape: RoundedRectangleBorder(
@@ -415,7 +415,7 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
                               content: Text(
                                 'Tapped on ${referral.referralName}',
                               ),
-                              backgroundColor: const Color(0xFF1E40AF),
+                              backgroundColor: const Color(0xFF009A69),
                             ),
                           );
                         },
@@ -610,7 +610,7 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
     return TextButton(
       onPressed: enabled ? onPressed : null,
       style: TextButton.styleFrom(
-        foregroundColor: enabled ? const Color(0xFF1E40AF) : Colors.grey,
+        foregroundColor: enabled ? const Color(0xFF009A69) : Colors.grey,
       ),
       child: Text(label),
     );
@@ -627,7 +627,7 @@ class _MemberReferralsPageState extends State<MemberReferralsPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF1E40AF) : Colors.transparent,
+          color: isActive ? const Color(0xFF009A69) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -789,7 +789,7 @@ class _MemberReferralCard extends StatelessWidget {
                           referral.referralLink,
                           style: const TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF1E40AF),
+                            color: Color(0xFF009A69),
                             decoration: TextDecoration.underline,
                           ),
                         ),
@@ -935,7 +935,7 @@ class _InviteReferralDialogState extends State<_InviteReferralDialog> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Referral link copied to clipboard!'),
-        backgroundColor: Color(0xFF1E40AF),
+        backgroundColor: Color(0xFF009A69),
       ),
     );
   }
@@ -954,7 +954,7 @@ class _InviteReferralDialogState extends State<_InviteReferralDialog> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
-                color: Color(0xFF1E40AF),
+                color: Color(0xFF009A69),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -1079,7 +1079,7 @@ class _InviteReferralDialogState extends State<_InviteReferralDialog> {
                                       child: Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF1E40AF),
+                                          color: const Color(0xFF009A69),
                                           borderRadius: BorderRadius.circular(
                                             6,
                                           ),
@@ -1198,7 +1198,7 @@ class _InviteReferralDialogState extends State<_InviteReferralDialog> {
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _sendInvite,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF1E40AF),
+                                backgroundColor: const Color(0xFF009A69),
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 16,
                                 ),
@@ -1279,11 +1279,11 @@ class _InviteReferralDialogState extends State<_InviteReferralDialog> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E40AF) : const Color(0xFFF3F4F6),
+          color: isSelected ? const Color(0xFF009A69) : const Color(0xFFF3F4F6),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF1E40AF)
+                ? const Color(0xFF009A69)
                 : const Color(0xFFE5E7EB),
             width: 2,
           ),

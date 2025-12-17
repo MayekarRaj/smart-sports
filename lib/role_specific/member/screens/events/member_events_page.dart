@@ -85,7 +85,7 @@ class _MemberEventsPageState extends State<MemberEventsPage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -157,12 +157,12 @@ class _MemberEventsPageState extends State<MemberEventsPage> {
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFF1E40AF).withOpacity(0.1)
+                        ? const Color(0xFF009A69).withOpacity(0.1)
                         : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isSelected
-                          ? const Color(0xFF1E40AF)
+                          ? const Color(0xFF009A69)
                           : Colors.grey.shade300,
                       width: isSelected ? 2 : 1,
                     ),
@@ -173,7 +173,7 @@ class _MemberEventsPageState extends State<MemberEventsPage> {
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: isSelected
-                          ? const Color(0xFF1E40AF)
+                          ? const Color(0xFF009A69)
                           : Colors.black54,
                       fontSize: 13,
                     ),
@@ -562,18 +562,18 @@ class _MemberEventsPageState extends State<MemberEventsPage> {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF1E40AF) : Colors.white,
+                    color: isSelected ? const Color(0xFF009A69) : Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
                       color: isSelected
-                          ? const Color(0xFF1E40AF)
+                          ? const Color(0xFF009A69)
                           : Colors.grey.shade300,
                       width: isSelected ? 2 : 1,
                     ),
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: const Color(0xFF1E40AF).withOpacity(0.3),
+                              color: const Color(0xFF009A69).withOpacity(0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -827,11 +827,11 @@ class _MemberEventsPageState extends State<MemberEventsPage> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E40AF),
+                              color: const Color(0xFF009A69),
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF1E40AF).withOpacity(0.3),
+                                  color: const Color(0xFF009A69).withOpacity(0.3),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),
@@ -1051,11 +1051,11 @@ class _MemberEventsPageState extends State<MemberEventsPage> {
                                         width: 32,
                                         height: 32,
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF1E40AF),
+                                          color: const Color(0xFF009A69),
                                           shape: BoxShape.circle,
                                           boxShadow: [
                                             BoxShadow(
-                                              color: const Color(0xFF1E40AF)
+                                              color: const Color(0xFF009A69)
                                                   .withOpacity(0.3),
                                               blurRadius: 4,
                                               offset: const Offset(0, 2),
@@ -1099,7 +1099,7 @@ class _MemberEventsPageState extends State<MemberEventsPage> {
                                           vertical: 6,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF1E40AF),
+                                          color: const Color(0xFF009A69),
                                           borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: const Text(
@@ -1207,11 +1207,11 @@ class _MemberEventsPageState extends State<MemberEventsPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E40AF),
+        color: const Color(0xFF009A69),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E40AF).withOpacity(0.3),
+            color: const Color(0xFF009A69).withOpacity(0.3),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

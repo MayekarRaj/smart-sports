@@ -188,7 +188,7 @@ class _MemberUsersPageState extends State<MemberUsersPage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -480,11 +480,11 @@ class _MemberUsersPageState extends State<MemberUsersPage> {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundColor: const Color(0xFF1E40AF).withOpacity(0.1),
+                backgroundColor: const Color(0xFF009A69).withOpacity(0.1),
                 child: Text(
                   user.userName.isNotEmpty ? user.userName[0].toUpperCase() : 'U',
                   style: const TextStyle(
-                    color: Color(0xFF1E40AF),
+                    color: Color(0xFF009A69),
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),

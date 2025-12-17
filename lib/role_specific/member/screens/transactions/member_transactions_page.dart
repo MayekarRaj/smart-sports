@@ -14,14 +14,14 @@ class _MemberTransactionsPageState extends State<MemberTransactionsPage>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late final TabController _tableTabs;
   final ScrollController _scrollController = ScrollController();
-  final PageStorageKey<String> _storageKey =
-      const PageStorageKey<String>('member_transactions_scroll');
+  final PageStorageKey<String> _storageKey = const PageStorageKey<String>(
+    'member_transactions_scroll',
+  );
 
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _transactionIdSearchController =
       TextEditingController();
-  final TextEditingController _amountSearchController =
-      TextEditingController();
+  final TextEditingController _amountSearchController = TextEditingController();
   final TextEditingController _paymentMethodSearchController =
       TextEditingController();
   final TextEditingController _paymentStatusSearchController =
@@ -53,7 +53,7 @@ class _MemberTransactionsPageState extends State<MemberTransactionsPage>
   @override
   void initState() {
     super.initState();
-    _tableTabs = TabController(length: 5, vsync: this);
+    _tableTabs = TabController(length: 4, vsync: this);
     _initializeData();
     _tableTabs.addListener(_onTabChanged);
     _searchController.addListener(_onSearchChanged);
@@ -98,9 +98,9 @@ class _MemberTransactionsPageState extends State<MemberTransactionsPage>
           final searchLower = _searchQuery.toLowerCase();
           if (!transaction['id'].toLowerCase().contains(searchLower) &&
               !transaction['amount'].toLowerCase().contains(searchLower) &&
-              !transaction['paymentMethod']
-                  .toLowerCase()
-                  .contains(searchLower) &&
+              !transaction['paymentMethod'].toLowerCase().contains(
+                searchLower,
+              ) &&
               !transaction['status'].toLowerCase().contains(searchLower)) {
             return false;
           }
@@ -108,47 +108,49 @@ class _MemberTransactionsPageState extends State<MemberTransactionsPage>
 
         // Column-specific search filters
         if (_transactionIdSearchController.text.isNotEmpty) {
-          if (!transaction['id']
-              .toLowerCase()
-              .contains(_transactionIdSearchController.text.toLowerCase())) {
+          if (!transaction['id'].toLowerCase().contains(
+            _transactionIdSearchController.text.toLowerCase(),
+          )) {
             return false;
           }
         }
 
         if (_amountSearchController.text.isNotEmpty) {
-          if (!transaction['amount']
-              .toLowerCase()
-              .contains(_amountSearchController.text.toLowerCase())) {
+          if (!transaction['amount'].toLowerCase().contains(
+            _amountSearchController.text.toLowerCase(),
+          )) {
             return false;
           }
         }
 
         if (_paymentMethodSearchController.text.isNotEmpty) {
-          if (!transaction['paymentMethod']
-              .toLowerCase()
-              .contains(_paymentMethodSearchController.text.toLowerCase())) {
+          if (!transaction['paymentMethod'].toLowerCase().contains(
+            _paymentMethodSearchController.text.toLowerCase(),
+          )) {
             return false;
           }
         }
 
         if (_paymentStatusSearchController.text.isNotEmpty) {
-          if (!transaction['status']
-              .toLowerCase()
-              .contains(_paymentStatusSearchController.text.toLowerCase())) {
+          if (!transaction['status'].toLowerCase().contains(
+            _paymentStatusSearchController.text.toLowerCase(),
+          )) {
             return false;
           }
         }
 
         // Period filter
         if (_period == 'Financial Year') {
-          final startYear = int.tryParse(_financialYearStartYearController.text) ?? 2021;
-          final endYear = int.tryParse(_financialYearEndYearController.text) ?? 2021;
+          final startYear =
+              int.tryParse(_financialYearStartYearController.text) ?? 2021;
+          final endYear =
+              int.tryParse(_financialYearEndYearController.text) ?? 2021;
           final startMonth = _getMonthNumber(_financialYearStartMonth);
           final endMonth = _getMonthNumber(_financialYearEndMonth);
-          
+
           final periodStart = DateTime(startYear, startMonth, 1);
           final periodEnd = DateTime(endYear, endMonth + 1, 0);
-          
+
           if (transaction['startDate'].isBefore(periodStart) ||
               transaction['startDate'].isAfter(periodEnd)) {
             return false;
@@ -180,7 +182,7 @@ class _MemberTransactionsPageState extends State<MemberTransactionsPage>
         // Tab filter - filter by transaction type
         try {
           final currentTab = _tableTabs.index;
-          final tabTypes = ['Slack', 'Club', 'Forum', 'Member', 'Event/Tournament'];
+          final tabTypes = ['Slack', 'Club', 'Forum', 'Event/Tournament'];
           if (currentTab < tabTypes.length &&
               transaction['type'] != tabTypes[currentTab]) {
             return false;
@@ -282,13 +284,25 @@ class _MemberTransactionsPageState extends State<MemberTransactionsPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildInvoiceRow('Transaction ID:', transaction['id']),
-                _buildInvoiceRow('Start Date:', _formatDate(transaction['startDate'])),
-                _buildInvoiceRow('End Date:', _formatDate(transaction['endDate'])),
+                _buildInvoiceRow(
+                  'Start Date:',
+                  _formatDate(transaction['startDate']),
+                ),
+                _buildInvoiceRow(
+                  'End Date:',
+                  _formatDate(transaction['endDate']),
+                ),
                 _buildInvoiceRow('Amount:', transaction['amount']),
-                _buildInvoiceRow('Payment Method:', transaction['paymentMethod']),
+                _buildInvoiceRow(
+                  'Payment Method:',
+                  transaction['paymentMethod'],
+                ),
                 _buildInvoiceRow('Status:', transaction['status']),
                 _buildInvoiceRow('Type:', transaction['type']),
-                _buildInvoiceRow('Payment Date:', _formatDate(transaction['paymentDate'])),
+                _buildInvoiceRow(
+                  'Payment Date:',
+                  _formatDate(transaction['paymentDate']),
+                ),
               ],
             ),
           ),
@@ -392,7 +406,7 @@ class _MemberTransactionsPageState extends State<MemberTransactionsPage>
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -461,49 +475,86 @@ class _MemberTransactionsPageState extends State<MemberTransactionsPage>
                   },
                 ),
                 const SizedBox(height: 16),
-                _TableTabs(controller: _tableTabs),
-                const SizedBox(height: 16),
-                if (_period == 'Financial Year' || _period == 'Flexible Duration')
-                  _DateRangeFilters(
-                    period: _period,
-                    financialYearStartMonth: _financialYearStartMonth,
-                    financialYearStartYear: _financialYearStartYearController,
-                    financialYearEndMonth: _financialYearEndMonth,
-                    financialYearEndYear: _financialYearEndYearController,
-                    flexibleStartDate: _flexibleStartDate,
-                    flexibleEndDate: _flexibleEndDate,
-                    onFinancialYearStartMonthChanged: (month) {
-                      setState(() {
-                        _financialYearStartMonth = month;
-                        _onFilterChanged();
-                      });
-                    },
-                    onFinancialYearStartYearChanged: (year) {
-                      _onFilterChanged();
-                    },
-                    onFinancialYearEndMonthChanged: (month) {
-                      setState(() {
-                        _financialYearEndMonth = month;
-                        _onFilterChanged();
-                      });
-                    },
-                    onFinancialYearEndYearChanged: (year) {
-                      _onFilterChanged();
-                    },
-                    onFlexibleStartDateChanged: (date) {
-                      setState(() {
-                        _flexibleStartDate = date;
-                        _onFilterChanged();
-                      });
-                    },
-                    onFlexibleEndDateChanged: (date) {
-                      setState(() {
-                        _flexibleEndDate = date;
-                        _onFilterChanged();
-                      });
-                    },
-                    isMobile: isMobile,
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black26),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _TableTabs(controller: _tableTabs),
+                      if (_period == 'Financial Year' ||
+                          _period == 'Flexible Duration') ...[
+                        const SizedBox(height: 16),
+                        _DateRangeFilters(
+                          period: _period,
+                          financialYearStartMonth: _financialYearStartMonth,
+                          financialYearStartYear:
+                              _financialYearStartYearController,
+                          financialYearEndMonth: _financialYearEndMonth,
+                          financialYearEndYear: _financialYearEndYearController,
+                          flexibleStartDate: _flexibleStartDate,
+                          flexibleEndDate: _flexibleEndDate,
+                          onFinancialYearStartMonthChanged: (month) {
+                            setState(() {
+                              _financialYearStartMonth = month;
+                              _onFilterChanged();
+                            });
+                          },
+                          onFinancialYearStartYearChanged: (year) {
+                            _onFilterChanged();
+                          },
+                          onFinancialYearEndMonthChanged: (month) {
+                            setState(() {
+                              _financialYearEndMonth = month;
+                              _onFilterChanged();
+                            });
+                          },
+                          onFinancialYearEndYearChanged: (year) {
+                            _onFilterChanged();
+                          },
+                          onFlexibleStartDateChanged: (date) {
+                            setState(() {
+                              _flexibleStartDate = date;
+                              _onFilterChanged();
+                            });
+                          },
+                          onFlexibleEndDateChanged: (date) {
+                            setState(() {
+                              _flexibleEndDate = date;
+                              _onFilterChanged();
+                            });
+                          },
+                          isMobile: isMobile,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _FilterBar(
+                  isMobile: isMobile,
+                  transactionIdSearchController: _transactionIdSearchController,
+                  amountSearchController: _amountSearchController,
+                  paymentMethodSearchController: _paymentMethodSearchController,
+                  paymentStatusSearchController: _paymentStatusSearchController,
+                  paymentDate: _paymentDate,
+                  onPaymentDateChanged: (date) {
+                    setState(() {
+                      _paymentDate = date;
+                      _onFilterChanged();
+                    });
+                  },
+                ),
                 const SizedBox(height: 16),
                 _TransactionsTable(
                   isMobile: isMobile,
@@ -519,21 +570,7 @@ class _MemberTransactionsPageState extends State<MemberTransactionsPage>
                   amountSearchController: _amountSearchController,
                   paymentMethodSearchController: _paymentMethodSearchController,
                   paymentStatusSearchController: _paymentStatusSearchController,
-                  startDate: _startDate,
-                  endDate: _endDate,
                   paymentDate: _paymentDate,
-                  onStartDateChanged: (date) {
-                    setState(() {
-                      _startDate = date;
-                      _onFilterChanged();
-                    });
-                  },
-                  onEndDateChanged: (date) {
-                    setState(() {
-                      _endDate = date;
-                      _onFilterChanged();
-                    });
-                  },
                   onPaymentDateChanged: (date) {
                     setState(() {
                       _paymentDate = date;
@@ -568,13 +605,19 @@ class _ShowAndSearchRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final valid = const [10, 25, 50, 100];
     final value = valid.contains(showEntries) ? showEntries : 10;
-    final searchField = _RoundedContainer(
+    final searchField = Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF009A69), width: 1.5),
+      ),
       child: TextField(
         controller: searchController,
         decoration: const InputDecoration(
           hintText: 'Search Here',
           border: InputBorder.none,
-          prefixIcon: Icon(Icons.search),
+          prefixIcon: Icon(Icons.search, color: Color(0xFF009A69)),
+          suffixIcon: Icon(Icons.search, color: Color(0xFF009A69)),
           contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         ),
       ),
@@ -589,13 +632,26 @@ class _ShowAndSearchRow extends StatelessWidget {
             children: [
               const Text('Show'),
               const SizedBox(width: 8),
-              _RoundedContainer(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFF009A69),
+                    width: 1.5,
+                  ),
+                ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<int>(
                     value: value,
                     items: valid
-                        .map((e) => DropdownMenuItem(value: e, child: Text('$e')))
+                        .map(
+                          (e) => DropdownMenuItem(value: e, child: Text('$e')),
+                        )
                         .toList(),
                     onChanged: (v) => onEntriesChanged(v ?? value),
                   ),
@@ -662,6 +718,8 @@ class _PeriodChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
     Widget chip(String v) {
       final active = period == v;
       return Material(
@@ -671,26 +729,38 @@ class _PeriodChips extends StatelessWidget {
           onTap: () => onChanged(v),
           child: Container(
             decoration: BoxDecoration(
-              color: active ? const Color(0xFF1E40AF) : Colors.white,
+              gradient: active
+                  ? const LinearGradient(
+                      colors: [Color(0xFF009A69), Color(0xFF232534)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              color: active ? null : Colors.white,
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
-                color: active ? const Color(0xFF1E40AF) : Colors.black26,
+                color: active ? Colors.transparent : Colors.black26,
+                width: 1.5,
               ),
               boxShadow: active
-                  ? const [
+                  ? [
                       BoxShadow(
                         blurRadius: 8,
-                        color: Color(0x14000000),
-                        offset: Offset(0, 2),
+                        color: const Color(0xFF009A69).withValues(alpha: 0.3),
+                        offset: const Offset(0, 2),
                       ),
                     ]
                   : null,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 14 : 16,
+              vertical: isMobile ? 10 : 12,
+            ),
             child: Text(
               v,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
+                fontSize: isMobile ? 13 : 14,
                 color: active ? Colors.white : Colors.black87,
               ),
             ),
@@ -699,15 +769,25 @@ class _PeriodChips extends StatelessWidget {
       );
     }
 
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        chip('ALL'),
-        chip('Financial Year'),
-        chip('Flexible Duration'),
-      ],
-    );
+    final chips = [
+      chip('ALL'),
+      chip('Financial Year'),
+      chip('Flexible Duration'),
+    ];
+
+    if (isMobile) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            ...chips,
+            const SizedBox(width: 12), // Extra padding at end
+          ],
+        ),
+      );
+    }
+
+    return Wrap(spacing: 12, runSpacing: 12, children: chips);
   }
 }
 
@@ -717,6 +797,8 @@ class _TableTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
     return Material(
       elevation: 0,
       child: Container(
@@ -728,26 +810,25 @@ class _TableTabs extends StatelessWidget {
         child: TabBar(
           controller: controller,
           isScrollable: true,
-          labelColor: const Color(0xFF1E40AF),
+          labelColor: const Color(0xFF009A69),
           unselectedLabelColor: const Color(0xFF4B5563),
-          labelStyle: const TextStyle(
+          labelStyle: TextStyle(
             fontWeight: FontWeight.w700,
-            fontSize: 16,
+            fontSize: isMobile ? 14 : 16,
           ),
-          unselectedLabelStyle: const TextStyle(
+          unselectedLabelStyle: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 16,
+            fontSize: isMobile ? 14 : 16,
           ),
           indicator: const UnderlineTabIndicator(
-            borderSide: BorderSide(color: Color(0xFF1E40AF), width: 3),
+            borderSide: BorderSide(color: Color(0xFF009A69), width: 3),
             insets: EdgeInsets.symmetric(horizontal: 16),
           ),
           tabs: const [
-            Tab(text: 'Slack'),
-            Tab(text: 'Club'),
-            Tab(text: 'Forum'),
-            Tab(text: 'Member'),
-            Tab(text: 'Event/Tournament'),
+            Tab(text: 'Slack Transaction'),
+            Tab(text: 'Club Transaction'),
+            Tab(text: 'Forum Transaction'),
+            Tab(text: 'Event / Tournament'),
           ],
         ),
       ),
@@ -791,118 +872,98 @@ class _DateRangeFilters extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (period == 'Financial Year') {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.black26),
-        ),
-        child: isMobile
-            ? Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _DateField(
-                          label: 'Start Month',
-                          month: financialYearStartMonth,
-                          year: financialYearStartYear,
-                          onMonthChanged: onFinancialYearStartMonthChanged,
-                          onYearChanged: onFinancialYearStartYearChanged,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _DateField(
-                          label: 'End Month',
-                          month: financialYearEndMonth,
-                          year: financialYearEndYear,
-                          onMonthChanged: onFinancialYearEndMonthChanged,
-                          onYearChanged: onFinancialYearEndYearChanged,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              )
-            : Row(
-                children: [
-                  _DateField(
+      return isMobile
+          ? Column(
+              children: [
+                _FinancialYearField(
+                  label: 'Start Month',
+                  month: financialYearStartMonth,
+                  year: financialYearStartYear,
+                  onMonthChanged: onFinancialYearStartMonthChanged,
+                  onYearChanged: onFinancialYearStartYearChanged,
+                ),
+                const SizedBox(height: 12),
+                _FinancialYearField(
+                  label: 'End Month',
+                  month: financialYearEndMonth,
+                  year: financialYearEndYear,
+                  onMonthChanged: onFinancialYearEndMonthChanged,
+                  onYearChanged: onFinancialYearEndYearChanged,
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: _FinancialYearField(
                     label: 'Start Month',
                     month: financialYearStartMonth,
                     year: financialYearStartYear,
                     onMonthChanged: onFinancialYearStartMonthChanged,
                     onYearChanged: onFinancialYearStartYearChanged,
                   ),
-                  const SizedBox(width: 24),
-                  _DateField(
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _FinancialYearField(
                     label: 'End Month',
                     month: financialYearEndMonth,
                     year: financialYearEndYear,
                     onMonthChanged: onFinancialYearEndMonthChanged,
                     onYearChanged: onFinancialYearEndYearChanged,
                   ),
-                ],
-              ),
-      );
+                ),
+              ],
+            );
     } else if (period == 'Flexible Duration') {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.black26),
-        ),
-        child: isMobile
-            ? Column(
-                children: [
-                  _FlexibleDateField(
+      return isMobile
+          ? Column(
+              children: [
+                _FlexibleDateField(
+                  label: 'Start Date',
+                  date: flexibleStartDate,
+                  onDateChanged: onFlexibleStartDateChanged,
+                ),
+                const SizedBox(height: 12),
+                _FlexibleDateField(
+                  label: 'End Date',
+                  date: flexibleEndDate,
+                  onDateChanged: onFlexibleEndDateChanged,
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: _FlexibleDateField(
                     label: 'Start Date',
                     date: flexibleStartDate,
                     onDateChanged: onFlexibleStartDateChanged,
                   ),
-                  const SizedBox(height: 12),
-                  _FlexibleDateField(
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _FlexibleDateField(
                     label: 'End Date',
                     date: flexibleEndDate,
                     onDateChanged: onFlexibleEndDateChanged,
                   ),
-                ],
-              )
-            : Row(
-                children: [
-                  Expanded(
-                    child: _FlexibleDateField(
-                      label: 'Start Date',
-                      date: flexibleStartDate,
-                      onDateChanged: onFlexibleStartDateChanged,
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: _FlexibleDateField(
-                      label: 'End Date',
-                      date: flexibleEndDate,
-                      onDateChanged: onFlexibleEndDateChanged,
-                    ),
-                  ),
-                ],
-              ),
-      );
+                ),
+              ],
+            );
     }
     return const SizedBox.shrink();
   }
 }
 
-class _DateField extends StatelessWidget {
+class _FinancialYearField extends StatelessWidget {
   final String label;
   final String month;
   final TextEditingController year;
   final ValueChanged<String> onMonthChanged;
   final ValueChanged<String> onYearChanged;
 
-  const _DateField({
+  const _FinancialYearField({
     required this.label,
     required this.month,
     required this.year,
@@ -920,14 +981,18 @@ class _DateField extends StatelessWidget {
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
+            color: Color(0xFF374151),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(8),
@@ -936,22 +1001,31 @@ class _DateField extends StatelessWidget {
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: month,
-                    items: const [
-                      'JAN',
-                      'FEB',
-                      'MAR',
-                      'APR',
-                      'MAY',
-                      'JUN',
-                      'JUL',
-                      'AUG',
-                      'SEP',
-                      'OCT',
-                      'NOV',
-                      'DEC',
-                    ]
-                        .map((m) => DropdownMenuItem(value: m, child: Text(m)))
-                        .toList(),
+                    isExpanded: true,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF374151),
+                    ),
+                    items:
+                        const [
+                              'JAN',
+                              'FEB',
+                              'MAR',
+                              'APR',
+                              'MAY',
+                              'JUN',
+                              'JUL',
+                              'AUG',
+                              'SEP',
+                              'OCT',
+                              'NOV',
+                              'DEC',
+                            ]
+                            .map(
+                              (m) => DropdownMenuItem(value: m, child: Text(m)),
+                            )
+                            .toList(),
                     onChanged: (v) => onMonthChanged(v ?? month),
                   ),
                 ),
@@ -962,6 +1036,7 @@ class _DateField extends StatelessWidget {
               child: TextField(
                 controller: year,
                 onChanged: onYearChanged,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF374151)),
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.grey.shade100,
@@ -973,8 +1048,10 @@ class _DateField extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ),
@@ -996,6 +1073,24 @@ class _FlexibleDateField extends StatelessWidget {
     required this.onDateChanged,
   });
 
+  String _formatDate(DateTime date) {
+    final months = [
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC',
+    ];
+    return '${months[date.month - 1]}-${date.day.toString().padLeft(2, '0')}-${date.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -1006,9 +1101,10 @@ class _FlexibleDateField extends StatelessWidget {
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
+            color: Color(0xFF374151),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         InkWell(
           onTap: () async {
             final result = await showDatePicker(
@@ -1022,7 +1118,7 @@ class _FlexibleDateField extends StatelessWidget {
             }
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
               borderRadius: BorderRadius.circular(8),
@@ -1032,21 +1128,238 @@ class _FlexibleDateField extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    date != null
-                        ? '${date!.day.toString().padLeft(2, '0')}-${date!.month.toString().padLeft(2, '0')}-${date!.year}'
-                        : 'Select Date',
+                    date != null ? _formatDate(date!) : 'Select Date',
                     style: TextStyle(
-                      color: date != null ? Colors.black87 : Colors.grey,
+                      fontSize: 14,
+                      color: date != null
+                          ? const Color(0xFF374151)
+                          : Colors.grey,
                     ),
                   ),
                 ),
-                Icon(Icons.calendar_today, size: 18, color: Colors.grey.shade600),
+                Icon(
+                  Icons.calendar_today,
+                  size: 18,
+                  color: Colors.grey.shade600,
+                ),
               ],
             ),
           ),
         ),
       ],
     );
+  }
+}
+
+class _FilterBar extends StatelessWidget {
+  final bool isMobile;
+  final TextEditingController transactionIdSearchController;
+  final TextEditingController amountSearchController;
+  final TextEditingController paymentMethodSearchController;
+  final TextEditingController paymentStatusSearchController;
+  final DateTime? paymentDate;
+  final ValueChanged<DateTime?> onPaymentDateChanged;
+
+  const _FilterBar({
+    required this.isMobile,
+    required this.transactionIdSearchController,
+    required this.amountSearchController,
+    required this.paymentMethodSearchController,
+    required this.paymentStatusSearchController,
+    required this.paymentDate,
+    required this.onPaymentDateChanged,
+  });
+
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
+  }
+
+  Widget _buildSearchFilter({
+    required String label,
+    required TextEditingController controller,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: TextField(
+                  controller: controller,
+                  style: const TextStyle(fontSize: 12),
+                  decoration: const InputDecoration(
+                    hintText: 'Search',
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    prefixIcon: Icon(
+                      Icons.search,
+                      size: 16,
+                      color: Color(0xFF009A69),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            IconButton(
+              icon: const Icon(
+                Icons.filter_list,
+                size: 18,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                // Show filter dialog for this column
+              },
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateFilter({
+    required String label,
+    required DateTime? date,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    date != null ? _formatDate(date) : '02-28-2025',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: date != null ? Colors.black87 : Colors.grey,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.calendar_today,
+                  size: 16,
+                  color: Colors.grey.shade600,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filterContent = Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF009A69), Color(0xFF232534)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          SizedBox(
+            width: isMobile ? 180 : 200,
+            child: _buildSearchFilter(
+              label: 'Transaction ID',
+              controller: transactionIdSearchController,
+            ),
+          ),
+          SizedBox(width: isMobile ? 16 : 24),
+          SizedBox(
+            width: isMobile ? 180 : 200,
+            child: _buildSearchFilter(
+              label: 'Amount',
+              controller: amountSearchController,
+            ),
+          ),
+          SizedBox(width: isMobile ? 16 : 24),
+          SizedBox(
+            width: isMobile ? 180 : 200,
+            child: _buildSearchFilter(
+              label: 'Payment Method',
+              controller: paymentMethodSearchController,
+            ),
+          ),
+          SizedBox(width: isMobile ? 16 : 24),
+          SizedBox(
+            width: isMobile ? 180 : 200,
+            child: _buildSearchFilter(
+              label: 'Payment Status',
+              controller: paymentStatusSearchController,
+            ),
+          ),
+          SizedBox(width: isMobile ? 16 : 24),
+          SizedBox(
+            width: isMobile ? 180 : 200,
+            child: _buildDateFilter(
+              label: 'Payment Date',
+              date: paymentDate,
+              onTap: () async {
+                final result = await showDatePicker(
+                  context: context,
+                  firstDate: DateTime(2018),
+                  lastDate: DateTime(2100),
+                  initialDate: paymentDate ?? DateTime.now(),
+                );
+                if (result != null) {
+                  onPaymentDateChanged(result);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (isMobile) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: filterContent,
+      );
+    }
+
+    return filterContent;
   }
 }
 
@@ -1060,11 +1373,7 @@ class _TransactionsTable extends StatelessWidget {
   final TextEditingController amountSearchController;
   final TextEditingController paymentMethodSearchController;
   final TextEditingController paymentStatusSearchController;
-  final DateTime? startDate;
-  final DateTime? endDate;
   final DateTime? paymentDate;
-  final ValueChanged<DateTime?> onStartDateChanged;
-  final ValueChanged<DateTime?> onEndDateChanged;
   final ValueChanged<DateTime?> onPaymentDateChanged;
   final Function(Map<String, dynamic>) onShowInvoice;
   final Function(Map<String, dynamic>) onDownloadReceipt;
@@ -1079,11 +1388,7 @@ class _TransactionsTable extends StatelessWidget {
     required this.amountSearchController,
     required this.paymentMethodSearchController,
     required this.paymentStatusSearchController,
-    required this.startDate,
-    required this.endDate,
     required this.paymentDate,
-    required this.onStartDateChanged,
-    required this.onEndDateChanged,
     required this.onPaymentDateChanged,
     required this.onShowInvoice,
     required this.onDownloadReceipt,
@@ -1096,7 +1401,7 @@ class _TransactionsTable extends StatelessWidget {
   Color _getPaymentMethodColor(String method) {
     switch (method) {
       case 'Bank Transfer':
-        return const Color(0xFF1E40AF);
+        return const Color(0xFF009A69);
       case 'Credit Card':
         return const Color(0xFF7C3AED);
       case 'UPI':
@@ -1104,7 +1409,7 @@ class _TransactionsTable extends StatelessWidget {
       case 'Net Banking':
         return const Color(0xFFDC2626);
       case 'PayPal':
-        return const Color(0xFF3B82F6);
+        return const Color(0xFF232534);
       default:
         return const Color(0xFF6B7280);
     }
@@ -1171,7 +1476,7 @@ class _TransactionsTable extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF1E40AF),
+                                color: Color(0xFF009A69),
                               ),
                             ),
                             Container(
@@ -1180,8 +1485,9 @@ class _TransactionsTable extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: _getStatusColor(transaction['status'])
-                                    .withValues(alpha: 0.1),
+                                color: _getStatusColor(
+                                  transaction['status'],
+                                ).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -1261,7 +1567,7 @@ class _TransactionsTable extends StatelessWidget {
                                 icon: const Icon(Icons.receipt, size: 16),
                                 label: const Text('Invoice'),
                                 style: TextButton.styleFrom(
-                                  foregroundColor: const Color(0xFF1E40AF),
+                                  foregroundColor: const Color(0xFF009A69),
                                 ),
                               ),
                             ),
@@ -1315,19 +1621,17 @@ class _TransactionsTable extends StatelessWidget {
       child: Column(
         children: [
           _TableHeader(
+            isMobile: isMobile,
             transactionIdSearchController: transactionIdSearchController,
             amountSearchController: amountSearchController,
             paymentMethodSearchController: paymentMethodSearchController,
             paymentStatusSearchController: paymentStatusSearchController,
-            startDate: startDate,
-            endDate: endDate,
             paymentDate: paymentDate,
-            onStartDateChanged: onStartDateChanged,
-            onEndDateChanged: onEndDateChanged,
             onPaymentDateChanged: onPaymentDateChanged,
           ),
           const SizedBox(height: 8),
           _TableBody(
+            isMobile: isMobile,
             transactions: paginatedTransactions,
             onShowInvoice: onShowInvoice,
             onDownloadReceipt: onDownloadReceipt,
@@ -1352,99 +1656,82 @@ class _TransactionsTable extends StatelessWidget {
 }
 
 class _TableHeader extends StatelessWidget {
+  final bool isMobile;
   final TextEditingController transactionIdSearchController;
   final TextEditingController amountSearchController;
   final TextEditingController paymentMethodSearchController;
   final TextEditingController paymentStatusSearchController;
-  final DateTime? startDate;
-  final DateTime? endDate;
   final DateTime? paymentDate;
-  final ValueChanged<DateTime?> onStartDateChanged;
-  final ValueChanged<DateTime?> onEndDateChanged;
   final ValueChanged<DateTime?> onPaymentDateChanged;
 
   const _TableHeader({
+    required this.isMobile,
     required this.transactionIdSearchController,
     required this.amountSearchController,
     required this.paymentMethodSearchController,
     required this.paymentStatusSearchController,
-    required this.startDate,
-    required this.endDate,
     required this.paymentDate,
-    required this.onStartDateChanged,
-    required this.onEndDateChanged,
     required this.onPaymentDateChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final headerContent = Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E40AF),
+        color: const Color(0xFF009A69),
         borderRadius: BorderRadius.circular(8),
       ),
       padding: const EdgeInsets.all(12),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                flex: 1,
-                child: _ColumnHeaderWithSearch(
-                  label: 'Transaction ID',
-                  searchController: transactionIdSearchController,
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: _ColumnHeaderWithDate(
-                  label: 'Start Date',
-                  date: startDate,
-                  onDateChanged: onStartDateChanged,
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: _ColumnHeaderWithDate(
-                  label: 'End Date',
-                  date: endDate,
-                  onDateChanged: onEndDateChanged,
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: _ColumnHeaderWithSearch(
-                  label: 'Amount',
-                  searchController: amountSearchController,
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: _ColumnHeaderWithSearch(
-                  label: 'Payment Method',
-                  searchController: paymentMethodSearchController,
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: _ColumnHeaderWithSearch(
-                  label: 'Payment Status',
-                  searchController: paymentStatusSearchController,
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: _ColumnHeaderWithDate(
-                  label: 'Payment Date',
-                  date: paymentDate,
-                  onDateChanged: onPaymentDateChanged,
-                ),
-              ),
-            ],
+          SizedBox(
+            width: isMobile ? 180 : 200,
+            child: _ColumnHeaderWithSearch(
+              label: 'Transaction ID',
+              searchController: transactionIdSearchController,
+            ),
+          ),
+          SizedBox(
+            width: isMobile ? 180 : 200,
+            child: _ColumnHeaderWithSearch(
+              label: 'Amount',
+              searchController: amountSearchController,
+            ),
+          ),
+          SizedBox(
+            width: isMobile ? 180 : 200,
+            child: _ColumnHeaderWithSearch(
+              label: 'Payment Method',
+              searchController: paymentMethodSearchController,
+            ),
+          ),
+          SizedBox(
+            width: isMobile ? 180 : 200,
+            child: _ColumnHeaderWithSearch(
+              label: 'Payment Status',
+              searchController: paymentStatusSearchController,
+            ),
+          ),
+          SizedBox(
+            width: isMobile ? 180 : 200,
+            child: _ColumnHeaderWithDate(
+              label: 'Payment Date',
+              date: paymentDate,
+              onDateChanged: onPaymentDateChanged,
+            ),
           ),
         ],
       ),
     );
+
+    if (isMobile) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: headerContent,
+      );
+    }
+
+    return headerContent;
   }
 }
 
@@ -1495,7 +1782,11 @@ class _ColumnHeaderWithSearch extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             IconButton(
-              icon: const Icon(Icons.filter_list, size: 18, color: Colors.white),
+              icon: const Icon(
+                Icons.filter_list,
+                size: 18,
+                color: Colors.white,
+              ),
               onPressed: () {
                 // Show filter dialog for this column
                 showDialog(
@@ -1567,7 +1858,10 @@ class _ColumnHeaderWithDate extends StatelessWidget {
                   }
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(6),
@@ -1583,7 +1877,11 @@ class _ColumnHeaderWithDate extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Icon(Icons.calendar_today, size: 16, color: Colors.grey.shade600),
+                      Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: Colors.grey.shade600,
+                      ),
                     ],
                   ),
                 ),
@@ -1591,7 +1889,11 @@ class _ColumnHeaderWithDate extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             IconButton(
-              icon: const Icon(Icons.filter_list, size: 18, color: Colors.white),
+              icon: const Icon(
+                Icons.filter_list,
+                size: 18,
+                color: Colors.white,
+              ),
               onPressed: () {
                 // Show filter dialog for this column
                 showDialog(
@@ -1619,6 +1921,7 @@ class _ColumnHeaderWithDate extends StatelessWidget {
 }
 
 class _TableBody extends StatelessWidget {
+  final bool isMobile;
   final List<Map<String, dynamic>> transactions;
   final Function(Map<String, dynamic>) onShowInvoice;
   final Function(Map<String, dynamic>) onDownloadReceipt;
@@ -1627,6 +1930,7 @@ class _TableBody extends StatelessWidget {
   final Color Function(String) getStatusColor;
 
   const _TableBody({
+    required this.isMobile,
     required this.transactions,
     required this.onShowInvoice,
     required this.onDownloadReceipt,
@@ -1637,7 +1941,7 @@ class _TableBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final tableContent = Column(
       children: transactions.asMap().entries.map((entry) {
         final i = entry.key;
         final transaction = entry.value;
@@ -1648,41 +1952,19 @@ class _TableBody extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
           child: Row(
             children: [
-              Expanded(
-                flex: 1,
+              SizedBox(
+                width: isMobile ? 180 : 200,
                 child: Text(
                   transaction['id'],
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
-                    color: Color(0xFF1E40AF),
+                    color: Color(0xFF009A69),
                   ),
                 ),
               ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  formatDate(transaction['startDate']),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                    color: Color(0xFF374151),
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  formatDate(transaction['endDate']),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                    color: Color(0xFF374151),
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
+              SizedBox(
+                width: isMobile ? 180 : 200,
                 child: Text(
                   transaction['amount'],
                   style: const TextStyle(
@@ -1692,13 +1974,17 @@ class _TableBody extends StatelessWidget {
                   ),
                 ),
               ),
-              Expanded(
-                flex: 1,
+              SizedBox(
+                width: isMobile ? 180 : 200,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: getPaymentMethodColor(transaction['paymentMethod'])
-                        .withValues(alpha: 0.1),
+                    color: getPaymentMethodColor(
+                      transaction['paymentMethod'],
+                    ).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -1706,21 +1992,27 @@ class _TableBody extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: getPaymentMethodColor(transaction['paymentMethod']),
+                      color: getPaymentMethodColor(
+                        transaction['paymentMethod'],
+                      ),
                     ),
                   ),
                 ),
               ),
-              Expanded(
-                flex: 1,
+              SizedBox(
+                width: isMobile ? 180 : 200,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: getStatusColor(transaction['status'])
-                            .withValues(alpha: 0.1),
+                        color: getStatusColor(
+                          transaction['status'],
+                        ).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -1741,19 +2033,22 @@ class _TableBody extends StatelessWidget {
                             'Invoice',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF1E40AF),
+                              color: Color(0xFF009A69),
                               decoration: TextDecoration.underline,
                             ),
                           ),
                         ),
-                        const Text(' | ', style: TextStyle(color: Color(0xFF1E40AF))),
+                        const Text(
+                          ' | ',
+                          style: TextStyle(color: Color(0xFF009A69)),
+                        ),
                         InkWell(
                           onTap: () => onDownloadReceipt(transaction),
                           child: const Text(
                             'Receipt',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF1E40AF),
+                              color: Color(0xFF009A69),
                               decoration: TextDecoration.underline,
                             ),
                           ),
@@ -1763,8 +2058,8 @@ class _TableBody extends StatelessWidget {
                   ],
                 ),
               ),
-              Expanded(
-                flex: 1,
+              SizedBox(
+                width: isMobile ? 180 : 200,
                 child: Text(
                   formatDate(transaction['paymentDate']),
                   style: const TextStyle(
@@ -1779,6 +2074,15 @@ class _TableBody extends StatelessWidget {
         );
       }).toList(),
     );
+
+    if (isMobile) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: tableContent,
+      );
+    }
+
+    return tableContent;
   }
 }
 
@@ -1810,10 +2114,7 @@ class _PaginationControls extends StatelessWidget {
         children: [
           Text(
             'Showing $startIndex To $endIndex Of $totalEntries Entries',
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF6B7280),
-            ),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
           ),
           Row(
             children: [
@@ -1834,7 +2135,7 @@ class _PaginationControls extends StatelessWidget {
                       height: 32,
                       decoration: BoxDecoration(
                         color: currentPage == index
-                            ? const Color(0xFF1E40AF)
+                            ? const Color(0xFF009A69)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),

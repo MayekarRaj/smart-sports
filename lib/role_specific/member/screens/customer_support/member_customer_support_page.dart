@@ -186,7 +186,7 @@ class _MemberCustomerSupportPageState
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -223,7 +223,7 @@ class _MemberCustomerSupportPageState
               onPressed: _showRaiseComplaintDialog,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF1E40AF),
+                foregroundColor: const Color(0xFF009A69),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -635,7 +635,7 @@ class _MemberCustomerSupportPageState
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E40AF) : Colors.transparent,
+          color: isSelected ? const Color(0xFF009A69) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -761,7 +761,7 @@ class _MemberCustomerSupportPageState
                 child: ElevatedButton(
                   onPressed: () => _showViewComplaintScreen(complaint),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E40AF),
+                    backgroundColor: const Color(0xFF009A69),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(
@@ -787,7 +787,7 @@ class _MemberCustomerSupportPageState
       case 'Open':
         return Colors.orange;
       case 'In Progress':
-        return const Color(0xFF1E40AF);
+        return const Color(0xFF009A69);
       case 'Resolved':
         return Colors.green;
       case 'Closed':
@@ -1015,7 +1015,7 @@ class _AddComplaintScreenState extends State<_AddComplaintScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -1123,7 +1123,7 @@ class _AddComplaintScreenState extends State<_AddComplaintScreen> {
                     child: ElevatedButton(
                       onPressed: _submitComplaint,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E40AF),
+                        backgroundColor: const Color(0xFF009A69),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
@@ -1224,7 +1224,7 @@ class _ViewComplaintScreenState extends State<_ViewComplaintScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -1351,9 +1351,9 @@ class _ViewComplaintScreenState extends State<_ViewComplaintScreen> {
                 IconButton(
                   onPressed: _sendMessage,
                   icon: const Icon(Icons.send),
-                  color: const Color(0xFF1E40AF),
+                  color: const Color(0xFF009A69),
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E40AF).withOpacity(0.1),
+                    backgroundColor: const Color(0xFF009A69).withOpacity(0.1),
                   ),
                 ),
               ],
@@ -1376,7 +1376,7 @@ class _ViewComplaintScreenState extends State<_ViewComplaintScreen> {
         decoration: BoxDecoration(
           color: message.isAdmin
               ? Colors.grey.shade200
-              : const Color(0xFF1E40AF),
+              : const Color(0xFF009A69),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -1410,7 +1410,7 @@ class _ViewComplaintScreenState extends State<_ViewComplaintScreen> {
       case 'Open':
         return Colors.orange;
       case 'In Progress':
-        return const Color(0xFF1E40AF);
+        return const Color(0xFF009A69);
       case 'Resolved':
         return Colors.green;
       case 'Closed':

@@ -66,7 +66,7 @@ class _MemberTournamentDetailsPageState
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -209,7 +209,7 @@ class _MemberTournamentDetailsPageState
                           ),
                           decoration: BoxDecoration(
                             color: _isFavorite
-                                ? const Color(0xFF1E40AF)
+                                ? const Color(0xFF009A69)
                                 : Colors.white.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -332,7 +332,7 @@ class _MemberTournamentDetailsPageState
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E40AF),
+                            color: const Color(0xFF009A69),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -379,10 +379,10 @@ class _MemberTournamentDetailsPageState
                 },
                 icon: const Icon(
                   Icons.keyboard_arrow_up,
-                  color: Color(0xFF1E40AF),
+                  color: Color(0xFF009A69),
                 ),
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E40AF).withOpacity(0.1),
+                  backgroundColor: const Color(0xFF009A69).withOpacity(0.1),
                 ),
               ),
             ],
@@ -503,7 +503,7 @@ class _MemberTournamentDetailsPageState
                   width: 20,
                   height: 20,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E40AF).withOpacity(0.7),
+                    color: const Color(0xFF009A69).withOpacity(0.7),
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 1.5),
                   ),
@@ -546,7 +546,7 @@ class _MemberTournamentDetailsPageState
                 size: const Size(100, 50),
                 painter: _MemberSemiCircleProgressPainter(
                   progress: progress,
-                  color: const Color(0xFF1E40AF),
+                  color: const Color(0xFF009A69),
                 ),
               ),
               // Center text
@@ -611,7 +611,7 @@ class _MemberTournamentDetailsPageState
                     strokeWidth: 3,
                     backgroundColor: Colors.grey.shade300,
                     valueColor: const AlwaysStoppedAnimation<Color>(
-                      Color(0xFF1E40AF),
+                      Color(0xFF009A69),
                     ),
                   ),
                   Center(
@@ -655,12 +655,12 @@ class _MemberTournamentDetailsPageState
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFF1E40AF)
+                        ? const Color(0xFF009A69)
                         : Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isSelected
-                          ? const Color(0xFF1E40AF)
+                          ? const Color(0xFF009A69)
                           : Colors.grey.shade300,
                       width: isSelected ? 2 : 1,
                     ),
@@ -892,7 +892,7 @@ class _MemberTournamentDetailsPageState
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E40AF),
+                backgroundColor: const Color(0xFF009A69),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -1055,7 +1055,7 @@ class _MemberTournamentDetailsPageState
                     isExpanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
-                    color: const Color(0xFF1E40AF),
+                    color: const Color(0xFF009A69),
                   ),
                 ],
               ),

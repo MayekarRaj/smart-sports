@@ -139,7 +139,7 @@ class _MemberClubsPageState extends State<MemberClubsPage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -373,7 +373,7 @@ class _MobileSearchSection extends StatelessWidget {
                   label: Text(showFilters ? 'Hide Filters' : 'Show Filters'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: showFilters
-                        ? const Color(0xFF1E40AF)
+                        ? const Color(0xFF009A69)
                         : Colors.grey.shade200,
                     foregroundColor: showFilters
                         ? Colors.white
@@ -441,7 +441,7 @@ class _MobileFilterSection extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E40AF),
+              color: Color(0xFF009A69),
             ),
           ),
           const SizedBox(height: 12),
@@ -719,10 +719,10 @@ class _MobileClubTabs extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E40AF) : Colors.grey.shade200,
+          color: isSelected ? const Color(0xFF009A69) : Colors.grey.shade200,
           borderRadius: BorderRadius.circular(25),
           border: Border.all(
-            color: isSelected ? const Color(0xFF1E40AF) : Colors.grey.shade300,
+            color: isSelected ? const Color(0xFF009A69) : Colors.grey.shade300,
           ),
         ),
         child: Text(
@@ -785,7 +785,7 @@ class _MobileDistanceSlider extends StatelessWidget {
                   max: 40,
                   divisions: 30,
                   onChanged: onDistanceChanged,
-                  activeColor: const Color(0xFF1E40AF),
+                  activeColor: const Color(0xFF009A69),
                   inactiveColor: Colors.grey.shade300,
                 ),
               ),
@@ -794,7 +794,7 @@ class _MobileDistanceSlider extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E40AF),
+                  color: const Color(0xFF009A69),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -1076,7 +1076,7 @@ class _MobileClubCard extends StatelessWidget {
                               ? Icons.bookmark
                               : Icons.bookmark_border,
                           color: club.isFavorite
-                              ? const Color(0xFF1E40AF)
+                              ? const Color(0xFF009A69)
                               : Colors.grey,
                         ),
                         tooltip: club.isFavorite
@@ -1131,7 +1131,7 @@ class _MobileClubCard extends StatelessWidget {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E40AF),
+                              color: const Color(0xFF009A69),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
@@ -1173,7 +1173,7 @@ class _MobileClubCard extends StatelessWidget {
                         child: const Icon(
                           Icons.person,
                           size: 16,
-                          color: Color(0xFF1E40AF),
+                          color: Color(0xFF009A69),
                         ),
                       ),
                     ),
@@ -1270,7 +1270,7 @@ class _MobileClubCard extends StatelessWidget {
       icon: Icon(icon, size: 16),
       label: Text(label, style: const TextStyle(fontSize: 12)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF1E40AF),
+        backgroundColor: const Color(0xFF009A69),
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

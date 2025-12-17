@@ -88,7 +88,7 @@ class _MemberClubDetailsPageState extends State<MemberClubDetailsPage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+              colors: [Color(0xFF009A69), Color(0xFF232534)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -221,7 +221,7 @@ class _MemberClubHeader extends StatelessWidget {
                 label: Text(isFavorite ? 'Favourite' : 'Favourite'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isFavorite
-                      ? const Color(0xFF1E40AF)
+                      ? const Color(0xFF009A69)
                       : Colors.grey.shade200,
                   foregroundColor: isFavorite
                       ? Colors.white
@@ -278,7 +278,7 @@ class _MemberClubHeader extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E40AF),
+                      color: const Color(0xFF009A69),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
@@ -408,7 +408,7 @@ class _MemberClubHeader extends StatelessWidget {
         style: const TextStyle(fontSize: 12),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF1E40AF),
+        backgroundColor: const Color(0xFF009A69),
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 8),
         shape: RoundedRectangleBorder(
@@ -467,12 +467,12 @@ class _MemberBranchSelector extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFF1E40AF)
+                            ? const Color(0xFF009A69)
                             : Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF1E40AF)
+                              ? const Color(0xFF009A69)
                               : Colors.grey.shade300,
                         ),
                       ),
@@ -543,12 +543,12 @@ class _MemberSportSelector extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFF1E40AF)
+                            ? const Color(0xFF009A69)
                             : Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF1E40AF)
+                              ? const Color(0xFF009A69)
                               : Colors.grey.shade300,
                         ),
                       ),
@@ -765,7 +765,7 @@ class _MemberCourtCard extends StatelessWidget {
                       child: const Icon(
                         Icons.person,
                         size: 16,
-                        color: Color(0xFF1E40AF),
+                        color: Color(0xFF009A69),
                       ),
                     ),
                   ),
@@ -782,7 +782,7 @@ class _MemberCourtCard extends StatelessWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Booking functionality coming soon!'),
-                          backgroundColor: Color(0xFF1E40AF),
+                          backgroundColor: Color(0xFF009A69),
                         ),
                       );
                     },
@@ -815,7 +815,7 @@ class _MemberCourtCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF1E40AF).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF009A69).withOpacity(0.3)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -824,7 +824,7 @@ class _MemberCourtCard extends StatelessWidget {
             label,
             style: const TextStyle(
               fontSize: 10,
-              color: Color(0xFF1E40AF),
+              color: Color(0xFF009A69),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -857,7 +857,7 @@ class _MemberCourtCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             border: Border.all(
-              color: const Color(0xFF1E40AF).withOpacity(0.3),
+              color: const Color(0xFF009A69).withOpacity(0.3),
             ),
             borderRadius: BorderRadius.circular(6),
           ),
@@ -921,7 +921,7 @@ class _MemberMoreDetailsSection extends StatelessWidget {
                     showMoreDetails
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
-                    color: const Color(0xFF1E40AF),
+                    color: const Color(0xFF009A69),
                   ),
                 ],
               ),
@@ -994,7 +994,7 @@ class _MemberCoachesSection extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E40AF),
+                  color: const Color(0xFF009A69),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
@@ -1073,7 +1073,7 @@ class _MemberCoachCard extends StatelessWidget {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: Colors.blue.shade100,
-                child: const Icon(Icons.person, color: Color(0xFF1E40AF)),
+                child: const Icon(Icons.person, color: Color(0xFF009A69)),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1243,7 +1243,7 @@ class _MemberBillingSection extends StatelessWidget {
                     item['charge']!,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E40AF),
+                      color: Color(0xFF009A69),
                     ),
                   ),
                 ),

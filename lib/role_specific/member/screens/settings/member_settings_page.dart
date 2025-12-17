@@ -236,7 +236,7 @@ class _MemberSettingsPageState extends State<MemberSettingsPage> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: const Color(0xFF1E40AF),
+        activeColor: const Color(0xFF009A69),
       ),
     );
   }

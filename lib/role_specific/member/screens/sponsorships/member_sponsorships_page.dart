@@ -168,7 +168,7 @@ class _MemberSponsorshipsPageState extends State<MemberSponsorshipsPage> {
                         _selectedFilter = filter;
                       });
                     },
-                    selectedColor: const Color(0xFF1E40AF),
+                    selectedColor: const Color(0xFF009A69),
                     labelStyle: TextStyle(
                       color: isSelected ? Colors.white : Colors.black87,
                       fontWeight: FontWeight.w600,

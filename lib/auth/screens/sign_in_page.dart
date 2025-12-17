@@ -56,8 +56,8 @@ class _SignInPageState extends State<SignInPage> {
         ),
       );
 
-      // Navigate to role-based dashboard
-      final target = RoleRouter.dashboardFor(role);
+      // Navigate to role-based profile screen
+      final target = RoleRouter.profileFor(role);
       Navigator.of(
         context,
       ).pushReplacement(MaterialPageRoute(builder: (_) => target));
