@@ -8,6 +8,7 @@ class MemberCard extends StatefulWidget {
   final Map<String, dynamic> member;
   final bool isHead;
   final bool useMembersGradient;
+  final bool isEditMode;
   final ValueChanged<Map<String, dynamic>> onUpdate;
 
   const MemberCard({
@@ -17,6 +18,7 @@ class MemberCard extends StatefulWidget {
     required this.member,
     required this.isHead,
     this.useMembersGradient = false,
+    this.isEditMode = true,
     required this.onUpdate,
   });
 
@@ -365,17 +367,19 @@ class _MemberCardState extends State<MemberCard> {
             return FilterChip(
               selected: isSelected,
               label: Text(sport),
-              onSelected: (selected) {
-                setState(() {
-                  if (selected) {
-                    selectedSports.add(sport);
-                  } else {
-                    selectedSports.remove(sport);
-                  }
-                  _member['sportsInterested'] = selectedSports;
-                  _updateMember();
-                });
-              },
+              onSelected: widget.isEditMode
+                  ? (selected) {
+                      setState(() {
+                        if (selected) {
+                          selectedSports.add(sport);
+                        } else {
+                          selectedSports.remove(sport);
+                        }
+                        _member['sportsInterested'] = selectedSports;
+                        _updateMember();
+                      });
+                    }
+                  : null,
               selectedColor: widget.useMembersGradient
                   ? MemberCard._gradientEnd.withValues(alpha: 0.2)
                   : widget.roleColor.withValues(alpha: 0.2),
@@ -415,12 +419,14 @@ class _MemberCardState extends State<MemberCard> {
           children: [
             Checkbox(
               value: addressSameAsSignUp,
-              onChanged: (value) {
-                setState(() {
-                  _member['addressSameAsSignUp'] = value ?? true;
-                  _updateMember();
-                });
-              },
+              onChanged: widget.isEditMode
+                  ? (value) {
+                      setState(() {
+                        _member['addressSameAsSignUp'] = value ?? true;
+                        _updateMember();
+                      });
+                    }
+                  : null,
               activeColor: widget.useMembersGradient
                   ? MemberCard._gradientEnd
                   : widget.roleColor,
@@ -546,12 +552,14 @@ class _MemberCardState extends State<MemberCard> {
           children: [
             Checkbox(
               value: practicePlanSameAsMain,
-              onChanged: (value) {
-                setState(() {
-                  _member['practicePlanSameAsMain'] = value ?? true;
-                  _updateMember();
-                });
-              },
+              onChanged: widget.isEditMode
+                  ? (value) {
+                      setState(() {
+                        _member['practicePlanSameAsMain'] = value ?? true;
+                        _updateMember();
+                      });
+                    }
+                  : null,
               activeColor: widget.useMembersGradient
                   ? MemberCard._gradientEnd
                   : widget.roleColor,
@@ -643,12 +651,14 @@ class _MemberCardState extends State<MemberCard> {
           children: [
             Checkbox(
               value: preferredClubsSameAsMain,
-              onChanged: (value) {
-                setState(() {
-                  _member['preferredClubsSameAsMain'] = value ?? true;
-                  _updateMember();
-                });
-              },
+              onChanged: widget.isEditMode
+                  ? (value) {
+                      setState(() {
+                        _member['preferredClubsSameAsMain'] = value ?? true;
+                        _updateMember();
+                      });
+                    }
+                  : null,
               activeColor: widget.useMembersGradient
                   ? MemberCard._gradientEnd
                   : widget.roleColor,
@@ -671,12 +681,14 @@ class _MemberCardState extends State<MemberCard> {
             label: 'Preferred Clubs',
             selectedItems: selectedClubs,
             items: _availableClubs,
-            onChanged: (items) {
-              setState(() {
-                _member['preferredClubs'] = items;
-                _updateMember();
-              });
-            },
+            onChanged: widget.isEditMode
+                ? (items) {
+                    setState(() {
+                      _member['preferredClubs'] = items;
+                      _updateMember();
+                    });
+                  }
+                : (_) {},
           ),
           const SizedBox(height: 16),
           Row(
@@ -703,12 +715,14 @@ class _MemberCardState extends State<MemberCard> {
                       activeColor: widget.useMembersGradient
                           ? MemberCard._gradientEnd
                           : widget.roleColor,
-                      onChanged: (value) {
-                        setState(() {
-                          _member['distance'] = value;
-                          _updateMember();
-                        });
-                      },
+                      onChanged: widget.isEditMode
+                          ? (value) {
+                              setState(() {
+                                _member['distance'] = value;
+                                _updateMember();
+                              });
+                            }
+                          : null,
                     ),
                     Text(
                       '${distance.toStringAsFixed(1)} km',
@@ -779,17 +793,26 @@ class _MemberCardState extends State<MemberCard> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
+          enabled: widget.isEditMode,
+          readOnly: !widget.isEditMode,
           keyboardType: keyboardType,
-          onChanged: onChanged,
-          style: const TextStyle(fontSize: 15, color: Colors.black87),
+          onChanged: widget.isEditMode ? onChanged : null,
+          style: TextStyle(
+            fontSize: 15,
+            color: widget.isEditMode ? Colors.black87 : Colors.grey.shade700,
+          ),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: widget.isEditMode ? Colors.grey.shade50 : Colors.grey.shade100,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
@@ -837,7 +860,7 @@ class _MemberCardState extends State<MemberCard> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
+            color: widget.isEditMode ? Colors.grey.shade50 : Colors.grey.shade100,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey.shade300),
           ),
@@ -846,13 +869,18 @@ class _MemberCardState extends State<MemberCard> {
             child: DropdownButton<String>(
               value: validValue.isEmpty ? null : validValue,
               isExpanded: true,
-              style: const TextStyle(fontSize: 15, color: Colors.black87),
+              style: TextStyle(
+                fontSize: 15,
+                color: widget.isEditMode ? Colors.black87 : Colors.grey.shade700,
+              ),
               items: items.map((item) {
                 return DropdownMenuItem<String>(value: item, child: Text(item));
               }).toList(),
-              onChanged: (value) {
-                if (value != null) onChanged(value);
-              },
+              onChanged: widget.isEditMode
+                  ? (value) {
+                      if (value != null) onChanged(value);
+                    }
+                  : null,
             ),
           ),
         ),
@@ -878,21 +906,23 @@ class _MemberCardState extends State<MemberCard> {
         ),
         const SizedBox(height: 8),
         InkWell(
-          onTap: () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: value,
-              firstDate: DateTime(1900),
-              lastDate: DateTime.now(),
-            );
-            if (date != null) {
-              onChanged(date);
-            }
-          },
+          onTap: widget.isEditMode
+              ? () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: value,
+                    firstDate: DateTime(1900),
+                    lastDate: DateTime.now(),
+                  );
+                  if (date != null) {
+                    onChanged(date);
+                  }
+                }
+              : null,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
+              color: widget.isEditMode ? Colors.grey.shade50 : Colors.grey.shade100,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade300),
             ),
@@ -901,13 +931,16 @@ class _MemberCardState extends State<MemberCard> {
                 Expanded(
                   child: Text(
                     '${value.day}/${value.month}/${value.year}',
-                    style: const TextStyle(fontSize: 15, color: Colors.black87),
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: widget.isEditMode ? Colors.black87 : Colors.grey.shade700,
+                    ),
                   ),
                 ),
                 Icon(
                   Icons.calendar_today,
                   size: 18,
-                  color: Colors.grey.shade600,
+                  color: widget.isEditMode ? Colors.grey.shade600 : Colors.grey.shade400,
                 ),
               ],
             ),
@@ -943,7 +976,7 @@ class _MemberCardState extends State<MemberCard> {
             Container(
               width: 80,
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: widget.isEditMode ? Colors.grey.shade50 : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey.shade300),
               ),
@@ -952,16 +985,21 @@ class _MemberCardState extends State<MemberCard> {
                 child: DropdownButton<String>(
                   value: countryCode,
                   isDense: true,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: widget.isEditMode ? Colors.black87 : Colors.grey.shade700,
+                  ),
                   items: countryCodes.map((code) {
                     return DropdownMenuItem<String>(
                       value: code,
                       child: Text(code),
                     );
                   }).toList(),
-                  onChanged: (value) {
-                    if (value != null) onCodeChanged(value);
-                  },
+                  onChanged: widget.isEditMode
+                      ? (value) {
+                          if (value != null) onCodeChanged(value);
+                        }
+                      : null,
                 ),
               ),
             ),
@@ -969,18 +1007,29 @@ class _MemberCardState extends State<MemberCard> {
             Expanded(
               child: TextFormField(
                 controller: controller,
+                enabled: widget.isEditMode,
+                readOnly: !widget.isEditMode,
                 keyboardType: TextInputType.phone,
-                onChanged: onChanged,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: const TextStyle(fontSize: 15, color: Colors.black87),
+                onChanged: widget.isEditMode ? onChanged : null,
+                inputFormatters: widget.isEditMode
+                    ? [FilteringTextInputFormatter.digitsOnly]
+                    : null,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: widget.isEditMode ? Colors.black87 : Colors.grey.shade700,
+                ),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: widget.isEditMode ? Colors.grey.shade50 : Colors.grey.shade100,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
                   enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  disabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
@@ -1025,71 +1074,73 @@ class _MemberCardState extends State<MemberCard> {
         ),
         const SizedBox(height: 8),
         InkWell(
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                final tempSelected = List<String>.from(selectedItems);
-                return StatefulBuilder(
-                  builder: (context, setDialogState) {
-                    return AlertDialog(
-                      title: Text(label),
-                      content: SizedBox(
-                        width: double.maxFinite,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            final item = items[index];
-                            final isSelected = tempSelected.contains(item);
-                            return CheckboxListTile(
-                              title: Text(item),
-                              value: isSelected,
-                              onChanged: (value) {
-                                setDialogState(() {
-                                  if (value == true) {
-                                    tempSelected.add(item);
-                                  } else {
-                                    tempSelected.remove(item);
-                                  }
-                                });
-                              },
-                              activeColor: widget.useMembersGradient
-                                  ? MemberCard._gradientEnd
-                                  : widget.roleColor,
-                            );
-                          },
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            onChanged(tempSelected);
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: widget.useMembersGradient
-                                ? MemberCard._gradientEnd
-                                : widget.roleColor,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Done'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            );
-          },
+          onTap: widget.isEditMode
+              ? () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      final tempSelected = List<String>.from(selectedItems);
+                      return StatefulBuilder(
+                        builder: (context, setDialogState) {
+                          return AlertDialog(
+                            title: Text(label),
+                            content: SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: items.length,
+                                itemBuilder: (context, index) {
+                                  final item = items[index];
+                                  final isSelected = tempSelected.contains(item);
+                                  return CheckboxListTile(
+                                    title: Text(item),
+                                    value: isSelected,
+                                    onChanged: (value) {
+                                      setDialogState(() {
+                                        if (value == true) {
+                                          tempSelected.add(item);
+                                        } else {
+                                          tempSelected.remove(item);
+                                        }
+                                      });
+                                    },
+                                    activeColor: widget.useMembersGradient
+                                        ? MemberCard._gradientEnd
+                                        : widget.roleColor,
+                                  );
+                                },
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  onChanged(tempSelected);
+                                  Navigator.pop(context);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: widget.useMembersGradient
+                                      ? MemberCard._gradientEnd
+                                      : widget.roleColor,
+                                  foregroundColor: Colors.white,
+                                ),
+                                child: const Text('Done'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  );
+                }
+              : null,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
+              color: widget.isEditMode ? Colors.grey.shade50 : Colors.grey.shade100,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade300),
             ),

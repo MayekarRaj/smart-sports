@@ -39,6 +39,12 @@ class _ClubsPageState extends State<ClubsPage> {
       status: 'Available',
       discount: '10% Off SPECIAL DISCOUNT',
       coaches: 4,
+      coachImages: [
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+      ],
       imageUrl: 'assets/images/elite_sports_arena.jpg',
     ),
     ClubData(
@@ -53,6 +59,12 @@ class _ClubsPageState extends State<ClubsPage> {
       status: 'Available',
       discount: '10% Off SPECIAL DISCOUNT',
       coaches: 4,
+      coachImages: [
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+      ],
       imageUrl: 'assets/images/elite_sports_arena.jpg',
     ),
     ClubData(
@@ -67,6 +79,12 @@ class _ClubsPageState extends State<ClubsPage> {
       status: 'Available',
       discount: '10% Off SPECIAL DISCOUNT',
       coaches: 4,
+      coachImages: [
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+      ],
       imageUrl: 'assets/images/elite_sports_arena.jpg',
     ),
   ];
@@ -1014,6 +1032,7 @@ class MobileClubCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.purple.withOpacity(0.2), width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -1028,141 +1047,274 @@ class MobileClubCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Club Image and Basic Info
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header with name and favorite
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          club.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: onFavoriteToggle,
-                        icon: Icon(
-                          club.isFavorite
-                              ? Icons.bookmark
-                              : Icons.bookmark_border,
-                          color: club.isFavorite ? Colors.blue : Colors.grey,
-                        ),
-                      ),
-                    ],
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left Section - Club Image (1/3 width)
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
                   ),
-
-                  const SizedBox(height: 8),
-
-                  // Location
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        club.location,
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Available Sports
-                  const Text(
-                    'Available Sports',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey,
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.33,
+                    height: 200,
+                    color: Colors.grey.shade300,
+                    child: Image.asset(
+                      club.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.sports_basketball,
+                          size: 50,
+                          color: Colors.grey,
+                        );
+                      },
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: club.availableSports
-                        .map(
-                          (sport) => Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              sport,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                ),
+
+                // Right Section - Club Details (2/3 width)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header with name and favorite
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                club.name,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
                               ),
                             ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Rating and Stats Row
-                  Row(
-                    children: [
-                      // Rating
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 20),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${club.rating}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                            GestureDetector(
+                              onTap: onFavoriteToggle,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    club.isFavorite
+                                        ? Icons.bookmark
+                                        : Icons.bookmark_border,
+                                    color: Colors.blue,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Mark As Favourite',
+                                    style: TextStyle(
+                                      color: Colors.blue,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Location - Light blue oval button
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Club Rating',
+                          decoration: BoxDecoration(
+                            color: Colors.lightBlue.shade50,
+                            border: Border.all(color: Colors.blue, width: 1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            club.location,
                             style: TextStyle(
+                              color: Colors.blue.shade700,
                               fontSize: 12,
-                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
 
-                      const Spacer(),
+                        const SizedBox(height: 12),
 
-                      // Stats
-                      _buildStatChip('Branches', '${club.branches}'),
-                      const SizedBox(width: 8),
-                      _buildStatChip('Courts', '${club.courts}'),
-                    ],
+                        // Available Sports and Coach Row
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Available Sports Section
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'AVAILABLE SPORTS',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 6,
+                                    children: club.availableSports
+                                        .map(
+                                          (sport) => Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.lightBlue.shade50,
+                                              border: Border.all(color: Colors.blue, width: 1),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Text(
+                                              sport,
+                                              style: TextStyle(
+                                                color: Colors.blue.shade700,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(width: 16),
+
+                            // Coach Section
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'COACH',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    if (club.coachImages.isNotEmpty)
+                                      _buildCoachAvatar(club.coachImages[0]),
+                                    if (club.coachImages.length > 1)
+                                      Transform.translate(
+                                        offset: const Offset(-8, 0),
+                                        child: _buildCoachAvatar(club.coachImages[1]),
+                                      ),
+                                    if (club.coachImages.length > 2)
+                                      Transform.translate(
+                                        offset: const Offset(-16, 0),
+                                        child: _buildCoachAvatar(club.coachImages[2]),
+                                      ),
+                                    if (club.coachImages.length > 3)
+                                      Transform.translate(
+                                        offset: const Offset(-24, 0),
+                                        child: _buildCoachAvatar(club.coachImages[3]),
+                                      ),
+                                    if (club.coaches > club.coachImages.length)
+                                      Transform.translate(
+                                        offset: Offset(-8.0 * club.coachImages.length.clamp(0, 4), 0),
+                                        child: _buildCoachAvatar(
+                                          null,
+                                          remainingCount: club.coaches - club.coachImages.length,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Rating, Branches, and Courts Row
+                        Row(
+                          children: [
+                            // Club Rating
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${club.rating}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: List.generate(5, (index) {
+                                    return Icon(
+                                      index < club.rating.floor()
+                                          ? Icons.star
+                                          : Icons.star_border,
+                                      size: 16,
+                                      color: index < club.rating.floor()
+                                          ? Colors.amber
+                                          : Colors.grey.shade400,
+                                    );
+                                  }),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Club Rating',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const Spacer(),
+
+                            // Branches and Courts
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Row(
+                                  children: [
+                                    _buildStatChip('BRANCHES', '${club.branches}'),
+                                    const SizedBox(width: 8),
+                                    _buildStatChip('COURTS', '${club.courts}'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
 
             // Action Buttons
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: Colors.white,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),
@@ -1171,14 +1323,18 @@ class MobileClubCard extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(child: _buildActionButton(Icons.share, 'Share')),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Expanded(
-                    child: _buildActionButton(Icons.sports_tennis, 'Coach'),
+                    child: _buildActionButton(Icons.gps_fixed, 'Coach'),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildActionButton(Icons.group, 'Players')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildActionButton(Icons.reviews, 'Reviews')),
+                  const SizedBox(width: 6),
+                  Expanded(child: _buildActionButton(Icons.people, 'Players')),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: _buildActionButton(Icons.handshake, 'Sponsor'),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(child: _buildActionButton(Icons.star, 'Reviews')),
                 ],
               ),
             ),
@@ -1188,19 +1344,80 @@ class MobileClubCard extends StatelessWidget {
     );
   }
 
+  Widget _buildCoachAvatar(String? imageUrl, {int? remainingCount}) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: imageUrl != null
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade300,
+                  child: const Icon(
+                    Icons.person,
+                    size: 24,
+                    color: Colors.grey,
+                  ),
+                ),
+              )
+            : Container(
+                color: Colors.grey.shade300,
+                child: Center(
+                  child: remainingCount != null && remainingCount > 0
+                      ? Text(
+                          '+$remainingCount',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.person,
+                          size: 24,
+                          color: Colors.grey,
+                        ),
+                ),
+              ),
+      ),
+    );
+  }
+
   Widget _buildStatChip(String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
+        color: Colors.white,
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
-          Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 10, color: Colors.grey),
+          ),
+          const SizedBox(height: 2),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Colors.black87,
+            ),
           ),
         ],
       ),
@@ -1211,12 +1428,13 @@ class MobileClubCard extends StatelessWidget {
     return ElevatedButton.icon(
       onPressed: () {},
       icon: Icon(icon, size: 16),
-      label: Text(label, style: const TextStyle(fontSize: 12)),
+      label: Text(label, style: const TextStyle(fontSize: 11)),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        elevation: 0,
       ),
     );
   }
@@ -1256,6 +1474,7 @@ class ClubData {
   final String status;
   final String discount;
   final int coaches;
+  final List<String> coachImages;
   final String imageUrl;
 
   ClubData({
@@ -1270,6 +1489,7 @@ class ClubData {
     required this.status,
     required this.discount,
     required this.coaches,
+    required this.coachImages,
     required this.imageUrl,
   });
 }

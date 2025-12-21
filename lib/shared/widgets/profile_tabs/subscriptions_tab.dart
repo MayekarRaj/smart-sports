@@ -18,6 +18,7 @@ class SubscriptionsTab extends StatefulWidget {
 }
 
 class _SubscriptionsTabState extends State<SubscriptionsTab> {
+  bool _isEditMode = false;
   String _membershipType = 'Free'; // 'Free' or 'Privilege'
 
   // Paid Services
@@ -77,13 +78,13 @@ class _SubscriptionsTabState extends State<SubscriptionsTab> {
   // Priority Booking selected clubs
   final List<String> _selectedClubs = ['Premier Sports Club', 'Elite Athletic Center'];
 
-  // Payment Details (read-only)
-  final String _paymentMethod = 'Bank Transfer';
-  final String _paymentStatus = 'Paid';
-  final DateTime _subscriptionStartDate = DateTime(2024, 1, 1);
-  final DateTime _subscriptionEndDate = DateTime(2024, 12, 31);
-  final DateTime _paymentDate = DateTime(2024, 1, 1);
-  final TimeOfDay _paymentTime = const TimeOfDay(hour: 14, minute: 30);
+  // Payment Details (editable in edit mode)
+  String _paymentMethod = 'Bank Transfer';
+  String _paymentStatus = 'Paid';
+  DateTime _subscriptionStartDate = DateTime(2024, 1, 1);
+  DateTime _subscriptionEndDate = DateTime(2024, 12, 31);
+  DateTime _paymentDate = DateTime(2024, 1, 1);
+  TimeOfDay _paymentTime = const TimeOfDay(hour: 14, minute: 30);
 
   double get _netTotal {
     double total = 0.0;
@@ -142,6 +143,38 @@ class _SubscriptionsTabState extends State<SubscriptionsTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Edit/Save Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _isEditMode = !_isEditMode;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(_isEditMode ? 'Changes saved' : 'Edit mode enabled'),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                },
+                icon: Icon(_isEditMode ? Icons.save : Icons.edit),
+                label: Text(_isEditMode ? 'Save' : 'Edit'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: widget.roleColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
           // Membership Type Selector
           _buildMembershipTypeSelector(),
           const SizedBox(height: 24),
@@ -488,28 +521,56 @@ class _SubscriptionsTabState extends State<SubscriptionsTab> {
             ],
           ),
           const SizedBox(height: 20),
-          _buildReadOnlyField('Payment Method', _paymentMethod),
+          _buildEditableField('Payment Method', _paymentMethod, (value) {
+            setState(() {
+              _paymentMethod = value;
+            });
+          }),
           const SizedBox(height: 16),
-          _buildReadOnlyField('Payment Status', _paymentStatus),
+          _buildEditableField('Payment Status', _paymentStatus, (value) {
+            setState(() {
+              _paymentStatus = value;
+            });
+          }),
           const SizedBox(height: 16),
-          _buildReadOnlyField(
+          _buildDateField(
             'Subscription Start Date',
-            '${_subscriptionStartDate.day}/${_subscriptionStartDate.month}/${_subscriptionStartDate.year}',
+            _subscriptionStartDate,
+            (date) {
+              setState(() {
+                _subscriptionStartDate = date;
+              });
+            },
           ),
           const SizedBox(height: 16),
-          _buildReadOnlyField(
+          _buildDateField(
             'Subscription End Date',
-            '${_subscriptionEndDate.day}/${_subscriptionEndDate.month}/${_subscriptionEndDate.year}',
+            _subscriptionEndDate,
+            (date) {
+              setState(() {
+                _subscriptionEndDate = date;
+              });
+            },
           ),
           const SizedBox(height: 16),
-          _buildReadOnlyField(
+          _buildDateField(
             'Payment Date',
-            '${_paymentDate.day}/${_paymentDate.month}/${_paymentDate.year}',
+            _paymentDate,
+            (date) {
+              setState(() {
+                _paymentDate = date;
+              });
+            },
           ),
           const SizedBox(height: 16),
-          _buildReadOnlyField(
+          _buildTimeField(
             'Payment Time',
-            _paymentTime.format(context),
+            _paymentTime,
+            (time) {
+              setState(() {
+                _paymentTime = time;
+              });
+            },
           ),
         ],
       ),
@@ -615,6 +676,179 @@ class _SubscriptionsTabState extends State<SubscriptionsTab> {
                 ),
               ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditableField(
+    String label,
+    String value,
+    ValueChanged<String> onChanged,
+  ) {
+    if (!_isEditMode) {
+      return _buildReadOnlyField(label, value);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          initialValue: value,
+          onChanged: onChanged,
+          style: const TextStyle(fontSize: 14, color: Colors.black87),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: widget.roleColor, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateField(
+    String label,
+    DateTime value,
+    ValueChanged<DateTime> onChanged,
+  ) {
+    if (!_isEditMode) {
+      return _buildReadOnlyField(
+        label,
+        '${value.day}/${value.month}/${value.year}',
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () async {
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: value,
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2100),
+            );
+            if (picked != null && picked != value) {
+              onChanged(picked);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${value.day}/${value.month}/${value.year}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                ),
+                Icon(Icons.calendar_today, size: 18, color: widget.roleColor),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimeField(
+    String label,
+    TimeOfDay value,
+    ValueChanged<TimeOfDay> onChanged,
+  ) {
+    if (!_isEditMode) {
+      return _buildReadOnlyField(label, value.format(context));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () async {
+            final TimeOfDay? picked = await showTimePicker(
+              context: context,
+              initialTime: value,
+            );
+            if (picked != null && picked != value) {
+              onChanged(picked);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    value.format(context),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                ),
+                Icon(Icons.access_time, size: 18, color: widget.roleColor),
+              ],
+            ),
           ),
         ),
       ],

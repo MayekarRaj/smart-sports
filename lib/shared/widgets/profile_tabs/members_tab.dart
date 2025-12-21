@@ -26,6 +26,7 @@ class MembersTab extends StatefulWidget {
 }
 
 class _MembersTabState extends State<MembersTab> {
+  bool _isEditMode = false;
   int _numberOfFamilyMembers = 1;
   final List<Map<String, dynamic>> _members = [];
   final _numberOfMembersController = TextEditingController(text: '1');
@@ -113,6 +114,38 @@ class _MembersTabState extends State<MembersTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Edit/Save Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _isEditMode = !_isEditMode;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(_isEditMode ? 'Changes saved' : 'Edit mode enabled'),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                },
+                icon: Icon(_isEditMode ? Icons.save : Icons.edit),
+                label: Text(_isEditMode ? 'Save' : 'Edit'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: widget.roleColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
           // Number of Family Members Section
           Container(
             padding: const EdgeInsets.all(20),
@@ -178,17 +211,19 @@ class _MembersTabState extends State<MembersTab> {
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _numberOfMembersController,
+                            enabled: _isEditMode,
+                            readOnly: !_isEditMode,
                             keyboardType: TextInputType.number,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
                             ],
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
-                              color: Colors.black87,
+                              color: _isEditMode ? Colors.black87 : Colors.grey.shade700,
                             ),
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: Colors.grey.shade50,
+                              fillColor: _isEditMode ? Colors.grey.shade50 : Colors.grey.shade100,
                               hintText: 'Enter number (1-20)',
                               hintStyle: TextStyle(color: Colors.grey.shade400),
                               border: OutlineInputBorder(
@@ -198,6 +233,12 @@ class _MembersTabState extends State<MembersTab> {
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              disabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
                                   color: Colors.grey.shade300,
@@ -245,6 +286,7 @@ class _MembersTabState extends State<MembersTab> {
                 member: _members[index],
                 isHead: index == 0,
                 useMembersGradient: true,
+                isEditMode: _isEditMode,
                 onUpdate: (updatedMember) {
                   _updateMember(index, updatedMember);
                 },

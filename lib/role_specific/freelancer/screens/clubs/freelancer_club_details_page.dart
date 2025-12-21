@@ -205,37 +205,107 @@ class MobileClubHeader extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Available Sports
-          const Text(
-            'Available Sports',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: club.availableSports
-                .map(
-                  (sport) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      sport,
-                      style: const TextStyle(
-                        color: Colors.white,
+          // Available Sports and Coach Row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Available Sports Section
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'AVAILABLE SPORTS',
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
+                        color: Color(0xFF6B7280),
                       ),
                     ),
-                  ),
-                )
-                .toList(),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: club.availableSports
+                          .map(
+                            (sport) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Text(
+                                sport,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Coach Section
+              if ((club.coachImages).isNotEmpty || club.coaches > 0)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'COACH',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if ((club.coachImages).isNotEmpty)
+                          _buildCoachAvatar((club.coachImages)[0]),
+                        if ((club.coachImages).length > 1)
+                          Transform.translate(
+                            offset: const Offset(-8, 0),
+                            child: _buildCoachAvatar((club.coachImages)[1]),
+                          ),
+                        if ((club.coachImages).length > 2)
+                          Transform.translate(
+                            offset: const Offset(-16, 0),
+                            child: _buildCoachAvatar((club.coachImages)[2]),
+                          ),
+                        if ((club.coachImages).length > 3)
+                          Transform.translate(
+                            offset: const Offset(-24, 0),
+                            child: _buildCoachAvatar((club.coachImages)[3]),
+                          ),
+                        if (club.coaches > (club.coachImages).length)
+                          Transform.translate(
+                            offset: Offset(
+                              -8.0 *
+                                  (club.coachImages).length.clamp(0, 3),
+                              0,
+                            ),
+                            child: _buildCoachAvatar(
+                              null,
+                              remainingCount:
+                                  club.coaches - (club.coachImages).length,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+            ],
           ),
 
           const SizedBox(height: 12),
@@ -251,6 +321,50 @@ class MobileClubHeader extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCoachAvatar(String? imageUrl, {int? remainingCount}) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: imageUrl != null
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade300,
+                  child: const Icon(Icons.person, size: 24, color: Colors.grey),
+                ),
+              )
+            : Container(
+                color: Colors.grey.shade300,
+                child: Center(
+                  child: remainingCount != null && remainingCount > 0
+                      ? Text(
+                          '+$remainingCount',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : const Icon(Icons.person, size: 24, color: Colors.grey),
+                ),
+              ),
       ),
     );
   }
