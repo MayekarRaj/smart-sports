@@ -593,6 +593,7 @@ class _BankDetailsTabState extends State<BankDetailsTab> {
               _revenueEndYear = year;
             });
           },
+          showFlexibleDuration: false,
         ),
         const SizedBox(height: 24),
         // Summary Cards

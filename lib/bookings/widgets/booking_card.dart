@@ -24,545 +24,632 @@ class BookingCard extends StatefulWidget {
   State<BookingCard> createState() => _BookingCardState();
 }
 
-class _BookingCardState extends State<BookingCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-  bool _isExpanded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
+class _BookingCardState extends State<BookingCard> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _scaleAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: GestureDetector(
-            onTapDown: (_) => _animationController.forward(),
-            onTapUp: (_) => _animationController.reverse(),
-            onTapCancel: () => _animationController.reverse(),
-            onTap: () {
-              setState(() {
-                _isExpanded = !_isExpanded;
-              });
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.purple,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header with Archived badge
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.booking.venueName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Booking ID ${widget.booking.bookingId}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: const Color(0xFF007BFF),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Main content
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
+                ),
+                // Archived badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade600,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Archived',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Main content - Mobile vertical layout
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Venue Image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    height: 180,
+                    width: double.infinity,
+                    color: Colors.grey.shade300,
+                    child: Image.network(
+                      'https://images.unsplash.com/photo-1534158914592-062992fbe900?w=800',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.sports_basketball,
+                          size: 50,
+                          color: Colors.grey,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // Location
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.lightBlue.shade50,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFF007BFF),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    widget.booking.location,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: const Color(0xFF007BFF),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // Club Rating with title
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Club Rating',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
                       children: [
-                        // Header with status badges
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.booking.venueName,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Booking ID ${widget.booking.bookingId}',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: const Color(0xFF007BFF),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            _buildStatusBadges(),
-                          ],
+                        Text(
+                          widget.booking.rating.toString(),
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                          ),
                         ),
-
-                        const SizedBox(height: 12),
-
-                        // Location and rating
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF007BFF).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: const Color(
-                                    0xFF007BFF,
-                                  ).withOpacity(0.3),
-                                ),
-                              ),
-                              child: Text(
-                                widget.booking.location,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: const Color(0xFF007BFF),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            Row(
-                              children: [
-                                Text(
-                                  widget.booking.rating.toString(),
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                ...List.generate(5, (index) {
-                                  return Icon(
-                                    index < widget.booking.rating.floor()
-                                        ? Icons.star
-                                        : Icons.star_border,
-                                    size: 16,
-                                    color: Colors.amber,
-                                  );
-                                }),
-                              ],
-                            ),
-                          ],
+                        const SizedBox(width: 6),
+                        ...List.generate(5, (index) {
+                          return Icon(
+                            index < widget.booking.rating.floor()
+                                ? Icons.star
+                                : Icons.star_border,
+                            size: 16,
+                            color: Colors.amber,
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Coach
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Coach',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    CoachTile(
+                      name: widget.booking.coach.name,
+                      email: widget.booking.coach.email,
+                      imageUrl: widget.booking.coach.imageUrl,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Reserved By
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Reserved By',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Text(
+                        widget.booking.reservedBy,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: Colors.black87,
                         ),
-
-                        const SizedBox(height: 16),
-
-                        // Coach details
-                        CoachTile(
-                          name: widget.booking.coach.name,
-                          email: widget.booking.coach.email,
-                          imageUrl: widget.booking.coach.imageUrl,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Booking Schedule (always visible)
+                _buildBookingSchedule(),
+                const SizedBox(height: 12),
+                
+                // Booking As, Sport Type, Payment Status
+                _buildInfoButtons(),
+                const SizedBox(height: 12),
+                
+                // Invoice and Receipt links
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {},
+                      child: Text(
+                        'invoice',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: const Color(0xFF007BFF),
+                          fontWeight: FontWeight.w600,
                         ),
-
-                        const SizedBox(height: 12),
-
-                        // Players
-                        Row(
-                          children: [
-                            Text(
-                              'Players:',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            PlayerAvatarRow(
-                              players: widget.booking.players,
-                              maxVisible: 4,
-                              avatarSize: 28,
-                            ),
-                          ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    TextButton(
+                      onPressed: () {},
+                      child: Text(
+                        'Receipt',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: const Color(0xFF007BFF),
+                          fontWeight: FontWeight.w600,
                         ),
-
-                        const SizedBox(height: 16),
-
-                        // Equipment actions
-                        Row(
-                          children: widget.booking.equipmentActions.map((
-                            action,
-                          ) {
-                            return Expanded(
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Game Equipments title
+                Text(
+                  'Game Equipments',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Purchase and Repair buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: widget.onPurchase,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF007BFF),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        child: Text(
+                          'Purchase',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: widget.onRepair,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFF007BFF),
+                          side: const BorderSide(
+                            color: Color(0xFF007BFF),
+                            width: 1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        child: Text(
+                          'Repair',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Players section - Show IGVAE image for Elite Arena, otherwise show player avatars
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Players',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (_isEliteArena())
+                      // IGVAE Image as circular avatars with shadows (exact match to image)
+                      SizedBox(
+                        height: 32,
+                        child: Stack(
+                          children: List.generate(4, (index) {
+                            return Positioned(
+                              left: index * 24.0, // Overlap by 8px (32 - 24 = 8)
                               child: Container(
-                                margin: const EdgeInsets.only(right: 8),
-                                child: ElevatedButton(
-                                  onPressed: action.type == 'purchase'
-                                      ? widget.onPurchase
-                                      : widget.onRepair,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: action.type == 'purchase'
-                                        ? const Color(0xFF007BFF)
-                                        : Colors.white,
-                                    foregroundColor: action.type == 'purchase'
-                                        ? Colors.white
-                                        : const Color(0xFF007BFF),
-                                    side: BorderSide(
-                                      color: const Color(0xFF007BFF),
-                                      width: 1,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.15),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                      spreadRadius: 0,
                                     ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
+                                  ],
+                                ),
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
                                     ),
                                   ),
-                                  child: Text(
-                                    action.label,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
+                                  child: ClipOval(
+                                    child: Image.asset(
+                                      'assets/images/igvae_image.png',
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          color: Colors.grey.shade300,
+                                          child: Icon(
+                                            Icons.image,
+                                            size: 18,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
                               ),
                             );
-                          }).toList(),
+                          }),
                         ),
-
-                        const SizedBox(height: 12),
-
-                        // View Booking Button
-                        if (widget.onViewBooking != null)
-                          Container(
-                            width: double.infinity,
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: ElevatedButton(
-                              onPressed: widget.onViewBooking,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF007BFF),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.visibility, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'View Booking',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
+                      )
+                    else
+                      // Player avatars
+                      PlayerAvatarRow(
+                        players: widget.booking.players,
+                        maxVisible: 4,
+                        avatarSize: 32,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Request Status (for Elite Arena)
+                if (_isEliteArena())
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Request Status',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getRequestStatusColor(),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _getRequestStatusIcon(),
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _getRequestStatusText(),
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
                               ),
                             ),
-                          ),
-
-                        // Reserved by
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade200),
-                          ),
-                          child: Text(
-                            'Reserved By: ${widget.booking.reservedBy}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
+                          ],
                         ),
-
-                        // Expandable content
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          height: _isExpanded ? null : 0,
-                          child: _isExpanded
-                              ? Column(
-                                  children: [
-                                    const SizedBox(height: 16),
-                                    _buildBookingSchedule(),
-                                    const SizedBox(height: 12),
-                                    _buildChips(),
-                                  ],
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildStatusBadges() {
-    List<Widget> badges = [];
-
-    // Cancel Booking button
-    badges.add(
-      Container(
-        margin: const EdgeInsets.only(bottom: 4),
-        child: ElevatedButton(
-          onPressed: widget.onCancelBooking,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            minimumSize: Size.zero,
-          ),
-          child: Text(
-            'Cancel Booking',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    // Status badge
-    Color statusColor;
-    String statusText;
-    Color textColor = Colors.white;
-
-    switch (widget.booking.status) {
-      case BookingStatus.waiting:
-        statusColor = const Color(0xFFFF9800);
-        statusText = 'Waiting';
-        break;
-      case BookingStatus.waitListConfirmed:
-        statusColor = const Color(0xFFFFD600);
-        statusText = 'Wait List Confirmed';
-        textColor = Colors.black;
-        break;
-      case BookingStatus.confirmed:
-        statusColor = const Color(0xFF4CAF50);
-        statusText = 'Confirmed';
-        break;
-      case BookingStatus.cancelled:
-        statusColor = Colors.red;
-        statusText = 'Cancelled';
-        break;
-    }
-
-    badges.add(
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: statusColor,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          statusText,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: textColor,
-          ),
-        ),
-      ),
-    );
-
-    // Wait List payment warning
-    if (widget.booking.status == BookingStatus.waitListConfirmed) {
-      badges.add(
-        Container(
-          margin: const EdgeInsets.only(top: 4),
-          child: Text(
-            'Pay by Wed, 23 Apr 2025 or wait list will be canceled.',
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              color: Colors.red,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.end, children: badges);
-  }
-
-  Widget _buildBookingSchedule() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Booking Schedule',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.blue.shade800,
+              ],
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildScheduleItem(
-                  'Court',
-                  widget.booking.schedule.court,
-                  Icons.sports,
+          // Cancel and Waiting buttons at bottom
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: widget.onCancelBooking,
+                    icon: const Icon(Icons.cancel, size: 16),
+                    label: Text(
+                      'Cancel',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: _buildScheduleItem(
-                  'Slots',
-                  '${widget.booking.schedule.slots}',
-                  Icons.schedule,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.hourglass_empty, size: 16),
+                    label: Text(
+                      _getStatusText(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _getStatusColor(),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _buildScheduleItem(
-                  'Date',
-                  widget.booking.schedule.date,
-                  Icons.calendar_today,
-                ),
-              ),
-              Expanded(
-                child: _buildScheduleItem(
-                  'Time',
-                  widget.booking.schedule.time,
-                  Icons.access_time,
-                ),
-              ),
-            ],
-          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildScheduleItem(String label, String value, IconData icon) {
+  Color _getStatusColor() {
+    switch (widget.booking.status) {
+      case BookingStatus.waiting:
+        return const Color(0xFFFF9800);
+      case BookingStatus.waitListConfirmed:
+        return const Color(0xFFFFD600);
+      case BookingStatus.confirmed:
+        return const Color(0xFF4CAF50);
+      case BookingStatus.cancelled:
+        return Colors.red;
+    }
+  }
+
+  String _getStatusText() {
+    switch (widget.booking.status) {
+      case BookingStatus.waiting:
+        return 'Waiting';
+      case BookingStatus.waitListConfirmed:
+        return 'Wait List Confirmed';
+      case BookingStatus.confirmed:
+        return 'Confirmed';
+      case BookingStatus.cancelled:
+        return 'Cancelled';
+    }
+  }
+
+  Widget _buildBookingSchedule() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(icon, size: 16, color: Colors.blue.shade600),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: Colors.blue.shade600,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
         Text(
-          value,
+          'Booking Schedule',
           style: GoogleFonts.poppins(
-            fontSize: 14,
+            fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: RichText(
+            text: TextSpan(
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: Colors.black87,
+              ),
+              children: [
+                TextSpan(
+                  text: '${widget.booking.schedule.court}',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const TextSpan(text: ', '),
+                TextSpan(
+                  text: '${widget.booking.schedule.slots} Slots',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const TextSpan(text: ', '),
+                TextSpan(text: widget.booking.schedule.date),
+                const TextSpan(text: ', '),
+                TextSpan(text: widget.booking.schedule.time),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildChips() {
-    return Row(
+  Widget _buildInfoButtons() {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
       children: [
-        // Booking As chip
+        // Booking As
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFF007BFF),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF007BFF)),
           ),
           child: Text(
             widget.booking.bookingAs,
             style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: const Color(0xFF007BFF),
-              fontWeight: FontWeight.w500,
+              fontSize: 11,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
-        const SizedBox(width: 8),
-
-        // Sport Type chip
+        // Sport Type
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFF007BFF),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF007BFF)),
           ),
           child: Text(
             widget.booking.sportType,
             style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: const Color(0xFF007BFF),
-              fontWeight: FontWeight.w500,
+              fontSize: 11,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
-        const SizedBox(width: 8),
-
-        // Coach Request chip
+        // Payment Status
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: _getCoachRequestColor(),
+            color: Colors.orange,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            _getCoachRequestText(),
+            'Paid',
             style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: _getCoachRequestTextColor(),
-              fontWeight: FontWeight.w500,
+              fontSize: 11,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -570,29 +657,33 @@ class _BookingCardState extends State<BookingCard>
     );
   }
 
-  Color _getCoachRequestColor() {
+  bool _isEliteArena() {
+    return widget.booking.venueName.toLowerCase().contains('elite');
+  }
+
+  Color _getRequestStatusColor() {
     switch (widget.booking.coachRequestStatus) {
       case CoachRequestStatus.pending:
-        return Colors.grey.shade300;
+        return Colors.orange;
       case CoachRequestStatus.accepted:
-        return const Color(0xFFFF9800);
+        return Colors.green;
       case CoachRequestStatus.rejected:
-        return Colors.red.shade300;
+        return Colors.red;
     }
   }
 
-  Color _getCoachRequestTextColor() {
+  IconData _getRequestStatusIcon() {
     switch (widget.booking.coachRequestStatus) {
       case CoachRequestStatus.pending:
-        return Colors.grey.shade600;
+        return Icons.pending;
       case CoachRequestStatus.accepted:
-        return Colors.white;
+        return Icons.check_circle;
       case CoachRequestStatus.rejected:
-        return Colors.red.shade700;
+        return Icons.cancel;
     }
   }
 
-  String _getCoachRequestText() {
+  String _getRequestStatusText() {
     switch (widget.booking.coachRequestStatus) {
       case CoachRequestStatus.pending:
         return 'Pending';
@@ -602,4 +693,5 @@ class _BookingCardState extends State<BookingCard>
         return 'Rejected';
     }
   }
+
 }

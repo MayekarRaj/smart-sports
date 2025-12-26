@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../role_specific/common/role_router.dart';
 import 'time_slot_booking_screen.dart';
+import 'booking_review_screen.dart';
 
 class SelectedClubBookingScreen extends StatefulWidget {
   final String selectedClub;
@@ -51,6 +52,28 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
       {}; // Key: 'Court1-8:00', Value: selected
   Map<String, bool> selectedPrivilegeBundles =
       {}; // Key: 'Court1-8:00-8:30', Value: selected
+  
+  // Slot quantities for multiple repeated slots
+  Map<String, int> privilegeAvailableSlotQuantities = {
+    'Court 1': 3,
+    'Court 2': 3,
+    'Court 3': 3,
+  };
+  Map<String, int> privilegeWaitingSlotQuantities = {
+    'Court 1': 3,
+    'Court 2': 3,
+    'Court 3': 3,
+  };
+  Map<String, int> generalAvailableSlotQuantities = {
+    'Court 1': 3,
+    'Court 2': 3,
+    'Court 3': 3,
+  };
+  Map<String, int> generalWaitingSlotQuantities = {
+    'Court 1': 3,
+    'Court 2': 3,
+    'Court 3': 3,
+  };
 
   final TextEditingController startDateController = TextEditingController(
     text: 'Wed, March 5, 2025',
@@ -126,20 +149,28 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
             _buildCustomizeSlotsSection(),
             const SizedBox(height: 24),
 
-            // Select Date Section
-            _buildSelectDateSection(),
-            const SizedBox(height: 24),
+            // Select Date Section - Only show for single slot booking
+            if (!isMultipleSlot) ...[
+              _buildSelectDateSection(),
+              const SizedBox(height: 24),
+            ],
 
             // Full Slots Section
             _buildFullSlotsSection(),
             const SizedBox(height: 24),
 
             // Privilege Slots Section
-            _buildPrivilegeSlotsSection(),
+            if (isMultipleSlot)
+              _buildMultipleRepeatedPrivilegeSlotsSection()
+            else
+              _buildPrivilegeSlotsSection(),
             const SizedBox(height: 24),
 
             // General Slots Section
-            _buildGeneralSlotsSection(),
+            if (isMultipleSlot)
+              _buildMultipleRepeatedGeneralSlotsSection()
+            else
+              _buildGeneralSlotsSection(),
             const SizedBox(height: 24),
 
             // Selection Summary Section
@@ -800,70 +831,131 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
             color: Colors.grey.shade800,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Text(
-            'Select Available slots to make your court booking. You can select the not available slots in waiting if the booking got cancelled your slot will be confirmed.',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.white,
-              height: 1.4,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select Available slots to make your court booking.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.white,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'You can select the not available slots in waiting if the booking got cancelled your slot will be confirmed.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.white,
+                  height: 1.4,
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),
-        // Court Slots
-        ...List.generate(3, (courtIndex) => _buildCourtSlots(courtIndex + 1)),
-      ],
-    );
-  }
-
-  Widget _buildCourtSlots(int courtNumber) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Court $courtNumber',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 12),
+        // Grid Layout - Slot Type Headers
         Row(
           children: [
+            // Empty space for court labels
+            const SizedBox(width: 80),
             Expanded(
-              child: _buildSlotCard(
+              child: Text(
                 'Whole Month',
-                'Not Available',
-                Colors.red,
-                courtNumber,
-                0,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
               ),
             ),
-            const SizedBox(width: 12),
             Expanded(
-              child: _buildSlotCard(
+              child: Text(
                 'Full Week',
-                'Available',
-                Colors.green,
-                courtNumber,
-                1,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
               ),
             ),
-            const SizedBox(width: 12),
             Expanded(
-              child: _buildSlotCard(
+              child: Text(
                 'Full Day',
-                'Rushing',
-                Colors.orange,
-                courtNumber,
-                2,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
+        // Court Rows with Slot Cards
+        ...List.generate(3, (courtIndex) => _buildCourtRow(courtIndex + 1)),
       ],
+    );
+  }
+
+  Widget _buildCourtRow(int courtNumber) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Court Label (Vertical)
+          SizedBox(
+            width: 80,
+            child: RotatedBox(
+              quarterTurns: -1,
+              child: Text(
+                'Court $courtNumber',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Slot Cards
+          Expanded(
+            child: _buildSlotCard(
+              'Whole Month',
+              'Not Available',
+              Colors.red,
+              courtNumber,
+              0,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _buildSlotCard(
+              'Full Week',
+              'Available',
+              Colors.green,
+              courtNumber,
+              1,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _buildSlotCard(
+              'Full Day',
+              'Rushing',
+              Colors.orange,
+              courtNumber,
+              2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -876,6 +968,23 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
   ) {
     final isSelected =
         selectedCourt == 'Court $courtNumber' && selectedSlotIndex == slotIndex;
+
+    // Determine status based on court and slot to match the image exactly
+    String actualStatus = status;
+    Color actualColor = statusColor;
+    
+    // Set status based on court and slot type to match the image
+    if (courtNumber == 1) {
+      if (slotIndex == 0) { actualStatus = 'Booked'; actualColor = Colors.red; }
+      else if (slotIndex == 1) { actualStatus = 'Available'; actualColor = Colors.green; }
+      else if (slotIndex == 2) { actualStatus = 'Rushing'; actualColor = Colors.orange; }
+    } else if (courtNumber == 2) {
+      if (slotIndex == 0) { actualStatus = 'Booked'; actualColor = Colors.red; }
+      else { actualStatus = 'Rushing'; actualColor = Colors.orange; }
+    } else if (courtNumber == 3) {
+      if (slotIndex == 0) { actualStatus = 'Not Available'; actualColor = Colors.red; }
+      else { actualStatus = 'Available'; actualColor = Colors.green; }
+    }
 
     return GestureDetector(
       onTap: () {
@@ -893,80 +1002,113 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: actualColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF007BFF) : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
-          ),
+          border: isSelected
+              ? Border.all(
+                  color: const Color(0xFF007BFF),
+                  width: 2,
+                )
+              : null,
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withOpacity(0.2),
               spreadRadius: 1,
-              blurRadius: 5,
+              blurRadius: 4,
               offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
+            // Main content area
+            Expanded(
+              child: Stack(
+                children: [
+                  // 20% Off tag on left edge (vertical green tag)
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 20,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          bottomLeft: Radius.circular(12),
+                        ),
+                      ),
+                      child: Center(
+                        child: RotatedBox(
+                          quarterTurns: -1,
+                          child: Text(
+                            '20% Off',
+                            style: GoogleFonts.poppins(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  // Status text in center
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(
+                        actualStatus,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
+            
+            // Price bar at bottom
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               decoration: BoxDecoration(
-                color: statusColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                status,
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+                color: const Color(0xFF007BFF),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '20% Off',
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: Colors.green,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Text(
-                  'USD 5000',
-                  style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    decoration: TextDecoration.lineThrough,
-                    color: Colors.grey.shade600,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'USD 5000',
+                    style: GoogleFonts.poppins(
+                      fontSize: 8,
+                      decoration: TextDecoration.lineThrough,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '4900',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                  const SizedBox(width: 2),
+                  Text(
+                    '4900',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -1053,34 +1195,66 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
         selectionInfo = 'General Slot: $selectedCourt at $selectedTime';
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Selected: $selectionInfo. Proceeding to time slots...',
-            style: GoogleFonts.poppins(),
+      // If single slot or multiple repeated slot is selected, skip time slot booking screen and go directly to review
+      if (isSingleSlot || isMultipleSlot) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Selected: $selectionInfo. Proceeding to booking review...',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
+        );
 
-      // Navigate to time slot booking screen
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => TimeSlotBookingScreen(
-            selectedClub: widget.selectedClub,
-            selectedSport: widget.selectedSport,
-            selectedArea: widget.selectedArea,
-            selectedDate: selectedDate ?? widget.selectedDate,
-            distanceRange: widget.distanceRange,
-            role: widget.role,
-            selectedSlot: selectedSlot,
-            selectedCourt: selectedCourt,
-            selectedTime: selectedTime,
+        // Navigate directly to booking review screen
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => BookingReviewScreen(
+              selectedClub: widget.selectedClub,
+              selectedSport: widget.selectedSport,
+              selectedArea: widget.selectedArea,
+              selectedDate: selectedDate ?? widget.selectedDate,
+              distanceRange: widget.distanceRange,
+              role: widget.role,
+              selectedSlot: selectedSlot,
+              selectedCourt: selectedCourt,
+              selectedTime: selectedTime,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Selected: $selectionInfo. Proceeding to time slots...',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        );
+
+        // Navigate to time slot booking screen for other cases
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => TimeSlotBookingScreen(
+              selectedClub: widget.selectedClub,
+              selectedSport: widget.selectedSport,
+              selectedArea: widget.selectedArea,
+              selectedDate: selectedDate ?? widget.selectedDate,
+              distanceRange: widget.distanceRange,
+              role: widget.role,
+              selectedSlot: selectedSlot,
+              selectedCourt: selectedCourt,
+              selectedTime: selectedTime,
+            ),
+          ),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -2301,6 +2475,285 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMultipleRepeatedPrivilegeSlotsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Privilege Slots',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // AVAILABLE SLOTS
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'AVAILABLE SLOTS',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...List.generate(3, (index) {
+                    final court = 'Court ${index + 1}';
+                    return _buildMultipleSlotCourtRow(
+                      court: court,
+                      isAvailable: true,
+                      quantity: privilegeAvailableSlotQuantities[court] ?? 3,
+                      onQuantityChanged: (value) {
+                        setState(() {
+                          privilegeAvailableSlotQuantities[court] = value;
+                        });
+                      },
+                    );
+                  }),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            // WAITING SLOTS
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'WAITING SLOTS',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '(Not Charged Until Confirmed)',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.red,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...List.generate(3, (index) {
+                    final court = 'Court ${index + 1}';
+                    return _buildMultipleSlotCourtRow(
+                      court: court,
+                      isAvailable: false,
+                      quantity: privilegeWaitingSlotQuantities[court] ?? 3,
+                      onQuantityChanged: (value) {
+                        setState(() {
+                          privilegeWaitingSlotQuantities[court] = value;
+                        });
+                      },
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMultipleRepeatedGeneralSlotsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'General Slots',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // AVAILABLE SLOTS
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'AVAILABLE SLOTS',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...List.generate(3, (index) {
+                    final court = 'Court ${index + 1}';
+                    return _buildMultipleSlotCourtRow(
+                      court: court,
+                      isAvailable: true,
+                      quantity: generalAvailableSlotQuantities[court] ?? 3,
+                      onQuantityChanged: (value) {
+                        setState(() {
+                          generalAvailableSlotQuantities[court] = value;
+                        });
+                      },
+                    );
+                  }),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            // WAITING SLOTS
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'WAITING SLOTS',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '(Not Charged Until Confirmed)',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.red,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...List.generate(3, (index) {
+                    final court = 'Court ${index + 1}';
+                    return _buildMultipleSlotCourtRow(
+                      court: court,
+                      isAvailable: false,
+                      quantity: generalWaitingSlotQuantities[court] ?? 3,
+                      onQuantityChanged: (value) {
+                        setState(() {
+                          generalWaitingSlotQuantities[court] = value;
+                        });
+                      },
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMultipleSlotCourtRow({
+    required String court,
+    required bool isAvailable,
+    required int quantity,
+    required ValueChanged<int> onQuantityChanged,
+  }) {
+    const pricePerSlot = 100;
+    final total = pricePerSlot * quantity;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () {
+              // Handle court selection
+            },
+            child: Text(
+              court,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF007BFF),
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                '$pricePerSlot USD/Slot',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                width: 50,
+                height: 32,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade400),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: TextField(
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    hintText: quantity.toString(),
+                  ),
+                  controller: TextEditingController(text: quantity.toString())
+                    ..selection = TextSelection.fromPosition(
+                      TextPosition(offset: quantity.toString().length),
+                    ),
+                  onChanged: (value) {
+                    final newQuantity = int.tryParse(value) ?? 0;
+                    if (newQuantity >= 0) {
+                      onQuantityChanged(newQuantity);
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Slots',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.black87,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'USD $total',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -39,6 +39,26 @@ class _FreelancerTournamentDetailsPageState
   Map<int, bool> _expandedFAQItems = {};
   final TextEditingController _questionController = TextEditingController();
 
+  // Payment Details modal state
+  String _userType = 'FREE USER';
+  String _paymentType = '';
+  double _netTotalAmount = 100.0;
+  double _discountAmount = 0.0;
+  double _referralDiscount = 0.0;
+  double _grandTotal = 100.0;
+  double _taxAmount = 10.0;
+  double _totalIncludingTax = 110.0;
+  
+  // Payment Method modal state
+  String _selectedPaymentMethod = 'CREDIT / DEBIT CARD';
+  bool _isCreditCardExpanded = true;
+  bool _isPayPalExpanded = false;
+  bool _isZelleExpanded = false;
+  final TextEditingController _nameOnCardController = TextEditingController();
+  final TextEditingController _cardNumberController = TextEditingController();
+  final TextEditingController _expiryDateController = TextEditingController();
+  final TextEditingController _cvvController = TextEditingController();
+
   final List<Map<String, dynamic>> _navigationButtons = [
     {'title': 'Event Details', 'icon': Icons.event},
     {'title': 'Attendance Requirement', 'icon': Icons.people},
@@ -49,6 +69,10 @@ class _FreelancerTournamentDetailsPageState
   @override
   void dispose() {
     _questionController.dispose();
+    _nameOnCardController.dispose();
+    _cardNumberController.dispose();
+    _expiryDateController.dispose();
+    _cvvController.dispose();
     super.dispose();
   }
 
@@ -616,56 +640,115 @@ class _FreelancerTournamentDetailsPageState
   Widget _buildNavigationButtons() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: _navigationButtons.asMap().entries.map((entry) {
-            final index = entry.key;
-            final button = entry.value;
-            final isSelected = _selectedButtonIndex == index;
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 600) {
+            // Mobile - wrap buttons
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _navigationButtons.asMap().entries.map((entry) {
+                final index = entry.key;
+                final button = entry.value;
+                final isSelected = _selectedButtonIndex == index;
 
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: InkWell(
-                onTap: () => setState(() => _selectedButtonIndex = index),
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Colors.blue : Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected ? Colors.blue : Colors.grey.shade300,
-                      width: isSelected ? 2 : 1,
+                return InkWell(
+                  onTap: () => setState(() => _selectedButtonIndex = index),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.blue : Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? Colors.blue : Colors.grey.shade300,
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          button['icon'],
+                          color: isSelected ? Colors.white : Colors.black87,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            button['title'],
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black87,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        button['icon'],
-                        color: isSelected ? Colors.white : Colors.black87,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        button['title'],
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black87,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
+                );
+              }).toList(),
+            );
+          } else {
+            // Desktop - horizontal scroll
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _navigationButtons.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final button = entry.value;
+                  final isSelected = _selectedButtonIndex == index;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: InkWell(
+                      onTap: () => setState(() => _selectedButtonIndex = index),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected ? Colors.blue : Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected ? Colors.blue : Colors.grey.shade300,
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              button['icon'],
+                              color: isSelected ? Colors.white : Colors.black87,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              button['title'],
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : Colors.black87,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                }).toList(),
               ),
             );
-          }).toList(),
-        ),
+          }
+        },
       ),
     );
   }
@@ -938,6 +1021,533 @@ class _FreelancerTournamentDetailsPageState
             ),
         ],
       ),
+    );
+  }
+
+  // Payment Modal Methods - Same as member page
+  void _showPaymentDetailsModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => _buildPaymentDetailsModal(setModalState),
+      ),
+    );
+  }
+
+  Widget _buildPaymentDetailsModal(StateSetter setModalState) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        border: Border.all(color: Colors.lightBlue.shade200, width: 2),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.lightBlue.shade100,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: const Center(
+              child: Text('Payment Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildUserTypeButton('FREE USER', _userType == 'FREE USER', () {
+                    setModalState(() => _userType = 'FREE USER');
+                  }),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildUserTypeButton('PRIVILEGE USER', _userType == 'PRIVILEGE USER', () {
+                    setModalState(() => _userType = 'PRIVILEGE USER');
+                  }),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: Colors.lightBlue.shade100, borderRadius: BorderRadius.circular(8)),
+                    child: const Text('Payment Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildEventSection(),
+                  const SizedBox(height: 24),
+                  _buildTotalPaymentsSection(),
+                ],
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, -2))]),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: Colors.grey.shade400),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Cancel', style: TextStyle(color: Colors.black87)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _showPaymentMethodModal();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Pay Now', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserTypeButton(String label, bool isSelected, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.grey.shade200 : Colors.black,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: isSelected ? Colors.grey.shade400 : Colors.transparent, width: 1),
+        ),
+        child: Center(
+          child: Text(label, style: TextStyle(color: isSelected ? Colors.black87 : Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Event', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF232534))),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Text('Player', style: TextStyle(fontSize: 14, color: Color(0xFF232534))),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade300)),
+                child: const Text('1 Slot'),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade300)),
+                child: Text('USD ${_netTotalAmount.toInt()}'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTotalPaymentsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Total Payments', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF232534))),
+        const SizedBox(height: 12),
+        _buildPaymentRow('Net Total Amount To Pay:', _netTotalAmount, Colors.grey.shade800),
+        _buildPaymentRow('Discount Amount:', _discountAmount, Colors.red),
+        _buildPaymentRow('Discount For Referral:', _referralDiscount, Colors.red),
+        _buildPaymentRow('Grand Total Amount To Pay:', _grandTotal, Colors.grey.shade800),
+        _buildPaymentRow('Consumption Tax Amount (10%):', _taxAmount, Colors.grey.shade800),
+        _buildPaymentRow('Total Amount INcluding Tax:', _totalIncludingTax, Colors.green),
+      ],
+    );
+  }
+
+  Widget _buildPaymentRow(String label, double amount, Color backgroundColor) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(8)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+          Row(
+            children: [
+              const Text('USD', style: TextStyle(color: Colors.white, fontSize: 13)),
+              const SizedBox(width: 8),
+              Container(
+                width: 60,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                child: Text(amount == 0 ? '-' : amount.toInt().toString(), style: const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPaymentMethodModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => _buildPaymentMethodModal(setModalState),
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethodModal(StateSetter setModalState) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.95,
+      decoration: BoxDecoration(color: Colors.white, borderRadius: const BorderRadius.vertical(top: Radius.circular(20)), border: Border.all(color: Colors.lightBlue.shade200, width: 2)),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: const BorderRadius.vertical(top: Radius.circular(20))),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.of(context).pop()),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildAmountToPaySection(),
+                  const SizedBox(height: 24),
+                  _buildPaymentMethodSelection(setModalState),
+                  const SizedBox(height: 24),
+                  _buildFinalPaymentDetails(),
+                ],
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, -2))]),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), side: BorderSide(color: Colors.grey.shade400), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                    child: const Text('CANCEL', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment processed successfully')));
+                    },
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), backgroundColor: Colors.green, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                    child: const Text('PAY NOW', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAmountToPaySection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.lightBlue.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.lightBlue.shade200, style: BorderStyle.solid)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Amount To Pay', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF232534))),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(8)),
+                  child: const Center(child: Text('Total Amount To Pay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade300)),
+                  child: Text('USD ${_totalIncludingTax.toInt()}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF232534)), textAlign: TextAlign.center),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethodSelection(StateSetter setModalState) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.lightBlue.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.lightBlue.shade200, style: BorderStyle.solid)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Payment Method', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF232534))),
+          const SizedBox(height: 16),
+          _buildPaymentMethodCard('CREDIT / DEBIT CARD', Icons.credit_card, _isCreditCardExpanded, () {
+            setModalState(() {
+              _isCreditCardExpanded = !_isCreditCardExpanded;
+              if (_isCreditCardExpanded) {
+                _selectedPaymentMethod = 'CREDIT / DEBIT CARD';
+                _isPayPalExpanded = false;
+                _isZelleExpanded = false;
+              }
+            });
+          }, _isCreditCardExpanded ? _buildCreditCardForm() : null, setModalState),
+          const SizedBox(height: 12),
+          _buildPaymentMethodCard('PAYPAL', Icons.payment, _isPayPalExpanded, () {
+            setModalState(() {
+              _isPayPalExpanded = !_isPayPalExpanded;
+              if (_isPayPalExpanded) {
+                _selectedPaymentMethod = 'PAYPAL';
+                _isCreditCardExpanded = false;
+                _isZelleExpanded = false;
+              }
+            });
+          }, _isPayPalExpanded ? _buildPayPalForm() : null, setModalState),
+          const SizedBox(height: 12),
+          _buildPaymentMethodCard('ZELLE', Icons.account_balance_wallet, _isZelleExpanded, () {
+            setModalState(() {
+              _isZelleExpanded = !_isZelleExpanded;
+              if (_isZelleExpanded) {
+                _selectedPaymentMethod = 'ZELLE';
+                _isCreditCardExpanded = false;
+                _isPayPalExpanded = false;
+              }
+            });
+          }, _isZelleExpanded ? _buildZelleForm() : null, setModalState),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethodCard(String title, IconData icon, bool isExpanded, VoidCallback onToggle, Widget? content, StateSetter setModalState) {
+    return Container(
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade300)),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: onToggle,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(children: [Icon(icon, size: 20, color: Colors.grey.shade700), const SizedBox(width: 8), Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF232534)))]),
+                  Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: Colors.grey.shade700),
+                ],
+              ),
+            ),
+          ),
+          if (content != null) content,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreditCardForm() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8))),
+      child: Column(
+        children: [
+          _buildPaymentFormField('Name On Card', _nameOnCardController, 'Blank Fields'),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildPaymentFormField('Card Number', _cardNumberController, 'Blank Fields')),
+              const SizedBox(width: 8),
+              Row(children: [_buildCardIcon('VISA'), const SizedBox(width: 4), _buildCardIcon('MC'), const SizedBox(width: 4), _buildCardIcon('DISCOVER'), const SizedBox(width: 4), _buildCardIcon('AMEX')]),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildPaymentFormField('Expiry Date', _expiryDateController, 'Blank Fields')),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(child: _buildPaymentFormField('CVV', _cvvController, 'Blank Fields')),
+                    const SizedBox(width: 8),
+                    Icon(Icons.credit_card, size: 20, color: Colors.grey.shade600),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPayPalForm() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('https://www.paypal.com/paypalme/sekaiichikk', style: TextStyle(color: Colors.blue, fontSize: 12, decoration: TextDecoration.underline)),
+          const SizedBox(height: 12),
+          const Text('Send Payment To Paypal ID', style: TextStyle(fontSize: 12, color: Color(0xFF232534))),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade300)),
+            child: const Text('sushant.godghate@sekai-ichi.com', style: TextStyle(fontSize: 13, color: Color(0xFF232534))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildZelleForm() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('https://www.zelle.com/zelleme/sekaiichikk', style: TextStyle(color: Colors.blue, fontSize: 12, decoration: TextDecoration.underline)),
+          const SizedBox(height: 12),
+          const Text('Send Payment To Zelle ID', style: TextStyle(fontSize: 12, color: Color(0xFF232534))),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade300)),
+            child: const Text('sushant.godghate@sekai-ichi.com', style: TextStyle(fontSize: 13, color: Color(0xFF232534))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentFormField(String label, TextEditingController controller, String hint) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF232534), fontWeight: FontWeight.w500)),
+        const SizedBox(height: 4),
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: hint,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFinalPaymentDetails() {
+    final now = DateTime.now();
+    final dateStr = '${_getDayName(now.weekday)}, ${_getMonthName(now.month)} ${now.day}, ${now.year}';
+    final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.lightBlue.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.lightBlue.shade200, style: BorderStyle.solid)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Final Payment Details', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF232534))),
+          const SizedBox(height: 16),
+          _buildPaymentDetailRow('Payment Method:', _selectedPaymentMethod),
+          _buildPaymentDetailRow('Payment Status:', 'BEING PROCESSED'),
+          _buildPaymentDetailRow('Payment Date:', dateStr),
+          _buildPaymentDetailRow('Payment Time', timeStr),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF232534))),
+          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF232534))),
+        ],
+      ),
+    );
+  }
+
+  String _getDayName(int weekday) {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days[weekday - 1];
+  }
+
+  String _getMonthName(int month) {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return months[month - 1];
+  }
+
+  Widget _buildCardIcon(String cardType) {
+    return Container(
+      width: 24,
+      height: 16,
+      decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+      child: Center(child: Text(cardType.substring(0, 1), style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.grey.shade700))),
     );
   }
 }

@@ -10,19 +10,28 @@ class InviteReferralDialog extends StatefulWidget {
 
 class _InviteReferralDialogState extends State<InviteReferralDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _messageController = TextEditingController();
+  final _emailController = TextEditingController(
+    text: 'admin@xyz.com , admin@xyz.com , admin@xyz.com',
+  );
+  final _messageController = TextEditingController(
+    text:
+        'Hello, Invitee name, company name, City and Country is inviting you to subscribe to Smart Planner application. This application is useful to ... promotion message. Add Sign Up URL. Thank you and we are looking forward to your subscription. Sincerely, Director, SEKAI-ICHI Engg........ Yokohama, JAPAN.',
+  );
 
   bool _isLoading = false;
-  String _selectedMethod = 'email';
+  String _selectedParagraph = 'paragraph';
+  bool _isBold = false;
+  bool _isItalic = false;
+  bool _isUnderline = false;
+  bool _isStrikethrough = false;
+  TextAlign _textAlign = TextAlign.left;
+  bool _isBulletList = false;
+  bool _isNumberedList = false;
+  bool _isBlockquote = false;
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _messageController.dispose();
     super.dispose();
   }
@@ -46,19 +55,18 @@ class _InviteReferralDialogState extends State<InviteReferralDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Referral invitation sent successfully!'),
-          backgroundColor: Color(0xFF10B981),
+          backgroundColor: Colors.green,
         ),
       );
     }
   }
 
-  void _copyReferralLink() {
-    const referralLink = 'https://smartsports.app/referral/ABC123';
-    Clipboard.setData(const ClipboardData(text: referralLink));
+  Future<void> _pickFile() async {
+    // File picker implementation would go here
+    // For now, just show a message
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Referral link copied to clipboard!'),
-        backgroundColor: Color(0xFF1E40AF),
+        content: Text('File picker functionality would be implemented here'),
       ),
     );
   }
@@ -66,61 +74,74 @@ class _InviteReferralDialogState extends State<InviteReferralDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.95,
-        constraints: const BoxConstraints(maxHeight: 600),
+        width: double.infinity,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.95,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Color(0xFF1E40AF),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.person_add, color: Colors.white, size: 24),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      'Invite Referral',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ],
+            // Close button
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close, color: Color(0xFF6B7280)),
+                padding: const EdgeInsets.all(16),
               ),
             ),
 
             // Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 8,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Invitation Method Selection
+                      // Title
+                      const Center(
+                        child: Text(
+                          'Invite Referrals',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1F2937),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Subtitle
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            '(Generates an email list by entering multiple email addresses separated by a comma in a single input field)',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Email Section
                       const Text(
-                        'Invitation Method',
+                        'Email',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -128,257 +149,310 @@ class _InviteReferralDialogState extends State<InviteReferralDialog> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      // Mobile-friendly method selection
-                      Column(
-                        children: [
-                          _buildMethodButton(
-                            'Email',
-                            Icons.email,
-                            _selectedMethod == 'email',
-                            () => setState(() => _selectedMethod = 'email'),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildMethodButton(
-                            'SMS',
-                            Icons.sms,
-                            _selectedMethod == 'sms',
-                            () => setState(() => _selectedMethod = 'sms'),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildMethodButton(
-                            'Link',
-                            Icons.link,
-                            _selectedMethod == 'link',
-                            () => setState(() => _selectedMethod = 'link'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Referral Link Section (for link method)
-                      if (_selectedMethod == 'link') ...[
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF3F4F6),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          hintText: 'Enter email addresses separated by commas',
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE5E7EB)),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF009A69),
+                              width: 2,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.all(16),
+                        ),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF3B82F6),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter at least one email address';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Invite Message Section
+                      const Text(
+                        'Invite Message',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // Rich Text Editor Toolbar
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            topRight: Radius.circular(12),
+                          ),
+                          color: const Color(0xFFF9FAFB),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
                             children: [
-                              const Text(
-                                'Your Referral Link',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF1F2937),
+                              // Paragraph dropdown
+                              DropdownButton<String>(
+                                value: _selectedParagraph,
+                                underline: const SizedBox(),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: 'paragraph',
+                                    child: Text('paragraph'),
+                                  ),
+                                ],
+                                onChanged: (value) {
+                                  setState(() => _selectedParagraph = value!);
+                                },
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              const SizedBox(width: 8),
+                              // Formatting buttons
+                              _buildToolbarButton(
+                                icon: Icons.format_bold,
+                                isActive: _isBold,
+                                onTap: () => setState(() => _isBold = !_isBold),
+                              ),
+                              _buildToolbarButton(
+                                icon: Icons.format_italic,
+                                isActive: _isItalic,
+                                onTap: () =>
+                                    setState(() => _isItalic = !_isItalic),
+                              ),
+                              _buildToolbarButton(
+                                icon: Icons.format_underlined,
+                                isActive: _isUnderline,
+                                onTap: () => setState(
+                                  () => _isUnderline = !_isUnderline,
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: const Color(0xFFE5E7EB),
-                                  ),
+                              _buildToolbarButton(
+                                icon: Icons.strikethrough_s,
+                                isActive: _isStrikethrough,
+                                onTap: () => setState(
+                                  () => _isStrikethrough = !_isStrikethrough,
                                 ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'https://smartsports.app/referral/ABC123',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Color(0xFF6B7280),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    InkWell(
-                                      onTap: _copyReferralLink,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF1E40AF),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.copy,
-                                          size: 16,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                              ),
+                              const SizedBox(width: 8),
+                              // Alignment buttons
+                              _buildToolbarButton(
+                                icon: Icons.format_align_left,
+                                isActive: _textAlign == TextAlign.left,
+                                onTap: () =>
+                                    setState(() => _textAlign = TextAlign.left),
+                              ),
+                              _buildToolbarButton(
+                                icon: Icons.format_align_center,
+                                isActive: _textAlign == TextAlign.center,
+                                onTap: () => setState(
+                                  () => _textAlign = TextAlign.center,
+                                ),
+                              ),
+                              _buildToolbarButton(
+                                icon: Icons.format_align_right,
+                                isActive: _textAlign == TextAlign.right,
+                                onTap: () => setState(
+                                  () => _textAlign = TextAlign.right,
+                                ),
+                              ),
+                              _buildToolbarButton(
+                                icon: Icons.format_align_justify,
+                                isActive: _textAlign == TextAlign.justify,
+                                onTap: () => setState(
+                                  () => _textAlign = TextAlign.justify,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // List buttons
+                              _buildToolbarButton(
+                                icon: Icons.format_list_bulleted,
+                                isActive: _isBulletList,
+                                onTap: () => setState(
+                                  () => _isBulletList = !_isBulletList,
+                                ),
+                              ),
+                              _buildToolbarButton(
+                                icon: Icons.format_list_numbered,
+                                isActive: _isNumberedList,
+                                onTap: () => setState(
+                                  () => _isNumberedList = !_isNumberedList,
+                                ),
+                              ),
+                              _buildToolbarButton(
+                                icon: Icons.format_quote,
+                                isActive: _isBlockquote,
+                                onTap: () => setState(
+                                  () => _isBlockquote = !_isBlockquote,
+                                ),
+                              ),
+                              _buildToolbarButton(
+                                icon: Icons.format_indent_increase,
+                                isActive: false,
+                                onTap: () {},
+                              ),
+                              _buildToolbarButton(
+                                icon: Icons.format_indent_decrease,
+                                isActive: false,
+                                onTap: () {},
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Rich Text Editor Content
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            left: BorderSide(color: Colors.grey[300]!),
+                            right: BorderSide(color: Colors.grey[300]!),
+                            bottom: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
+                        ),
+                        child: TextFormField(
+                          controller: _messageController,
+                          maxLines: 8,
+                          textAlign: _textAlign,
+                          decoration: InputDecoration(
+                            hintText: 'Enter your invitation message...',
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.all(16),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: _isBold
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            fontStyle: _isItalic
+                                ? FontStyle.italic
+                                : FontStyle.normal,
+                            decoration: TextDecoration.combine([
+                              if (_isUnderline) TextDecoration.underline,
+                              if (_isStrikethrough) TextDecoration.lineThrough,
+                            ]),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Attachment Section
+                      const Text(
+                        'Attachment',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      InkWell(
+                        onTap: _pickFile,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.attach_file, color: Colors.grey[400]),
+                              const SizedBox(width: 12),
+                              Text(
+                                'select images or pdf',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[400],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 24),
-                      ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '[Required file size is less than 6 MB]',
+                        style: TextStyle(fontSize: 12, color: Colors.red[600]),
+                      ),
+                      const SizedBox(height: 40),
 
-                      // Form Fields (for email and SMS methods)
-                      if (_selectedMethod != 'link') ...[
-                        // Name Field
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            labelText: 'Referral Name',
-                            hintText: 'Enter referral name',
-                            prefixIcon: const Icon(Icons.person_outline),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      // SEND INVITE Button
+                      Center(
+                        child: Container(
+                          width: double.infinity,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(28),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF4B5563), Color(0xFF009A69)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
                             ),
-                            filled: true,
-                            fillColor: const Color(0xFFF9FAFB),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter referral name';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Email/Phone Field
-                        if (_selectedMethod == 'email')
-                          TextFormField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: InputDecoration(
-                              labelText: 'Email Address',
-                              hintText: 'Enter email address',
-                              prefixIcon: const Icon(Icons.email_outlined),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _sendInvite,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(28),
                               ),
-                              filled: true,
-                              fillColor: const Color(0xFFF9FAFB),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter email address';
-                              }
-                              if (!value.contains('@')) {
-                                return 'Please enter a valid email';
-                              }
-                              return null;
-                            },
-                          )
-                        else
-                          TextFormField(
-                            controller: _phoneController,
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration(
-                              labelText: 'Phone Number',
-                              hintText: 'Enter phone number',
-                              prefixIcon: const Icon(Icons.phone_outlined),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFF9FAFB),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter phone number';
-                              }
-                              return null;
-                            },
-                          ),
-                        const SizedBox(height: 16),
-
-                        // Message Field
-                        TextFormField(
-                          controller: _messageController,
-                          maxLines: 3,
-                          decoration: InputDecoration(
-                            labelText: 'Personal Message (Optional)',
-                            hintText:
-                                'Add a personal message to your invitation',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            filled: true,
-                            fillColor: const Color(0xFFF9FAFB),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-
-                      // Action Buttons
-                      Column(
-                        children: [
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _sendInvite,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF1E40AF),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
-                                            ),
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Send Invitation',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
                                       ),
                                     ),
-                            ),
+                                  )
+                                : const Text(
+                                    'SEND INVITE',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
                           ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                side: const BorderSide(
-                                  color: Color(0xFFD1D5DB),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Text(
-                                'Cancel',
-                                style: TextStyle(
-                                  color: Color(0xFF6B7280),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
@@ -390,47 +464,24 @@ class _InviteReferralDialogState extends State<InviteReferralDialog> {
     );
   }
 
-  Widget _buildMethodButton(
-    String label,
-    IconData icon,
-    bool isSelected,
-    VoidCallback onTap,
-  ) {
+  Widget _buildToolbarButton({
+    required IconData icon,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        padding: const EdgeInsets.all(6),
+        margin: const EdgeInsets.symmetric(horizontal: 2),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E40AF) : const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? const Color(0xFF1E40AF)
-                : const Color(0xFFE5E7EB),
-            width: 2,
-          ),
+          color: isActive ? const Color(0xFF009A69) : Colors.transparent,
+          borderRadius: BorderRadius.circular(4),
         ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : const Color(0xFF6B7280),
-              size: 24,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : const Color(0xFF6B7280),
-              ),
-            ),
-            const Spacer(),
-            if (isSelected)
-              const Icon(Icons.check_circle, color: Colors.white, size: 20),
-          ],
+        child: Icon(
+          icon,
+          size: 18,
+          color: isActive ? Colors.white : const Color(0xFF6B7280),
         ),
       ),
     );

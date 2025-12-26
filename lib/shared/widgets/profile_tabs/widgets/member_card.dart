@@ -22,20 +22,20 @@ class MemberCard extends StatefulWidget {
     required this.onUpdate,
   });
 
-  // Members tab gradient colors
-  static const Color _gradientStart = Color(0xFF232534);
-  static const Color _gradientEnd = Color(0xFF009A69);
-  static const LinearGradient _membersGradient = LinearGradient(
-    colors: [_gradientStart, _gradientEnd],
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-  );
-
   @override
   State<MemberCard> createState() => _MemberCardState();
 }
 
 class _MemberCardState extends State<MemberCard> {
+  // Members tab gradient - uses role color
+  LinearGradient get _membersGradient => LinearGradient(
+    colors: [
+      widget.roleColor.withValues(alpha: 0.8),
+      widget.roleColor,
+    ],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
   late Map<String, dynamic> _member;
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -222,7 +222,7 @@ class _MemberCardState extends State<MemberCard> {
         widget.useMembersGradient
             ? ShaderMask(
                 shaderCallback: (bounds) =>
-                    MemberCard._membersGradient.createShader(bounds),
+                    _membersGradient.createShader(bounds),
                 child: const Text(
                   'Basic Details',
                   style: TextStyle(
@@ -340,7 +340,7 @@ class _MemberCardState extends State<MemberCard> {
         widget.useMembersGradient
             ? ShaderMask(
                 shaderCallback: (bounds) =>
-                    MemberCard._membersGradient.createShader(bounds),
+                    _membersGradient.createShader(bounds),
                 child: const Text(
                   'Sports Interested In',
                   style: TextStyle(
@@ -380,25 +380,17 @@ class _MemberCardState extends State<MemberCard> {
                       });
                     }
                   : null,
-              selectedColor: widget.useMembersGradient
-                  ? MemberCard._gradientEnd.withValues(alpha: 0.2)
-                  : widget.roleColor.withValues(alpha: 0.2),
-              checkmarkColor: widget.useMembersGradient
-                  ? MemberCard._gradientEnd
-                  : widget.roleColor,
+              selectedColor: widget.roleColor.withValues(alpha: 0.2),
+              checkmarkColor: widget.roleColor,
               labelStyle: TextStyle(
                 color: isSelected
-                    ? (widget.useMembersGradient
-                          ? MemberCard._gradientEnd
-                          : widget.roleColor)
+                    ? widget.roleColor
                     : Colors.grey.shade700,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
               side: BorderSide(
                 color: isSelected
-                    ? (widget.useMembersGradient
-                          ? MemberCard._gradientEnd
-                          : widget.roleColor)
+                    ? widget.roleColor
                     : Colors.grey.shade300,
                 width: isSelected ? 2 : 1,
               ),
@@ -427,9 +419,7 @@ class _MemberCardState extends State<MemberCard> {
                       });
                     }
                   : null,
-              activeColor: widget.useMembersGradient
-                  ? MemberCard._gradientEnd
-                  : widget.roleColor,
+              activeColor: widget.roleColor,
             ),
             const Expanded(
               child: Text(
@@ -560,9 +550,7 @@ class _MemberCardState extends State<MemberCard> {
                       });
                     }
                   : null,
-              activeColor: widget.useMembersGradient
-                  ? MemberCard._gradientEnd
-                  : widget.roleColor,
+              activeColor: widget.roleColor,
             ),
             const Expanded(
               child: Text(
@@ -584,9 +572,7 @@ class _MemberCardState extends State<MemberCard> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: PracticePlanCard(
-                roleColor: widget.useMembersGradient
-                    ? MemberCard._gradientEnd
-                    : widget.roleColor,
+                roleColor: widget.roleColor,
                 plan: plan,
                 onUpdate: (updatedPlan) {
                   setState(() {
@@ -620,9 +606,7 @@ class _MemberCardState extends State<MemberCard> {
             icon: const Icon(Icons.add, size: 18),
             label: const Text('Add Practice Plan'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: widget.useMembersGradient
-                  ? MemberCard._gradientEnd
-                  : widget.roleColor,
+              backgroundColor: widget.roleColor,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -659,9 +643,7 @@ class _MemberCardState extends State<MemberCard> {
                       });
                     }
                   : null,
-              activeColor: widget.useMembersGradient
-                  ? MemberCard._gradientEnd
-                  : widget.roleColor,
+              activeColor: widget.roleColor,
             ),
             const Expanded(
               child: Text(
@@ -712,9 +694,7 @@ class _MemberCardState extends State<MemberCard> {
                       max: 50,
                       divisions: 49,
                       label: '${distance.toStringAsFixed(1)} km',
-                      activeColor: widget.useMembersGradient
-                          ? MemberCard._gradientEnd
-                          : widget.roleColor,
+                      activeColor: widget.roleColor,
                       onChanged: widget.isEditMode
                           ? (value) {
                               setState(() {
@@ -819,9 +799,7 @@ class _MemberCardState extends State<MemberCard> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: widget.useMembersGradient
-                    ? MemberCard._gradientEnd
-                    : widget.roleColor,
+                color: widget.roleColor,
                 width: 2,
               ),
             ),
@@ -1036,9 +1014,7 @@ class _MemberCardState extends State<MemberCard> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: widget.useMembersGradient
-                          ? MemberCard._gradientEnd
-                          : widget.roleColor,
+                      color: widget.roleColor,
                       width: 2,
                     ),
                   ),
@@ -1104,9 +1080,7 @@ class _MemberCardState extends State<MemberCard> {
                                         }
                                       });
                                     },
-                                    activeColor: widget.useMembersGradient
-                                        ? MemberCard._gradientEnd
-                                        : widget.roleColor,
+                                    activeColor: widget.roleColor,
                                   );
                                 },
                               ),
@@ -1122,9 +1096,7 @@ class _MemberCardState extends State<MemberCard> {
                                   Navigator.pop(context);
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: widget.useMembersGradient
-                                      ? MemberCard._gradientEnd
-                                      : widget.roleColor,
+                                  backgroundColor: widget.roleColor,
                                   foregroundColor: Colors.white,
                                 ),
                                 child: const Text('Done'),
@@ -1179,16 +1151,10 @@ class _MemberCardState extends State<MemberCard> {
                     _updateMember();
                   });
                 },
-                deleteIconColor: widget.useMembersGradient
-                    ? MemberCard._gradientEnd
-                    : widget.roleColor,
-                backgroundColor: widget.useMembersGradient
-                    ? MemberCard._gradientEnd.withValues(alpha: 0.1)
-                    : widget.roleColor.withValues(alpha: 0.1),
+                deleteIconColor: widget.roleColor,
+                backgroundColor: widget.roleColor.withValues(alpha: 0.1),
                 labelStyle: TextStyle(
-                  color: widget.useMembersGradient
-                      ? MemberCard._gradientEnd
-                      : widget.roleColor,
+                  color: widget.roleColor,
                 ),
               );
             }).toList(),

@@ -53,14 +53,24 @@ class SubscriptionServiceTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Checkbox(
-            value: isSelected,
-            onChanged: (value) => onChanged(value ?? false),
-            activeColor: roleColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+          if (isSelected)
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: roleColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.check,
+                color: Colors.white,
+                size: 20,
+              ),
+            )
+          else
+            Container(
+              width: 36,
+              height: 36,
             ),
-          ),
           const SizedBox(width: 12),
           Container(
             padding: const EdgeInsets.all(10),
@@ -87,13 +97,25 @@ class SubscriptionServiceTile extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Text(
-                      'USD ${_formatCurrency(monthlyFee)}/mo',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: roleColor,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          'Monthly Fee',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Text(
+                          'USD ${_formatCurrency(monthlyFee)}',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: roleColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

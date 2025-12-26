@@ -252,7 +252,7 @@ class _ClubCustomerSupportPageState extends State<ClubCustomerSupportPage> {
                   const Icon(Icons.add, size: 14),
                   const SizedBox(width: 2),
                   const Text(
-                    'Raise',
+                    'Raise a Complaint',
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
                   ),
                 ],

@@ -14,7 +14,8 @@ class ClubEventsPage extends StatefulWidget {
 }
 
 class _ClubEventsPageState extends State<ClubEventsPage> {
-  int _selectedTabIndex = 0;
+  int _selectedEventTypeIndex = 0; // 0 = Upcoming Events, 1 = Past Events
+  int _selectedTabIndex = 0; // 0 = As An Organizer, 1 = As A Subscriber, 2 = Unsubscribed Events
   String _selectedSport = 'Cricket';
 
   // Filter controllers
@@ -117,8 +118,11 @@ class _ClubEventsPageState extends State<ClubEventsPage> {
       ),
       body: Column(
         children: [
-          // Tab Sections
-          _buildTabSections(),
+          // Event Type Tabs (Upcoming Events / Past Events)
+          _buildEventTypeTabs(),
+          
+          // Tab Sections (As An Organizer / As A Subscriber / Unsubscribed Events)
+          if (_selectedEventTypeIndex == 0) _buildTabSections(),
 
           // Filter Bar
           _buildFilterBar(),
@@ -136,6 +140,95 @@ class _ClubEventsPageState extends State<ClubEventsPage> {
         label: const Text('Add Event'),
         backgroundColor: const Color(0xFF007BFF),
         foregroundColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildEventTypeTabs() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: () => setState(() => _selectedEventTypeIndex = 0),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: _selectedEventTypeIndex == 0
+                      ? Colors.grey.shade800
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _selectedEventTypeIndex == 0
+                        ? Colors.grey.shade700
+                        : Colors.grey.shade300,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'Upcoming Events',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: _selectedEventTypeIndex == 0
+                        ? Colors.white
+                        : Colors.grey.shade700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: InkWell(
+              onTap: () => setState(() => _selectedEventTypeIndex = 1),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: _selectedEventTypeIndex == 1
+                      ? Colors.grey.shade800
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _selectedEventTypeIndex == 1
+                        ? Colors.grey.shade700
+                        : Colors.grey.shade300,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'Past Events',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: _selectedEventTypeIndex == 1
+                        ? Colors.white
+                        : Colors.grey.shade700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -729,35 +822,36 @@ class _ClubEventsPageState extends State<ClubEventsPage> {
           child: Stack(
             children: [
               // Background Image
-              Container(
-                height: 320,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(
-                      'assets/images/pngtree-a-large-cricket-stadium-green-field-empty-picture-image_15985507.jpg',
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(
+                        'assets/images/pngtree-a-large-cricket-stadium-green-field-empty-picture-image_15985507.jpg',
+                      ),
+                      fit: BoxFit.cover,
                     ),
-                    fit: BoxFit.cover,
                   ),
                 ),
               ),
 
               // Overlay Content
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.2),
-                        Colors.black.withOpacity(0.8),
-                      ],
-                    ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.2),
+                      Colors.black.withOpacity(0.8),
+                    ],
                   ),
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                ),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                       // Tournament Title and Favourite
                       Row(
                         children: [
@@ -1139,7 +1233,6 @@ class _ClubEventsPageState extends State<ClubEventsPage> {
                     ],
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -1160,6 +1253,7 @@ class _ClubEventsPageState extends State<ClubEventsPage> {
           registrationDate: tournament['registrationDate'],
           organizerName: tournament['organizerName'],
           organizerEmail: tournament['organizerEmail'],
+          role: tournament['isOrganizer'] ? 'Organiser' : 'Coach',
         ),
       ),
     );

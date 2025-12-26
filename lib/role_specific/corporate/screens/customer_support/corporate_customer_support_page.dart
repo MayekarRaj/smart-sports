@@ -890,111 +890,124 @@ class AddComplaintScreen extends StatefulWidget {
 
 class _AddComplaintScreenState extends State<AddComplaintScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _complainantNameController = TextEditingController(
-    text: 'Corporate Manager',
-  );
+  final _complainantNameController = TextEditingController();
   final _complaintTitleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _playerNameController = TextEditingController();
+  final _playerCoachClubController = TextEditingController();
 
-  String _selectedRole = 'Corporate Manager';
-  String _selectedCategory = 'Inappropriate language';
+  String _selectedCategory = '';
   String _selectedComplaintAgainst = 'Player';
-  String _selectedResolution = '2 Working Days';
-  String _selectedUrgency = 'High';
+  String _selectedPreferredResolution = '2 Working Days';
+  String _selectedUrgencyLevel = 'High';
+  String _selectedComplainantRole = '';
+  String _selectedRole = '';
+  String _dateOfComplaint = 'Wed, March 5, 2025';
   DateTime _selectedDate = DateTime.now();
-  List<String> _attachedFiles = [];
+  String? _selectedFileName;
   bool _isLoading = false;
+  List<String> _attachedFiles = [];
 
   final List<String> _categories = [
-    'Inappropriate language',
-    'Equipment',
-    'Staff',
-    'Facility',
-    'Behavior',
-    'Discipline',
-    'Property',
-    'Safety',
-    'Other',
+    'Input Text',
+    'Booking',
+    'Payment',
+    'Account',
+    'Event',
+    'General',
   ];
+
   final List<String> _complaintAgainstOptions = [
     'Player',
     'Coach',
-    'Staff',
     'Club',
-    'Facility',
+    'Member',
   ];
-  final List<String> _resolutionOptions = [
-    '1 Working Day',
+
+  final List<String> _preferredResolutionOptions = [
     '2 Working Days',
-    '3 Working Days',
+    '5 Working Days',
     '1 Week',
     '2 Weeks',
   ];
-  final List<String> _urgencyOptions = ['Low', 'Medium', 'High', 'Critical'];
+
+  final List<String> _urgencyLevelOptions = ['High', 'Medium', 'Low'];
+
+  final List<String> _complainantRoleOptions = [
+    'Coach',
+    'Player',
+    'Member',
+    'Club',
+  ];
 
   @override
   void dispose() {
     _complainantNameController.dispose();
     _complaintTitleController.dispose();
     _descriptionController.dispose();
-    _playerNameController.dispose();
+    _playerCoachClubController.dispose();
     super.dispose();
   }
 
-  void _submitComplaint() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      setState(() {
+        _dateOfComplaint = _formatDate(picked);
+      });
+    }
+  }
 
-    if (!mounted) return;
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
 
+  Future<void> _pickFile() async {
+    // File picker implementation would go here
     setState(() {
-      _isLoading = true;
+      _selectedFileName = 'evidence.pdf'; // Simulated
     });
+  }
 
-    try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (!mounted) return;
-
+  void _submitComplaint() {
+    if (_formKey.currentState!.validate()) {
       final complaint = Complaint(
-        title: _complaintTitleController.text.trim(),
-        category: _selectedCategory,
-        description: _descriptionController.text.trim(),
+        title: _complaintTitleController.text,
+        category: _selectedCategory.isEmpty ? 'General' : _selectedCategory,
+        description: _descriptionController.text,
         complaintFrom: _complainantNameController.text.trim(),
-        date: _selectedDate.toString().split(' ')[0],
+        date: DateTime.now().toString().split(' ')[0],
         status: 'Open',
       );
 
       widget.onComplaintSubmitted(complaint);
+      Navigator.of(context).pop();
 
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (mounted) {
-        Navigator.of(context).pop();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Complaint submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error submitting complaint: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Complaint submitted successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 
@@ -1270,7 +1283,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
               _buildFormField(
                 label: 'Player/Coach/Club Names',
                 child: TextFormField(
-                  controller: _playerNameController,
+                  controller: _playerCoachClubController,
                   decoration: InputDecoration(
                     hintText: 'Q Player',
                     prefixIcon: const Icon(Icons.search, size: 20),
@@ -1349,7 +1362,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
               _buildFormField(
                 label: 'Preferred Resolution',
                 child: DropdownButtonFormField<String>(
-                  value: _selectedResolution,
+                  value: _selectedPreferredResolution,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -1359,7 +1372,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                       vertical: 12,
                     ),
                   ),
-                  items: _resolutionOptions.map((resolution) {
+                  items: _preferredResolutionOptions.map((resolution) {
                     return DropdownMenuItem(
                       value: resolution,
                       child: Text(resolution),
@@ -1367,7 +1380,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                   }).toList(),
                   onChanged: (value) {
                     setState(() {
-                      _selectedResolution = value!;
+                      _selectedPreferredResolution = value!;
                     });
                   },
                 ),
@@ -1378,7 +1391,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
               _buildFormField(
                 label: 'Urgency Level',
                 child: DropdownButtonFormField<String>(
-                  value: _selectedUrgency,
+                  value: _selectedUrgencyLevel,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -1388,7 +1401,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                       vertical: 12,
                     ),
                   ),
-                  items: _urgencyOptions.map((urgency) {
+                  items: _urgencyLevelOptions.map((urgency) {
                     return DropdownMenuItem(
                       value: urgency,
                       child: Text(urgency),
@@ -1396,7 +1409,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                   }).toList(),
                   onChanged: (value) {
                     setState(() {
-                      _selectedUrgency = value!;
+                      _selectedUrgencyLevel = value!;
                     });
                   },
                 ),
