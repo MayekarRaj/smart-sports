@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_sports/auth/screens/auth_shell.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/profile/merchandiser_profile_page.dart';
@@ -10,17 +10,18 @@ import 'package:smart_sports/role_specific/merchandiser/screens/events/merchandi
 import 'package:smart_sports/role_specific/merchandiser/screens/users/merchandiser_users_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/referrals/merchandiser_referrals_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/settings/merchandiser_settings_page.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class MerchandiserCustomerSupportPage extends StatefulWidget {
+class MerchandiserCustomerSupportPage extends ConsumerStatefulWidget {
   const MerchandiserCustomerSupportPage({super.key});
 
   @override
-  State<MerchandiserCustomerSupportPage> createState() =>
+  ConsumerState<MerchandiserCustomerSupportPage> createState() =>
       _MerchandiserCustomerSupportPageState();
 }
 
 class _MerchandiserCustomerSupportPageState
-    extends State<MerchandiserCustomerSupportPage> {
+    extends ConsumerState<MerchandiserCustomerSupportPage> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _titleSearchController = TextEditingController();
   String _selectedStatus = 'Select';
@@ -168,10 +169,7 @@ class _MerchandiserCustomerSupportPageState
                     ElevatedButton(
                       onPressed: () {
                         Navigator.of(dialogContext).pop(); // Close dialog
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const AuthShell()),
-                          (route) => false,
-                        );
+                        AuthUtils.handleLogout(context, ref);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,

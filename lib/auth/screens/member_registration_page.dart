@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'family_details_page.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../core/exceptions/api_exception.dart';
+import '../../core/models/api_models.dart';
 
 class MemberRegistrationPage extends StatefulWidget {
   const MemberRegistrationPage({super.key});
@@ -13,9 +16,14 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
   final _scrollController = ScrollController();
 
   // Practice Plan
-  String _practiceDays = 'Weekdays';
+  String? _practiceDays;
   String _practiceStartTime = '00:00';
   String _practiceEndTime = '00:00';
+
+  // Club days from API
+  final AuthRepository _authRepository = AuthRepository();
+  List<MstClubDay> _clubDays = [];
+  bool _isLoadingClubDays = false;
 
   // Preferred Club
   final List<String> _selectedClubs = [];
@@ -52,10 +60,51 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
   ];
 
   @override
+  @override
   void initState() {
     super.initState();
     // Initialize with sample selected clubs
     _selectedClubs.addAll(['Urban Titans', 'Steel Panthers']);
+    _loadClubDays();
+  }
+
+  Future<void> _loadClubDays() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingClubDays = true;
+    });
+
+    try {
+      final response = await _authRepository.getClubDays(
+        perPage: 1000,
+        orderBy: 'id|ASC',
+        isActive: 1,
+        page: 1,
+      );
+
+      if (mounted) {
+        setState(() {
+          _clubDays = response.data.data;
+          if (_practiceDays == null && _clubDays.isNotEmpty) {
+            _practiceDays = _clubDays.first.name;
+          }
+          _isLoadingClubDays = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingClubDays = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load club days: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -200,16 +249,83 @@ class _MemberRegistrationPageState extends State<MemberRegistrationPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDropdownField(
-                      label: 'Practice Days',
-                      value: _practiceDays,
-                      items: ['Weekdays', 'Weekend', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                      onChanged: (value) {
-                        setState(() {
-                          _practiceDays = value!;
-                        });
-                      },
-                    ),
+                    _isLoadingClubDays
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Practice Days',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.grey[200]!),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text('Loading...', style: TextStyle(color: Colors.grey)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : _clubDays.isEmpty
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Practice Days',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF64748B),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[50],
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.grey[200]!),
+                                    ),
+                                    child: const Text(
+                                      'No days available',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : _buildDropdownField(
+                                label: 'Practice Days',
+                                value: _practiceDays ?? (_clubDays.isNotEmpty ? _clubDays.first.name : 'Monday'),
+                                items: _clubDays.map((day) => day.name).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _practiceDays = value!;
+                                  });
+                                },
+                              ),
                     const SizedBox(height: 16),
                     Row(
                       children: [

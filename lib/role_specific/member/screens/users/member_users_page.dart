@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/common/models/user.dart' as models;
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
-import 'package:smart_sports/auth/screens/auth_shell.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class MemberUsersPage extends StatefulWidget {
+class MemberUsersPage extends ConsumerStatefulWidget {
   const MemberUsersPage({super.key});
 
   @override
-  State<MemberUsersPage> createState() => _MemberUsersPageState();
+  ConsumerState<MemberUsersPage> createState() => _MemberUsersPageState();
 }
 
-class _MemberUsersPageState extends State<MemberUsersPage> {
+class _MemberUsersPageState extends ConsumerState<MemberUsersPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _showFilters = false;
@@ -155,10 +156,7 @@ class _MemberUsersPageState extends State<MemberUsersPage> {
                     ElevatedButton(
                       onPressed: () {
                         Navigator.of(dialogContext).pop();
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const AuthShell()),
-                          (route) => false,
-                        );
+                        AuthUtils.handleLogout(context, ref);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,

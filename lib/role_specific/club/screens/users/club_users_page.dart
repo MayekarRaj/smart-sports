@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/common/models/user.dart' as models;
 import 'package:smart_sports/role_specific/club/screens/users/user_data_service.dart';
 import 'package:smart_sports/role_specific/club/screens/users/user_card.dart';
@@ -9,15 +10,16 @@ import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 // Navigation to other screens is handled via RoleNavigationManager from the sidebar.
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/role_specific/club/screens/users/add_user_screen.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class ClubUsersPage extends StatefulWidget {
+class ClubUsersPage extends ConsumerStatefulWidget {
   const ClubUsersPage({super.key});
 
   @override
-  State<ClubUsersPage> createState() => _ClubUsersPageState();
+  ConsumerState<ClubUsersPage> createState() => _ClubUsersPageState();
 }
 
-class _ClubUsersPageState extends State<ClubUsersPage>
+class _ClubUsersPageState extends ConsumerState<ClubUsersPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   late AnimationController _filterAnimationController;
@@ -155,10 +157,7 @@ class _ClubUsersPageState extends State<ClubUsersPage>
                     ElevatedButton(
                       onPressed: () {
                         Navigator.of(dialogContext).pop(); // Close dialog
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const AuthShell()),
-                          (route) => false,
-                        );
+                        AuthUtils.handleLogout(context, ref);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,

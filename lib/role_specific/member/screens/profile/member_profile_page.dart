@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
-import 'package:smart_sports/auth/screens/auth_shell.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 import 'package:smart_sports/shared/widgets/profile_tab_components.dart';
 import 'package:smart_sports/shared/widgets/profile_tab_content_builder.dart';
 import 'package:smart_sports/shared/widgets/profile_tabs/members_tab.dart';
 import 'package:smart_sports/shared/widgets/profile_tabs/bank_details_tab.dart';
 import 'package:smart_sports/shared/widgets/profile_tabs/subscriptions_tab.dart';
 
-class MemberProfilePage extends StatefulWidget {
+class MemberProfilePage extends ConsumerStatefulWidget {
   const MemberProfilePage({super.key});
 
   @override
-  State<MemberProfilePage> createState() => _MemberProfilePageState();
+  ConsumerState<MemberProfilePage> createState() => _MemberProfilePageState();
 }
 
-class _MemberProfilePageState extends State<MemberProfilePage>
+class _MemberProfilePageState extends ConsumerState<MemberProfilePage>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -121,9 +122,29 @@ class _MemberProfilePageState extends State<MemberProfilePage>
             ),
             onProfileTap: () => Navigator.of(context).pop(),
             onSignOut: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthShell()),
-                (route) => false,
+              showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                        AuthUtils.handleLogout(context, ref);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
+                ),
               );
             },
           ),

@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class ClubSettingsPage extends StatefulWidget {
+class ClubSettingsPage extends ConsumerStatefulWidget {
   const ClubSettingsPage({super.key});
 
   @override
-  State<ClubSettingsPage> createState() => _ClubSettingsPageState();
+  ConsumerState<ClubSettingsPage> createState() => _ClubSettingsPageState();
 }
 
-class _ClubSettingsPageState extends State<ClubSettingsPage>
+class _ClubSettingsPageState extends ConsumerState<ClubSettingsPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
 
@@ -98,12 +100,7 @@ class _ClubSettingsPageState extends State<ClubSettingsPage>
               context,
               UserRole.club,
             ),
-            onSignOut: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthShell()),
-                (route) => false,
-              );
-            },
+            onSignOut: () => AuthUtils.handleLogout(context, ref),
           ),
         ),
       ),

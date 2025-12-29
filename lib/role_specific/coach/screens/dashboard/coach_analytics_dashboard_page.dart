@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/coach/widgets/coach_phone_filters.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class CoachAnalyticsDashboardPage extends StatefulWidget {
+class CoachAnalyticsDashboardPage extends ConsumerStatefulWidget {
   const CoachAnalyticsDashboardPage({super.key});
 
   @override
-  State<CoachAnalyticsDashboardPage> createState() =>
+  ConsumerState<CoachAnalyticsDashboardPage> createState() =>
       _CoachAnalyticsDashboardPageState();
 }
 
@@ -19,7 +21,7 @@ class MediaUtils {
 }
 
 class _CoachAnalyticsDashboardPageState
-    extends State<CoachAnalyticsDashboardPage>
+    extends ConsumerState<CoachAnalyticsDashboardPage>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late final TabController _tableTabs;
   final ScrollController _scrollController = ScrollController();
@@ -103,6 +105,7 @@ class _CoachAnalyticsDashboardPageState
               context,
               UserRole.coach,
             ),
+            onSignOut: () => AuthUtils.handleLogout(context, ref),
             edgeToEdge: true,
           ),
         ),

@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/events/screens/add_event_form_screen.dart';
 import 'member_tournament_details_page.dart';
 
-class MemberEventsPage extends StatefulWidget {
+class MemberEventsPage extends ConsumerStatefulWidget {
   const MemberEventsPage({super.key});
 
   @override
-  State<MemberEventsPage> createState() => _MemberEventsPageState();
+  ConsumerState<MemberEventsPage> createState() => _MemberEventsPageState();
 }
 
 class _MemberEventsPageState extends State<MemberEventsPage> {
@@ -131,6 +132,32 @@ class _MemberEventsPageState extends State<MemberEventsPage> {
               context,
               UserRole.member,
             ),
+            onSignOut: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                        AuthUtils.handleLogout(context, ref);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       ),

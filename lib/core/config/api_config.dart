@@ -1,5 +1,5 @@
-// API Configuration for Smart Sports App
-// This file contains environment-specific configurations
+/// API Configuration for Smart Sports App
+/// This file contains environment-specific configurations
 
 class ApiConfig {
   // Environment Configuration
@@ -39,25 +39,23 @@ class ApiConfig {
   // Debug settings
   static const bool enableLogging = true;
   static const bool enableRequestLogging = true;
-}
 
-// API Endpoints
-class ApiEndpoints {
-  // Authentication endpoints
-  static const String signIn = '/sign-in';
-  static const String signUp = '/sign-up';
-  static const String profile = '/profile';
+  // ==================== Stripe Configuration ====================
+  // Stripe Publishable Keys for different environments
+  // Get these from: https://dashboard.stripe.com/apikeys
+  static const Map<String, String> stripePublishableKeys = {
+    'development': 'pk_test_51SSWqnCk1NPTVAi6Sb0FwpjdMcOqYXhv7PpHgVaBpH5QLOy0v2xm1CMmNS2u9by4NxkYGB36b1Niu9jL5MjNoMYE00hh5IBlkn',
+    'staging': 'pk_test_51SSWqnCk1NPTVAi6Sb0FwpjdMcOqYXhv7PpHgVaBpH5QLOy0v2xm1CMmNS2u9by4NxkYGB36b1Niu9jL5MjNoMYE00hh5IBlkn',
+    'production': 'pk_live_...', // Replace with your live key when ready for production
+  };
 
-  // Club registration endpoints
-  static const String clubSignupStep1 = '/signup-club';
-  static const String clubSignupStep2 = '/signup-club-branch';
-
-  // Helper methods to get full URLs
-  static String getSignInUrl() => '${ApiConfig.apiBaseUrl}$signIn';
-  static String getProfileUrl(int userId) =>
-      '${ApiConfig.apiBaseUrl}$profile/$userId';
-  static String getClubSignupStep1Url() =>
-      '${ApiConfig.apiBaseUrl}$clubSignupStep1';
-  static String getClubSignupStep2Url() =>
-      '${ApiConfig.apiBaseUrl}$clubSignupStep2';
+  // Get current Stripe publishable key
+  static String? get stripePublishableKey {
+    final key = stripePublishableKeys[environment];
+    // Return null if key is placeholder to prevent accidental usage
+    if (key == null || key.contains('...')) {
+      return null;
+    }
+    return key;
+  }
 }

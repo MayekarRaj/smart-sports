@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'member_membership_plan_page.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../core/exceptions/api_exception.dart';
+import '../../core/models/api_models.dart';
 
 class FamilyDetailsPage extends StatefulWidget {
   const FamilyDetailsPage({super.key});
@@ -48,24 +51,108 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
     'Crimson Wolves',
   ];
 
-  final List<String> _allSports = [
-    'Tennis',
-    'Baseball',
-    'Cricket',
-    'Basketball',
-    'Football',
-    'Hockey',
-    'Badminton',
-    'Volleyball',
-  ];
+  List<String> _allSports = [];
+  bool _isLoadingSports = false;
+  final AuthRepository _authRepository = AuthRepository();
+
+  // Club days from API
+  List<MstClubDay> _clubDays = [];
+  bool _isLoadingClubDays = false;
 
   @override
   void initState() {
     super.initState();
     _numberOfMembersController.addListener(_onNumberOfMembersChanged);
     _initializeMembers();
-    _initializePracticePlans();
     _selectedClubs.addAll(['Urban Titans', 'Steel Panthers']);
+    _loadSports();
+    _loadClubDays().then((_) {
+      // Initialize practice plans after club days are loaded
+      if (mounted) {
+        _initializePracticePlans();
+      }
+    });
+  }
+
+  Future<void> _loadClubDays() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingClubDays = true;
+    });
+
+    try {
+      final response = await _authRepository.getClubDays(
+        perPage: 1000,
+        orderBy: 'id|ASC',
+        isActive: 1,
+        page: 1,
+      );
+
+      if (mounted) {
+        setState(() {
+          _clubDays = response.data.data;
+          _isLoadingClubDays = false;
+          // Update default days in existing practice plans if they're still using hardcoded values
+          for (var plan in _practicePlans) {
+            final practiceDays = plan['practiceDays'] as String;
+            if (practiceDays == 'Weekdays' || practiceDays == 'Weekend') {
+              if (_clubDays.isNotEmpty) {
+                plan['practiceDays'] = _clubDays.first.name;
+              }
+            }
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingClubDays = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load club days: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadSports() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingSports = true;
+    });
+
+    try {
+      final response = await _authRepository.getSportsList(
+        orderBy: 'id|ASC',
+        isActive: 1,
+      );
+
+      if (mounted) {
+        setState(() {
+          _allSports = response.data
+              .map((sport) => sport.sportsName)
+              .toList();
+          _isLoadingSports = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingSports = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load sports: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -147,16 +234,17 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
   }
 
   void _initializePracticePlans() {
+    final defaultDay = _clubDays.isNotEmpty ? _clubDays.first.name : 'Monday';
     _practicePlans = [
       {
         'id': 1,
-        'practiceDays': 'Weekdays',
+        'practiceDays': defaultDay,
         'startTime': '00:00',
         'endTime': '00:00',
       },
       {
         'id': 2,
-        'practiceDays': 'Weekdays',
+        'practiceDays': defaultDay,
         'startTime': '00:00',
         'endTime': '00:00',
       },
@@ -165,9 +253,10 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
 
   void _addPracticePlan() {
     setState(() {
+      final defaultDay = _clubDays.isNotEmpty ? _clubDays.first.name : 'Monday';
       _practicePlans.add({
         'id': _practicePlans.length + 1,
-        'practiceDays': 'Weekdays',
+        'practiceDays': defaultDay,
         'startTime': '00:00',
         'endTime': '00:00',
       });
@@ -271,9 +360,13 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
     final currentSports = List<String>.from(member['controllers']['sports'] as List);
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) {
           return Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+            ),
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -287,24 +380,41 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ..._allSports.map((sport) {
-                  final isSelected = currentSports.contains(sport);
-                  return CheckboxListTile(
-                    title: Text(sport),
-                    value: isSelected,
-                    onChanged: (value) {
-                      setModalState(() {
-                        if (value == true) {
-                          if (!currentSports.contains(sport)) {
-                            currentSports.add(sport);
-                          }
-                        } else {
-                          currentSports.remove(sport);
-                        }
-                      });
-                    },
-                  );
-                }).toList(),
+                if (_isLoadingSports)
+                  const Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(),
+                  )
+                else if (_allSports.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: Text('No sports available'),
+                  )
+                else
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: _allSports.map((sport) {
+                          final isSelected = currentSports.contains(sport);
+                          return CheckboxListTile(
+                            title: Text(sport),
+                            value: isSelected,
+                            onChanged: (value) {
+                              setModalState(() {
+                                if (value == true) {
+                                  if (!currentSports.contains(sport)) {
+                                    currentSports.add(sport);
+                                  }
+                                } else {
+                                  currentSports.remove(sport);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
@@ -903,26 +1013,87 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _buildDropdownField(
-                        label: 'Practice Days',
-                        value: plan['practiceDays'] as String,
-                        items: [
-                          'Weekdays',
-                          'Weekend',
-                          'Monday',
-                          'Tuesday',
-                          'Wednesday',
-                          'Thursday',
-                          'Friday',
-                          'Saturday',
-                          'Sunday',
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            plan['practiceDays'] = value!;
-                          });
-                        },
-                      ),
+                      _isLoadingClubDays
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Practice Days',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[50],
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.grey[200]!),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text('Loading...', style: TextStyle(color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                          : _clubDays.isEmpty
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Practice Days',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF64748B),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 16,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[50],
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.grey[200]!),
+                                      ),
+                                      child: const Text(
+                                        'No days available',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : _buildDropdownField(
+                                  label: 'Practice Days',
+                                  value: _clubDays.any((day) => day.name == plan['practiceDays'] as String)
+                                      ? plan['practiceDays'] as String
+                                      : _clubDays.isNotEmpty
+                                          ? _clubDays.first.name
+                                          : 'Monday',
+                                  items: _clubDays.map((day) => day.name).toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      plan['practiceDays'] = value!;
+                                    });
+                                  },
+                                ),
                       const SizedBox(height: 16),
                       Row(
                         children: [

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/referrals/referral_data_service.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/referrals/referral_card.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/referrals/invite_referral_dialog.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/referrals/referral.dart';
-import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/profile/merchandiser_profile_page.dart';
@@ -14,16 +14,17 @@ import 'package:smart_sports/role_specific/merchandiser/screens/events/merchandi
 import 'package:smart_sports/role_specific/merchandiser/screens/users/merchandiser_users_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/customer_support/merchandiser_customer_support_page.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/settings/merchandiser_settings_page.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class MerchandiserReferralsPage extends StatefulWidget {
+class MerchandiserReferralsPage extends ConsumerStatefulWidget {
   const MerchandiserReferralsPage({super.key});
 
   @override
-  State<MerchandiserReferralsPage> createState() =>
+  ConsumerState<MerchandiserReferralsPage> createState() =>
       _MerchandiserReferralsPageState();
 }
 
-class _MerchandiserReferralsPageState extends State<MerchandiserReferralsPage> {
+class _MerchandiserReferralsPageState extends ConsumerState<MerchandiserReferralsPage> {
   List<Referral> _allReferrals = [];
   List<Referral> _filteredReferrals = [];
   String _searchQuery = '';
@@ -137,10 +138,7 @@ class _MerchandiserReferralsPageState extends State<MerchandiserReferralsPage> {
                     ElevatedButton(
                       onPressed: () {
                         Navigator.of(dialogContext).pop(); // Close dialog
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const AuthShell()),
-                          (route) => false,
-                        );
+                        AuthUtils.handleLogout(context, ref);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,

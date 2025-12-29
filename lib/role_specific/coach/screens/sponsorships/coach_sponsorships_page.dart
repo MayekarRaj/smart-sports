@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
@@ -201,12 +202,7 @@ class _CoachSponsorshipsPageState extends State<CoachSponsorshipsPage> {
               context,
               UserRole.coach,
             ),
-            onSignOut: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthShell()),
-                (route) => false,
-              );
-            },
+            onSignOut: () => AuthUtils.handleLogout(context, ref),
           ),
         ),
       ),

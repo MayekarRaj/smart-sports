@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/common/models/user.dart' as models;
 import 'package:smart_sports/role_specific/merchandiser/screens/users/user_data_service.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/users/user_card.dart';
@@ -7,17 +8,17 @@ import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/profile/merchandiser_profile_page.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 // Navigation to other screens is handled via RoleNavigationManager from the sidebar.
-import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/role_specific/merchandiser/screens/users/add_user_screen.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class MerchandiserUsersPage extends StatefulWidget {
+class MerchandiserUsersPage extends ConsumerStatefulWidget {
   const MerchandiserUsersPage({super.key});
 
   @override
-  State<MerchandiserUsersPage> createState() => _MerchandiserUsersPageState();
+  ConsumerState<MerchandiserUsersPage> createState() => _MerchandiserUsersPageState();
 }
 
-class _MerchandiserUsersPageState extends State<MerchandiserUsersPage>
+class _MerchandiserUsersPageState extends ConsumerState<MerchandiserUsersPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   late AnimationController _filterAnimationController;
@@ -157,10 +158,7 @@ class _MerchandiserUsersPageState extends State<MerchandiserUsersPage>
                     ElevatedButton(
                       onPressed: () {
                         Navigator.of(dialogContext).pop(); // Close dialog
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const AuthShell()),
-                          (route) => false,
-                        );
+                        AuthUtils.handleLogout(context, ref);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,

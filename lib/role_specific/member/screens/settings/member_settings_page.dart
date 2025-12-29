@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 
-class MemberSettingsPage extends StatefulWidget {
+class MemberSettingsPage extends ConsumerStatefulWidget {
   const MemberSettingsPage({super.key});
 
   @override
-  State<MemberSettingsPage> createState() => _MemberSettingsPageState();
+  ConsumerState<MemberSettingsPage> createState() => _MemberSettingsPageState();
 }
 
-class _MemberSettingsPageState extends State<MemberSettingsPage> {
+class _MemberSettingsPageState extends ConsumerState<MemberSettingsPage> {
   bool _notificationsEnabled = true;
   bool _emailNotifications = true;
   bool _pushNotifications = true;
@@ -38,6 +40,32 @@ class _MemberSettingsPageState extends State<MemberSettingsPage> {
               context,
               UserRole.member,
             ),
+            onSignOut: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                        AuthUtils.handleLogout(context, ref);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       ),

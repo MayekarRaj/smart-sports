@@ -7,7 +7,20 @@ class RoundedTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final Widget? suffix;
   final ValueChanged<String>? onChanged;
-  const RoundedTextField({super.key, required this.controller, required this.hint, this.keyboardType = TextInputType.text, this.validator, this.suffix, this.onChanged});
+  final bool enabled;
+  final bool readOnly;
+  
+  const RoundedTextField({
+    super.key,
+    required this.controller,
+    required this.hint,
+    this.keyboardType = TextInputType.text,
+    this.validator,
+    this.suffix,
+    this.onChanged,
+    this.enabled = true,
+    this.readOnly = false,
+  });
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -21,6 +34,8 @@ class RoundedTextField extends StatelessWidget {
         keyboardType: keyboardType,
         validator: validator,
         onChanged: onChanged,
+        enabled: enabled,
+        readOnly: readOnly,
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,

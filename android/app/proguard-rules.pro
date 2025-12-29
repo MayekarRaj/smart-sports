@@ -61,6 +61,11 @@
 -keep class com.google.android.play.core.splitinstall.** { *; }
 -keep class com.google.android.play.core.tasks.** { *; }
 
+# Stripe rules
+-keep class com.stripe.android.** { *; }
+-keep class com.reactnativestripesdk.** { *; }
+-dontwarn com.stripe.android.pushProvisioning.**
+
 # Keep Flutter deferred components
 -keep class io.flutter.embedding.engine.deferredcomponents.** { *; }
 -keep class io.flutter.embedding.android.FlutterPlayStoreSplitApplication { *; }

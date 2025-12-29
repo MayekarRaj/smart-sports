@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'add_sponsorship_screen.dart';
 
-class MerchandiserSponsorshipsPage extends StatefulWidget {
+class MerchandiserSponsorshipsPage extends ConsumerStatefulWidget {
   const MerchandiserSponsorshipsPage({super.key});
 
   @override
-  State<MerchandiserSponsorshipsPage> createState() =>
+  ConsumerState<MerchandiserSponsorshipsPage> createState() =>
       _MerchandiserSponsorshipsPageState();
 }
 
@@ -203,12 +204,7 @@ class _MerchandiserSponsorshipsPageState
               context,
               UserRole.merchandiser,
             ),
-            onSignOut: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthShell()),
-                (route) => false,
-              );
-            },
+            onSignOut: () => AuthUtils.handleLogout(context, ref),
           ),
         ),
       ),

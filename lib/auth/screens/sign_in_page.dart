@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/validators.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../core/exceptions/api_exception.dart';
 import '../widgets/rounded_text_field.dart';
 import '../widgets/password_field.dart';
 import '../widgets/social_row.dart';
@@ -7,20 +11,20 @@ import 'forgot_password_page.dart';
 import '../../role_specific/common/role_router.dart';
 import 'verify_email_page.dart';
 
-class SignInPage extends StatefulWidget {
+class SignInPage extends ConsumerStatefulWidget {
   const SignInPage({super.key});
 
   @override
-  State<SignInPage> createState() => _SignInPageState();
+  ConsumerState<SignInPage> createState() => _SignInPageState();
 }
 
-class _SignInPageState extends State<SignInPage> {
+class _SignInPageState extends ConsumerState<SignInPage> {
   final _formKey = GlobalKey<FormState>();
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
-  UserRole role = UserRole.member;
-  bool _isLoading = false;
   bool _emailVerified = false;
+  final AuthRepository _authRepository = AuthRepository();
+  bool _isCheckingEmail = false;
 
   @override
   void dispose() {
@@ -29,47 +33,114 @@ class _SignInPageState extends State<SignInPage> {
     super.dispose();
   }
 
-  void _onSignIn() async {
-    if (!_formKey.currentState!.validate()) return;
-    if (!_emailVerified) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please verify your email before signing in'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+  Future<void> _checkEmailVerification() async {
+    final emailText = emailCtrl.text.trim();
+    if (emailText.isEmpty || Validators.email(emailText) != null) {
       return;
     }
 
+    if (!mounted) return;
+
     setState(() {
-      _isLoading = true;
+      _isCheckingEmail = true;
     });
 
-    // Simulate loading for better UX
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final response = await _authRepository.checkEmailVerification(emailText);
+      if (mounted) {
+        setState(() {
+          _emailVerified = response.verified;
+        });
+      }
+    } on ApiException catch (e) {
+      // Email not found or not verified - that's okay, user needs to verify
+      if (mounted) {
+        setState(() {
+          _emailVerified = false;
+        });
+      }
+    } catch (e) {
+      // Error checking - assume not verified
+      if (mounted) {
+        setState(() {
+          _emailVerified = false;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingEmail = false;
+        });
+      }
+    }
+  }
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Welcome! Signed in as ${role.label}'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      // Navigate to role-based profile screen
-      final target = RoleRouter.profileFor(role);
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => target));
+  Future<void> _onSignIn() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    // Check email verification before allowing sign in
+    if (!_emailVerified) {
+      // First check if email is verified
+      await _checkEmailVerification();
+      
+      if (!_emailVerified && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please verify your email before signing in'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        return;
+      }
     }
 
-    setState(() {
-      _isLoading = false;
-    });
+    // Use Riverpod auth provider
+    await ref.read(authStateProvider.notifier).signIn(
+          email: emailCtrl.text.trim(),
+          password: passCtrl.text,
+        );
+
+    // Check auth state after sign in
+    final authState = ref.read(authStateProvider);
+    
+    if (authState.isAuthenticated && authState.user != null) {
+      if (mounted) {
+        // Get role from API response
+        final userRoleString = authState.user!.role;
+        final userRole = userRoleString?.toUserRole() ?? UserRole.member;
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Welcome! Signed in as ${userRole.label}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to role-based dashboard using role from API
+        final target = RoleRouter.dashboardFor(userRole);
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => target),
+        );
+      }
+    } else if (authState.hasError) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authState.error ?? 'Sign in failed'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authStateProvider);
+    final isLoading = authState.isLoading;
+
     return Form(
       key: _formKey,
       child: Column(
@@ -77,180 +148,102 @@ class _SignInPageState extends State<SignInPage> {
         children: [
           RoundedTextField(
             controller: emailCtrl,
-            hint: 'Email Address',
+            hint: 'Email',
             keyboardType: TextInputType.emailAddress,
-            validator: Validators.email,
-            suffix: _emailVerified
-                ? const Icon(Icons.check_circle, color: Colors.green)
-                : null,
-            onChanged: (_) {
+            validator: (v) => Validators.email(v),
+            enabled: !isLoading && !_isCheckingEmail,
+            suffix: _isCheckingEmail
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : _emailVerified
+                    ? const Icon(Icons.check_circle, color: Colors.green)
+                    : null,
+            onChanged: (value) {
               if (_emailVerified) {
                 setState(() {
-                  _emailVerified = false; // reset if email changes
+                  _emailVerified = false; // reset if user edits email
                 });
               }
+              // Check email verification when email changes (debounced)
+              final emailValue = value.trim();
+              Future.delayed(const Duration(milliseconds: 800), () {
+                if (mounted && emailCtrl.text.trim() == emailValue) {
+                  _checkEmailVerification();
+                }
+              });
             },
           ),
-          const SizedBox(height: 6),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: () async {
-                final err = Validators.email(emailCtrl.text);
-                if (err != null) {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text(err)));
-                  return;
-                }
-                final verified = await Navigator.of(context).push<bool>(
-                  MaterialPageRoute(
-                    builder: (_) => VerifyEmailPage(email: emailCtrl.text),
-                  ),
-                );
-                if (verified == true && mounted) {
-                  setState(() {
-                    _emailVerified = true;
-                  });
-                }
-              },
-              icon: const Icon(Icons.mark_email_read_outlined),
-              label: Text(_emailVerified ? 'Verified' : 'Verify Email'),
-              style: TextButton.styleFrom(padding: const EdgeInsets.only(right: 0)),
-            ),
-          ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           PasswordField(
             controller: passCtrl,
             hint: 'Password',
-            validator: Validators.password,
+            validator: (v) => Validators.password(v),
+            enabled: !isLoading,
           ),
           const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
-              ),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-              ),
-              child: Text(
-                'Forgot Password?',
-                style: TextStyle(
-                  color: Colors.red.shade400,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Role Selection Dropdown
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-            child: Row(
-              children: [
-                Text(
-                  'Role: ',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<UserRole>(
-                      value: role,
-                      onChanged: (v) =>
-                          setState(() => role = v ?? UserRole.member),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                      items: UserRole.values
-                          .map(
-                            (r) => DropdownMenuItem(
-                              value: r,
-                              child: Text(r.label),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Sign In Button
-          Container(
-            height: 50,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Colors.black87, Colors.black],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _isLoading ? null : _onSignIn,
-                borderRadius: BorderRadius.circular(16),
-                child: Center(
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.login, color: Colors.white),
-                            SizedBox(width: 12),
-                            Text(
-                              'Sign In',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
           Row(
-            children: const [
-              Expanded(child: Divider()),
-              SizedBox(width: 12),
-              Text('Or continue with'),
-              SizedBox(width: 12),
-              Expanded(child: Divider()),
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: isLoading
+                    ? null
+                    : () => Navigator.pushNamed(context, '/forgot'),
+                child: const Text('Forgot Password?'),
+              ),
+              TextButton.icon(
+                onPressed: (_emailVerified || isLoading)
+                    ? null
+                    : () async {
+                        final verified = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => VerifyEmailPage(
+                              email: emailCtrl.text.trim(),
+                            ),
+                          ),
+                        );
+                        if (verified == true && mounted) {
+                          setState(() => _emailVerified = true);
+                        }
+                      },
+                icon: _emailVerified
+                    ? const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 18,
+                      )
+                    : const Icon(
+                        Icons.email_outlined,
+                        size: 18,
+                      ),
+                label: Text(
+                  _emailVerified ? 'Email Verified' : 'Verify Email',
+                  style: TextStyle(
+                    color: _emailVerified ? Colors.green : null,
+                  ),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 56,
+            child: ElevatedButton.icon(
+              onPressed: isLoading ? null : _onSignIn,
+              icon: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.login),
+              label: Text(isLoading ? 'Signing in...' : 'Sign In'),
+            ),
+          ),
+          const SizedBox(height: 16),
           const SocialRow(),
         ],
       ),
