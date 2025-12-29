@@ -12,20 +12,18 @@ class MembersTab extends StatefulWidget {
     required this.isMobile,
   });
 
-  // Members tab gradient colors
-  static const Color _gradientStart = Color(0xFF232534);
-  static const Color _gradientEnd = Color(0xFF009A69);
-  static const LinearGradient _membersGradient = LinearGradient(
-    colors: [_gradientStart, _gradientEnd],
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-  );
-
   @override
   State<MembersTab> createState() => _MembersTabState();
 }
 
 class _MembersTabState extends State<MembersTab> {
+  // Members tab gradient - uses role color
+  LinearGradient get _membersGradient => LinearGradient(
+    colors: [widget.roleColor.withValues(alpha: 0.8), widget.roleColor],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
+  bool _isEditMode = false;
   int _numberOfFamilyMembers = 1;
   final List<Map<String, dynamic>> _members = [];
   final _numberOfMembersController = TextEditingController(text: '1');
@@ -113,6 +111,40 @@ class _MembersTabState extends State<MembersTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Edit/Save Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _isEditMode = !_isEditMode;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        _isEditMode ? 'Changes saved' : 'Edit mode enabled',
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                },
+                icon: Icon(_isEditMode ? Icons.save : Icons.edit),
+                label: Text(_isEditMode ? 'Save' : 'Edit'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: widget.roleColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
           // Number of Family Members Section
           Container(
             padding: const EdgeInsets.all(20),
@@ -136,7 +168,7 @@ class _MembersTabState extends State<MembersTab> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        gradient: MembersTab._membersGradient,
+                        gradient: _membersGradient,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -148,7 +180,7 @@ class _MembersTabState extends State<MembersTab> {
                     const SizedBox(width: 12),
                     ShaderMask(
                       shaderCallback: (bounds) =>
-                          MembersTab._membersGradient.createShader(bounds),
+                          _membersGradient.createShader(bounds),
                       child: const Text(
                         'Family Members',
                         style: TextStyle(
@@ -178,17 +210,23 @@ class _MembersTabState extends State<MembersTab> {
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _numberOfMembersController,
+                            enabled: _isEditMode,
+                            readOnly: !_isEditMode,
                             keyboardType: TextInputType.number,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
                             ],
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
-                              color: Colors.black87,
+                              color: _isEditMode
+                                  ? Colors.black87
+                                  : Colors.grey.shade700,
                             ),
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: Colors.grey.shade50,
+                              fillColor: _isEditMode
+                                  ? Colors.grey.shade50
+                                  : Colors.grey.shade100,
                               hintText: 'Enter number (1-20)',
                               hintStyle: TextStyle(color: Colors.grey.shade400),
                               border: OutlineInputBorder(
@@ -203,10 +241,16 @@ class _MembersTabState extends State<MembersTab> {
                                   color: Colors.grey.shade300,
                                 ),
                               ),
+                              disabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: MembersTab._gradientEnd,
+                                borderSide: BorderSide(
+                                  color: widget.roleColor,
                                   width: 2,
                                 ),
                               ),
@@ -245,6 +289,7 @@ class _MembersTabState extends State<MembersTab> {
                 member: _members[index],
                 isHead: index == 0,
                 useMembersGradient: true,
+                isEditMode: _isEditMode,
                 onUpdate: (updatedMember) {
                   _updateMember(index, updatedMember);
                 },

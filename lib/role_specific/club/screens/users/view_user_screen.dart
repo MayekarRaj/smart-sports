@@ -93,8 +93,8 @@ class _ViewUserScreenState extends State<ViewUserScreen>
             fontWeight: FontWeight.w500,
           ),
           tabs: const [
-            Tab(text: 'Admin User'),
-            Tab(text: 'Employees'),
+            Tab(text: 'Internal User'),
+            Tab(text: 'Privilege User'),
           ],
         ),
       ),
@@ -701,7 +701,7 @@ class _ViewUserScreenState extends State<ViewUserScreen>
         onPressed: _handleAddEmployee,
         icon: const Icon(Icons.person_add, color: Colors.white, size: 20),
         label: const Text(
-          'Add Employee',
+          'Add Privilege User',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -869,12 +869,12 @@ class _ViewUserScreenState extends State<ViewUserScreen>
                 IconButton(
                   onPressed: () => _handleEditEmployee(employee),
                   icon: const Icon(Icons.edit, color: Colors.orange, size: 20),
-                  tooltip: 'Edit Employee',
+                  tooltip: 'Edit Privilege User',
                 ),
                 IconButton(
                   onPressed: () => _handleDeleteEmployee(employee),
                   icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                  tooltip: 'Delete Employee',
+                  tooltip: 'Delete Privilege User',
                 ),
               ],
             ),
@@ -888,7 +888,7 @@ class _ViewUserScreenState extends State<ViewUserScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text(
-          'Add Employee functionality will be implemented here',
+          'Add Privilege User functionality will be implemented here',
         ),
         backgroundColor: Colors.blue,
         behavior: SnackBarBehavior.floating,
@@ -925,7 +925,7 @@ class _ViewUserScreenState extends State<ViewUserScreen>
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text(
-            'Delete Employee',
+            'Delete Privilege User',
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
           content: Text('Are you sure you want to delete ${employee['name']}?'),

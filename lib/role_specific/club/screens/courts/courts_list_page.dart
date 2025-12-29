@@ -402,204 +402,285 @@ class _CourtsListPageState extends State<CourtsListPage> {
     required Map<String, String> schedule,
     required Map<String, int> bookingStatus,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: InkWell(
-        onTap: () => _navigateToBooking(context, courtName),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Court Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Court Icon
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: available
-                          ? Colors.green.shade100
-                          : Colors.red.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.sports_tennis,
-                      color: available ? Colors.green : Colors.red,
-                      size: 30,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
+    // Sample coach avatars
+    final coachAvatars = [
+      'https://i.pravatar.cc/150?img=1',
+      'https://i.pravatar.cc/150?img=2',
+      'https://i.pravatar.cc/150?img=3',
+      'https://i.pravatar.cc/150?img=4',
+    ];
 
-                  // Court Info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
+    return InkWell(
+      onTap: () => _navigateToBooking(context, courtName),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top - Court Image (Full Width, Smaller)
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              child: Container(
+                width: double.infinity,
+                height: 150,
+                color: Colors.grey.shade200,
+                child: Image.network(
+                  'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=600&fit=crop',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey.shade300,
+                      child: const Icon(
+                        Icons.sports_tennis,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            
+            // Bottom - Court Details (Compact)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Court Header with Status
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
                           courtName,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: available ? Colors.green : Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          available ? 'Available' : 'Unavailable',
+                          style: TextStyle(
+                            fontSize: 12,
                             color: available ? Colors.green : Colors.red,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            available ? 'Available' : 'Unavailable',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-
-                  // Arrow Icon
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.grey.shade400,
-                    size: 16,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Court Stats
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildStatChip('Max Players', '$maxPlayers'),
-                  _buildStatChip('Max Teams', '$maxTeams'),
-                  _buildStatChip('Guest Cap', '$guestCapacity'),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // Schedule
-              const Text(
-                'Schedule',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Weekdays: ${schedule['weekdays']}',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-              ),
-              Text(
-                'Saturday: ${schedule['saturday']}',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-              ),
-              Text(
-                'Sunday: ${schedule['sunday']}',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Booking Status
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildStatusChip(
-                    'Available',
-                    bookingStatus['Available'] ?? 0,
-                    Colors.green,
-                  ),
-                  _buildStatusChip(
-                    'Booked',
-                    bookingStatus['Booked'] ?? 0,
-                    Colors.blueGrey,
-                  ),
-                  _buildStatusChip(
-                    'Maintenance',
-                    bookingStatus['Maintenance'] ?? 0,
-                    Colors.orange,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Rating Section
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.amber[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.amber[200]!),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      '$rating',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'Court Rating',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Capacity Information and Coach Section Side by Side
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left side - Capacity Information
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildCapacityRowMobile('MAX PLAYERS', '$maxPlayers'),
+                            const SizedBox(height: 6),
+                            _buildCapacityRowMobile('MAX TEAMS', '$maxTeams'),
+                            const SizedBox(height: 6),
+                            _buildCapacityRowMobile('GUEST CAP', '$guestCapacity'),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 16),
+                      // Right side - Coach Section
+                      Expanded(
+                        flex: 1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'COACH',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            SizedBox(
+                              height: 28,
+                              child: Stack(
+                                children: List.generate(4, (index) {
+                                  return Positioned(
+                                    left: index * 20.0, // Overlap by 8px (28 - 20 = 8)
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.15),
+                                            blurRadius: 3,
+                                            offset: const Offset(0, 1.5),
+                                            spreadRadius: 0,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Container(
+                                        width: 28,
+                                        height: 28,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Colors.white,
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        child: ClipOval(
+                                          child: Image.network(
+                                            coachAvatars[index],
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return Container(
+                                                color: Colors.grey.shade300,
+                                                child: const Icon(
+                                                  Icons.person,
+                                                  size: 16,
+                                                  color: Colors.grey,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Schedule Section
+                  const Text(
+                    'SCHEDULE',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildScheduleRowMobile('Weekdays', schedule['weekdays'] ?? '08:30 - 22:00'),
+                  const SizedBox(height: 6),
+                  _buildScheduleRowMobile('Saturday', schedule['saturday'] ?? '11:30 - 20:00'),
+                  const SizedBox(height: 6),
+                  _buildScheduleRowMobile('Sunday & National Holidays', schedule['sunday'] ?? 'Off'),
+                ],
               ),
-
-              const SizedBox(height: 16),
-
-              // Coaches Section
-              const Text(
-                'Coaches',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              ...coaches.map((coach) => _buildCoachCard(coach)).toList(),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCapacityRowMobile(String label, String value) {
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFF007BFF)),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF007BFF),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScheduleRowMobile(String label, String value) {
+    return Row(
+      children: [
+        Flexible(
+          flex: 2,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xFF007BFF)),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF007BFF),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

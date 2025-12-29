@@ -282,7 +282,7 @@ class RoleNavigationManager {
       case 5:
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const coach_sponsorships.ClubSponsorshipsPage(),
+            builder: (_) => const coach_sponsorships.CoachSponsorshipsPage(),
           ),
         );
         break;

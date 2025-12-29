@@ -892,536 +892,833 @@ class AddComplaintScreen extends StatefulWidget {
 
 class _AddComplaintScreenState extends State<AddComplaintScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _complainantNameController = TextEditingController(text: 'Coach Name');
+  final _complainantNameController = TextEditingController();
   final _complaintTitleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _playerNameController = TextEditingController();
+  final _playerCoachClubController = TextEditingController();
 
-  String _selectedRole = 'Coach';
-  String _selectedCategory = 'Inappropriate language';
+  String _selectedCategory = '';
   String _selectedComplaintAgainst = 'Player';
-  String _selectedResolution = '2 Working Days';
-  String _selectedUrgency = 'High';
-  DateTime _selectedDate = DateTime.now();
-  List<String> _attachedFiles = [];
-  bool _isLoading = false;
+  String _selectedPreferredResolution = '2 Working Days';
+  String _selectedUrgencyLevel = 'High';
+  String _selectedComplainantRole = '';
+  String _dateOfComplaint = 'Wed, March 5, 2025';
+  String? _selectedFileName;
 
   final List<String> _categories = [
-    'Inappropriate language',
-    'Equipment',
-    'Staff',
-    'Facility',
-    'Behavior',
-    'Discipline',
-    'Property',
-    'Safety',
-    'Other',
+    'Input Text',
+    'Booking',
+    'Payment',
+    'Account',
+    'Event',
+    'General',
   ];
+
   final List<String> _complaintAgainstOptions = [
     'Player',
     'Coach',
-    'Staff',
     'Club',
-    'Facility',
+    'Member',
   ];
-  final List<String> _resolutionOptions = [
-    '1 Working Day',
+
+  final List<String> _preferredResolutionOptions = [
     '2 Working Days',
-    '3 Working Days',
+    '5 Working Days',
     '1 Week',
     '2 Weeks',
   ];
-  final List<String> _urgencyOptions = ['Low', 'Medium', 'High', 'Critical'];
+
+  final List<String> _urgencyLevelOptions = [
+    'High',
+    'Medium',
+    'Low',
+  ];
+
+  final List<String> _complainantRoleOptions = [
+    'Coach',
+    'Player',
+    'Member',
+    'Club',
+  ];
 
   @override
   void dispose() {
     _complainantNameController.dispose();
     _complaintTitleController.dispose();
     _descriptionController.dispose();
-    _playerNameController.dispose();
+    _playerCoachClubController.dispose();
     super.dispose();
   }
 
-  void _submitComplaint() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      setState(() {
+        _dateOfComplaint = _formatDate(picked);
+      });
+    }
+  }
 
-    if (!mounted) return;
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
 
+  Future<void> _pickFile() async {
+    // File picker implementation would go here
     setState(() {
-      _isLoading = true;
+      _selectedFileName = 'evidence.pdf'; // Simulated
     });
+  }
 
-    try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (!mounted) return;
-
+  void _submitComplaint() {
+    if (_formKey.currentState!.validate()) {
       final complaint = Complaint(
-        title: _complaintTitleController.text.trim(),
-        category: _selectedCategory,
-        description: _descriptionController.text.trim(),
+        title: _complaintTitleController.text,
+        category: _selectedCategory.isEmpty ? 'General' : _selectedCategory,
+        description: _descriptionController.text,
         complaintFrom: _complainantNameController.text.trim(),
-        date: _selectedDate.toString().split(' ')[0],
+        date: DateTime.now().toString().split(' ')[0],
         status: 'Open',
       );
 
       widget.onComplaintSubmitted(complaint);
+      Navigator.of(context).pop();
 
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (mounted) {
-        Navigator.of(context).pop();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Complaint submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error submitting complaint: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Complaint submitted successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-        ),
-        title: const Text(
-          'ADD COMPLAINT',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header Section with Segment Control
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 12 : 16,
+                vertical: isMobile ? 8 : 12,
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: _isLoading ? null : _submitComplaint,
-            child: Text(
-              'Submit',
-              style: TextStyle(
-                color: _isLoading ? Colors.grey : Colors.black,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              decoration: const BoxDecoration(
+                color: Colors.white,
               ),
-            ),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header line
-              Container(
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Complainant Name
-              _buildFormField(
-                label: 'Complainant Name',
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: TextFormField(
-                    controller: _complainantNameController,
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
+              child: Row(
+                children: [
+                  // Back Button
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Color(0xFF1F2937),
                     ),
-                    style: const TextStyle(fontSize: 16),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    iconSize: 24,
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Complainant Role
-              _buildFormField(
-                label: 'Complainant Role',
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: TextFormField(
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    style: const TextStyle(fontSize: 16),
-                    initialValue: _selectedRole,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Date Of Complaint
-              _buildFormField(
-                label: 'Date Of Complaint',
-                child: InkWell(
-                  onTap: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDate,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime.now(),
-                    );
-                    if (date != null) {
-                      setState(() {
-                        _selectedDate = date;
-                      });
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                            style: const TextStyle(fontSize: 16),
-                          ),
+                  SizedBox(width: isMobile ? 8 : 12),
+                  // Segment Control: ADD COMPLAINT (Selected)
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: isMobile ? 10 : 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE3F2FD),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF2196F3),
+                          width: 2,
                         ),
-                        const Icon(
-                          Icons.calendar_today,
-                          size: 20,
-                          color: Colors.grey,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Complaint Category
-              _buildFormField(
-                label: 'Complaint Category',
-                child: DropdownButtonFormField<String>(
-                  value: _selectedCategory,
-                  decoration: InputDecoration(
-                    hintText: 'Input Text',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  items: _categories.map((category) {
-                    return DropdownMenuItem(
-                      value: category,
-                      child: Text(category),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCategory = value!;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Complaint Title
-              _buildFormField(
-                label: 'Complaint Title',
-                child: TextFormField(
-                  controller: _complaintTitleController,
-                  decoration: InputDecoration(
-                    hintText: 'Input Text',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter complaint title';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Description
-              _buildFormField(
-                label: 'Description',
-                child: TextFormField(
-                  controller: _descriptionController,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText: 'Input Text',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter description';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Complaint Against
-              _buildFormField(
-                label: 'Complaint Against',
-                child: DropdownButtonFormField<String>(
-                  value: _selectedComplaintAgainst,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  items: _complaintAgainstOptions.map((option) {
-                    return DropdownMenuItem(value: option, child: Text(option));
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedComplaintAgainst = value!;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Player/Coach/Club Names
-              _buildFormField(
-                label: 'Player/Coach/Club Names',
-                child: TextFormField(
-                  controller: _playerNameController,
-                  decoration: InputDecoration(
-                    hintText: 'Q Player',
-                    prefixIcon: const Icon(Icons.search, size: 20),
-                    suffixIcon: const Icon(Icons.keyboard_arrow_down, size: 20),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Upload Evidence
-              _buildFormField(
-                label: 'Upload Evidence (Optional)',
-                child: InkWell(
-                  onTap: () {
-                    // Simulate file upload
-                    setState(() {
-                      _attachedFiles.add(
-                        'Evidence_${_attachedFiles.length + 1}.pdf',
-                      );
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.attach_file,
-                          size: 20,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _attachedFiles.isEmpty
-                              ? 'Attach Evidence'
-                              : '${_attachedFiles.length} file(s) attached',
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'ADD COMPLAINT',
                           style: TextStyle(
-                            color: _attachedFiles.isEmpty
-                                ? Colors.grey
-                                : Colors.black,
-                            fontSize: 16,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1F2937),
                           ),
                         ),
-                      ],
+                      ),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Segment Control: Cancel (Unselected)
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          vertical: isMobile ? 10 : 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF1F2937),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1F2937),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Submit Button
+                  ElevatedButton(
+                    onPressed: _submitComplaint,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF009A69),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 16 : 24,
+                        vertical: isMobile ? 10 : 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'Submit',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Form Content
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+              ),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(isMobile ? 16 : 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Two Column Layout for first row
+                      if (isMobile)
+                        Column(
+                          children: [
+                            _buildFormField(
+                              label: 'Complainant Name',
+                              child: TextFormField(
+                                controller: _complainantNameController,
+                                decoration: InputDecoration(
+                                  hintText: 'Coach Name',
+                                  filled: true,
+                                  fillColor: const Color(0xFFF3F4F6),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildFormField(
+                              label: 'Complainant Role',
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedComplainantRole.isEmpty
+                                    ? null
+                                    : _selectedComplainantRole,
+                                decoration: InputDecoration(
+                                  hintText: 'Coach',
+                                  filled: true,
+                                  fillColor: const Color(0xFFF3F4F6),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                  suffixIcon: const Icon(Icons.arrow_drop_down),
+                                ),
+                                items: _complainantRoleOptions
+                                    .map((role) => DropdownMenuItem(
+                                          value: role,
+                                          child: Text(role),
+                                        ))
+                                    .toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedComplainantRole = value ?? '';
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildFormField(
+                                label: 'Complainant Name',
+                                child: TextFormField(
+                                  controller: _complainantNameController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Coach Name',
+                                    filled: true,
+                                    fillColor: const Color(0xFFF3F4F6),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildFormField(
+                                label: 'Complainant Role',
+                                child: DropdownButtonFormField<String>(
+                                  value: _selectedComplainantRole.isEmpty
+                                      ? null
+                                      : _selectedComplainantRole,
+                                  decoration: InputDecoration(
+                                    hintText: 'Coach',
+                                    filled: true,
+                                    fillColor: const Color(0xFFF3F4F6),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                  ),
+                                  items: _complainantRoleOptions
+                                      .map((role) => DropdownMenuItem(
+                                            value: role,
+                                            child: Text(role),
+                                          ))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedComplainantRole = value ?? '';
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      const SizedBox(height: 16),
+
+                      // Date Of Complaint
+                      _buildFormField(
+                        label: 'Date Of Complaint',
+                        child: InkWell(
+                          onTap: _selectDate,
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFE5E7EB),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _dateOfComplaint,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF1F2937),
+                                    ),
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.calendar_today,
+                                  color: Color(0xFF6B7280),
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Two Column Layout for Complaint Category and Complaint Against
+                      if (isMobile)
+                        Column(
+                          children: [
+                            _buildFormField(
+                              label: 'Complaint Category',
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedCategory.isEmpty
+                                    ? null
+                                    : _selectedCategory,
+                                decoration: InputDecoration(
+                                  hintText: 'Input Text',
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFE5E7EB),
+                                    ),
+                                  ),
+                                  contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                  suffixIcon: const Icon(Icons.arrow_drop_down),
+                                ),
+                                items: _categories
+                                    .map((category) => DropdownMenuItem(
+                                          value: category,
+                                          child: Text(category),
+                                        ))
+                                    .toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedCategory = value ?? '';
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildFormField(
+                              label: 'Complaint Against',
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedComplaintAgainst,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFE5E7EB),
+                                    ),
+                                  ),
+                                  contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                  suffixIcon: const Icon(Icons.arrow_drop_down),
+                                ),
+                                items: _complaintAgainstOptions
+                                    .map((option) => DropdownMenuItem(
+                                          value: option,
+                                          child: Text(option),
+                                        ))
+                                    .toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedComplaintAgainst = value ?? '';
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildFormField(
+                                label: 'Complaint Category',
+                                child: DropdownButtonFormField<String>(
+                                  value: _selectedCategory.isEmpty
+                                      ? null
+                                      : _selectedCategory,
+                                  decoration: InputDecoration(
+                                    hintText: 'Input Text',
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE5E7EB),
+                                      ),
+                                    ),
+                                    contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                    suffixIcon:
+                                        const Icon(Icons.arrow_drop_down),
+                                  ),
+                                  items: _categories
+                                      .map((category) => DropdownMenuItem(
+                                            value: category,
+                                            child: Text(category),
+                                          ))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedCategory = value ?? '';
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildFormField(
+                                label: 'Complaint Against',
+                                child: DropdownButtonFormField<String>(
+                                  value: _selectedComplaintAgainst,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE5E7EB),
+                                      ),
+                                    ),
+                                    contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                    suffixIcon:
+                                        const Icon(Icons.arrow_drop_down),
+                                  ),
+                                  items: _complaintAgainstOptions
+                                      .map((option) => DropdownMenuItem(
+                                            value: option,
+                                            child: Text(option),
+                                          ))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedComplaintAgainst = value ?? '';
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      const SizedBox(height: 12),
+
+                      // Complaint Title (Full Width)
+                      _buildFormField(
+                        label: 'Complaint Title',
+                        child: TextFormField(
+                          controller: _complaintTitleController,
+                          decoration: InputDecoration(
+                            hintText: 'Input Text',
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE5E7EB),
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.all(16),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter a complaint title';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Description (Full Width, Multi-line)
+                      _buildFormField(
+                        label: 'Description',
+                        child: TextFormField(
+                          controller: _descriptionController,
+                          maxLines: 5,
+                          decoration: InputDecoration(
+                            hintText: 'Input Text',
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE5E7EB),
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.all(16),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter a description';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Player/Coach/Club Names
+                      _buildFormField(
+                        label: 'Player/Coach/Club Names',
+                        child: TextFormField(
+                          controller: _playerCoachClubController,
+                          decoration: InputDecoration(
+                            hintText: 'Player',
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE5E7EB),
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.all(16),
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: Color(0xFF6B7280),
+                            ),
+                            suffixIcon: const Icon(
+                              Icons.arrow_drop_down,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Upload Evidence (Optional)
+                      _buildFormField(
+                        label: 'Upload Evidence (Optional)',
+                        child: InkWell(
+                          onTap: _pickFile,
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFE5E7EB),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _selectedFileName ?? 'Attach Evidence',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: _selectedFileName != null
+                                          ? const Color(0xFF1F2937)
+                                          : const Color(0xFF6B7280),
+                                    ),
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.attach_file,
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Two Column Layout for Preferred Resolution and Urgency Level
+                      if (isMobile)
+                        Column(
+                          children: [
+                            _buildFormField(
+                              label: 'Preferred Resolution',
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedPreferredResolution,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFE5E7EB),
+                                    ),
+                                  ),
+                                  contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                  suffixIcon: const Icon(Icons.arrow_drop_down),
+                                ),
+                                items: _preferredResolutionOptions
+                                    .map((option) => DropdownMenuItem(
+                                          value: option,
+                                          child: Text(option),
+                                        ))
+                                    .toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedPreferredResolution = value ?? '';
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildFormField(
+                              label: 'Urgency Level',
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedUrgencyLevel,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFE5E7EB),
+                                    ),
+                                  ),
+                                  contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                  suffixIcon: const Icon(Icons.arrow_drop_down),
+                                ),
+                                items: _urgencyLevelOptions
+                                    .map((option) => DropdownMenuItem(
+                                          value: option,
+                                          child: Text(option),
+                                        ))
+                                    .toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedUrgencyLevel = value ?? '';
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildFormField(
+                                label: 'Preferred Resolution',
+                                child: DropdownButtonFormField<String>(
+                                  value: _selectedPreferredResolution,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE5E7EB),
+                                      ),
+                                    ),
+                                    contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                    suffixIcon:
+                                        const Icon(Icons.arrow_drop_down),
+                                  ),
+                                  items: _preferredResolutionOptions
+                                      .map((option) => DropdownMenuItem(
+                                            value: option,
+                                            child: Text(option),
+                                          ))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedPreferredResolution = value ?? '';
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildFormField(
+                                label: 'Urgency Level',
+                                child: DropdownButtonFormField<String>(
+                                  value: _selectedUrgencyLevel,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE5E7EB),
+                                      ),
+                                    ),
+                                    contentPadding: EdgeInsets.all(isMobile ? 14 : 16),
+                                    suffixIcon:
+                                        const Icon(Icons.arrow_drop_down),
+                                  ),
+                                  items: _urgencyLevelOptions
+                                      .map((option) => DropdownMenuItem(
+                                            value: option,
+                                            child: Text(option),
+                                          ))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedUrgencyLevel = value ?? '';
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Divider line
-              Container(
-                height: 2,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Preferred Resolution
-              _buildFormField(
-                label: 'Preferred Resolution',
-                child: DropdownButtonFormField<String>(
-                  value: _selectedResolution,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  items: _resolutionOptions.map((resolution) {
-                    return DropdownMenuItem(
-                      value: resolution,
-                      child: Text(resolution),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedResolution = value!;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Urgency Level
-              _buildFormField(
-                label: 'Urgency Level',
-                child: DropdownButtonFormField<String>(
-                  value: _selectedUrgency,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  items: _urgencyOptions.map((urgency) {
-                    return DropdownMenuItem(
-                      value: urgency,
-                      child: Text(urgency),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedUrgency = value!;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 32),
-            ],
+            ),
           ),
+        ],
         ),
       ),
     );
   }
 
   Widget _buildFormField({required String label, required Widget child}) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 16,
+          style: TextStyle(
+            fontSize: isMobile ? 13 : 14,
             fontWeight: FontWeight.w600,
-            color: Colors.black,
+            color: const Color(0xFF1F2937),
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: isMobile ? 6 : 8),
         child,
       ],
     );

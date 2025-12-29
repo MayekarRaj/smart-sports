@@ -202,6 +202,15 @@ class _AddBookingScreenState extends State<AddBookingScreen> {
           const SizedBox(height: 20),
 
           // Search By Area & City
+          Text(
+            'Search by area and city',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
           _buildSearchField(
             'Search By Area & City',
             selectedArea,
@@ -890,48 +899,63 @@ class _AddBookingScreenState extends State<AddBookingScreen> {
             const SizedBox(height: 16),
 
             // Rating and Availability
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Rating
+                // Club Rating title
                 Text(
-                  '${club['rating']}',
+                  'Club Rating',
                   style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
                   ),
                 ),
-                const SizedBox(width: 4),
-                ...List.generate(
-                  5,
-                  (starIndex) => Icon(
-                    Icons.star,
-                    size: 20,
-                    color: starIndex < (club['rating'] as double).floor()
-                        ? Colors.amber
-                        : Colors.grey.shade300,
-                  ),
-                ),
-                const SizedBox(width: 16),
-
-                // Availability Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isAvailable ? Colors.green : Colors.orange,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    club['availability'] as String,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    // Rating
+                    Text(
+                      '${club['rating']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 4),
+                    ...List.generate(
+                      5,
+                      (starIndex) => Icon(
+                        Icons.star,
+                        size: 20,
+                        color: starIndex < (club['rating'] as double).floor()
+                            ? Colors.amber
+                            : Colors.grey.shade300,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Availability Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isAvailable ? Colors.green : Colors.orange,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        club['availability'] as String,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -994,7 +1018,7 @@ class _AddBookingScreenState extends State<AddBookingScreen> {
               spacing: 12,
               runSpacing: 12,
               children: [
-                _buildClubActionButton('Collaborate', Icons.handshake, () {
+                _buildClubActionButton('Sponsor', Icons.handshake, () {
                   setState(() {
                     selectedClub = club['name'] as String;
                     isClubSelected = true;
@@ -1320,7 +1344,7 @@ class _AddBookingScreenState extends State<AddBookingScreen> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              _buildActionButton('Collaborate', Icons.handshake),
+              _buildActionButton('Sponsor', Icons.handshake),
               _buildActionButton('Share', Icons.share),
               _buildActionButton('Coach', Icons.sports),
               _buildActionButton('Players', Icons.group),

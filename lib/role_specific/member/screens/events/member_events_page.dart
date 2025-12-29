@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
-import 'package:smart_sports/core/utils/auth_utils.dart';
+import 'package:smart_sports/events/screens/add_event_form_screen.dart';
 import 'member_tournament_details_page.dart';
 
 class MemberEventsPage extends ConsumerStatefulWidget {
@@ -13,8 +13,9 @@ class MemberEventsPage extends ConsumerStatefulWidget {
   ConsumerState<MemberEventsPage> createState() => _MemberEventsPageState();
 }
 
-class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
-  int _selectedTabIndex = 0;
+class _MemberEventsPageState extends State<MemberEventsPage> {
+  int _selectedEventTypeIndex = 0; // 0 = Upcoming Events, 1 = Past Events
+  int _selectedTabIndex = 0; // 0 = As An Organizer, 1 = As A Subscriber, 2 = Unsubscribed Events
   String _selectedSport = 'Cricket';
 
   // Filter controllers
@@ -36,11 +37,19 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
     'Winter Sports League': true,
   };
 
+  // Event subscription state
+  final Map<String, bool> _eventSubscriptions = {
+    'Brown Country Tournament': true,
+    'Elite Sports Championship': false,
+    'City Sports Festival': true,
+    'Summer Games Tournament': false,
+    'Winter Sports League': false,
+  };
+
   final List<String> _tabs = [
-    'All Events',
-    'Registered',
-    'Upcoming',
-    'Past',
+    'As An Organizer',
+    'As A Subscriber',
+    'Unsubscribed Events',
   ];
 
   final List<String> _sports = [
@@ -99,6 +108,13 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: () => _handleAddEvent(),
+            icon: const Icon(Icons.add),
+            tooltip: 'Add Event',
+          ),
+        ],
       ),
       drawer: Drawer(
         elevation: 0,
@@ -147,8 +163,11 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
       ),
       body: Column(
         children: [
-          // Tab Sections
-          _buildTabSections(),
+          // Event Type Tabs (Upcoming Events / Past Events)
+          _buildEventTypeTabs(),
+          
+          // Tab Sections (As An Organizer / As A Subscriber / Unsubscribed Events)
+          if (_selectedEventTypeIndex == 0) _buildTabSections(),
 
           // Filter Bar
           _buildFilterBar(),
@@ -160,28 +179,133 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
           Expanded(child: _buildEventCards()),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _handleAddEvent(),
+        icon: const Icon(Icons.add),
+        label: const Text('Add Event'),
+        backgroundColor: const Color(0xFF009A69),
+        foregroundColor: Colors.white,
+      ),
+    );
+  }
+
+  void _handleAddEvent() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const AddEventFormScreen(),
+      ),
+    );
+  }
+
+  Widget _buildEventTypeTabs() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: () => setState(() => _selectedEventTypeIndex = 0),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: _selectedEventTypeIndex == 0
+                      ? Colors.grey.shade800
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _selectedEventTypeIndex == 0
+                        ? Colors.grey.shade700
+                        : Colors.grey.shade300,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'Upcoming Events',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: _selectedEventTypeIndex == 0
+                        ? Colors.white
+                        : Colors.grey.shade700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: InkWell(
+              onTap: () => setState(() => _selectedEventTypeIndex = 1),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: _selectedEventTypeIndex == 1
+                      ? Colors.grey.shade800
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _selectedEventTypeIndex == 1
+                        ? Colors.grey.shade700
+                        : Colors.grey.shade300,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'Past Events',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: _selectedEventTypeIndex == 1
+                        ? Colors.white
+                        : Colors.grey.shade700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildTabSections() {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      child: Row(
-        children: _tabs.asMap().entries.map((entry) {
-          final index = entry.key;
-          final tab = entry.value;
-          final isSelected = _selectedTabIndex == index;
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: _tabs.asMap().entries.map((entry) {
+            final index = entry.key;
+            final tab = entry.value;
+            final isSelected = _selectedTabIndex == index;
 
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
               child: InkWell(
                 onTap: () => setState(() => _selectedTabIndex = index),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     vertical: 14,
-                    horizontal: 8,
+                    horizontal: 16,
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
@@ -208,9 +332,9 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
                   ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -682,7 +806,11 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
         'organizerEmail': 'Elijahscott@Gmail.Com',
         'isRegistered':
             _eventRegistrations['Brown Country Tournament'] ?? false,
+        'isSubscribed':
+            _eventSubscriptions['Brown Country Tournament'] ?? false,
+        'isOrganizer': true,
         'status': 'Upcoming',
+        'entryCount': null,
       },
       {
         'name': 'Elite Sports Championship',
@@ -696,7 +824,11 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
         'organizerEmail': 'sarah.johnson@email.com',
         'isRegistered':
             _eventRegistrations['Elite Sports Championship'] ?? false,
+        'isSubscribed':
+            _eventSubscriptions['Elite Sports Championship'] ?? false,
+        'isOrganizer': false,
         'status': 'Upcoming',
+        'entryCount': null,
       },
       {
         'name': 'City Sports Festival',
@@ -709,7 +841,10 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
         'organizerName': 'Mike Davis',
         'organizerEmail': 'mike.davis@email.com',
         'isRegistered': _eventRegistrations['City Sports Festival'] ?? false,
+        'isSubscribed': _eventSubscriptions['City Sports Festival'] ?? false,
+        'isOrganizer': false,
         'status': 'Upcoming',
+        'entryCount': null,
       },
       {
         'name': 'Summer Games Tournament',
@@ -723,7 +858,11 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
         'organizerEmail': 'lisa.wilson@email.com',
         'isRegistered':
             _eventRegistrations['Summer Games Tournament'] ?? false,
+        'isSubscribed':
+            _eventSubscriptions['Summer Games Tournament'] ?? false,
+        'isOrganizer': false,
         'status': 'Upcoming',
+        'entryCount': null,
       },
       {
         'name': 'Winter Sports League',
@@ -736,22 +875,33 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
         'organizerName': 'Tom Anderson',
         'organizerEmail': 'tom.anderson@email.com',
         'isRegistered': _eventRegistrations['Winter Sports League'] ?? false,
+        'isSubscribed': _eventSubscriptions['Winter Sports League'] ?? false,
+        'isOrganizer': false,
         'status': 'Past',
+        'entryCount': 156,
       },
     ];
 
     switch (_selectedTabIndex) {
-      case 0: // All Events
-        return allEvents;
-      case 1: // Registered
+      case 0: // As An Organizer
         return allEvents
-            .where((event) => event['isRegistered'] == true)
+            .where((event) => event['isOrganizer'] == true)
             .toList();
-      case 2: // Upcoming
+      case 1: // As A Subscriber
+        return allEvents
+            .where((event) =>
+                event['isSubscribed'] == true && event['isOrganizer'] != true)
+            .toList();
+      case 2: // Unsubscribed Events
+        return allEvents
+            .where((event) =>
+                event['isSubscribed'] != true && event['isOrganizer'] != true)
+            .toList();
+      case 3: // Upcoming
         return allEvents
             .where((event) => event['status'] == 'Upcoming')
             .toList();
-      case 3: // Past
+      case 4: // Past
         return allEvents
             .where((event) => event['status'] == 'Past')
             .toList();
@@ -775,6 +925,7 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
               registrationDate: event['registrationDate'],
               organizerName: event['organizerName'],
               organizerEmail: event['organizerEmail'],
+              role: event['isOrganizer'] ?? false ? 'Organiser' : 'Coach',
             ),
           ),
         );
@@ -796,38 +947,39 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
           child: Stack(
             children: [
               // Background Image
-              Container(
-                height: 320,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(
-                      'assets/images/pngtree-a-large-cricket-stadium-green-field-empty-picture-image_15985507.jpg',
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(
+                        'assets/images/pngtree-a-large-cricket-stadium-green-field-empty-picture-image_15985507.jpg',
+                      ),
+                      fit: BoxFit.cover,
+                      onError: (exception, stackTrace) {
+                        // Handle image error
+                      },
                     ),
-                    fit: BoxFit.cover,
-                    onError: (exception, stackTrace) {
-                      // Handle image error
-                    },
                   ),
                 ),
               ),
 
               // Overlay Content
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.2),
-                        Colors.black.withOpacity(0.8),
-                      ],
-                    ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.2),
+                      Colors.black.withOpacity(0.8),
+                    ],
                   ),
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                ),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                       // Tournament Title and Favourite
                       Row(
                         children: [
@@ -1039,6 +1191,14 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
                               'Registration Last Date',
                               event['registrationDate'],
                             ),
+                            if (event['status'] == 'Past' &&
+                                event['entryCount'] != null) ...[
+                              const SizedBox(height: 6),
+                              _buildScheduleItem(
+                                'Entries',
+                                '${event['entryCount']}',
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -1202,7 +1362,6 @@ class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
                     ],
                   ),
                 ),
-              ),
             ],
           ),
         ),

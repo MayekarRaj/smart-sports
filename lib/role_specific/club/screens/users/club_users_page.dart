@@ -174,7 +174,7 @@ class _ClubUsersPageState extends ConsumerState<ClubUsersPage>
       ),
       appBar: AppBar(
         title: const Text(
-          'User Management',
+          'User',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -384,8 +384,8 @@ class _ClubUsersPageState extends ConsumerState<ClubUsersPage>
                   fontSize: 14,
                 ),
                 tabs: const [
-                  Tab(text: 'Admin User'),
-                  Tab(text: 'Employees'),
+                  Tab(text: 'Internal User'),
+                  Tab(text: 'Privilege User'),
                 ],
               ),
             ),

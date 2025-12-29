@@ -33,6 +33,12 @@ class _MemberClubDetailsPageState extends State<MemberClubDetailsPage> {
       maxTeams: 3,
       guestCapacity: 300,
       coaches: 4,
+      coachImages: [
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+      ],
       schedule: {
         'weekdays': '08:30 - 22:00',
         'saturday': '11:30 - 20:00',
@@ -47,6 +53,11 @@ class _MemberClubDetailsPageState extends State<MemberClubDetailsPage> {
       maxTeams: 3,
       guestCapacity: 300,
       coaches: 4,
+      coachImages: [
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
+      ],
       schedule: {
         'weekdays': '08:30 - 22:00',
         'saturday': '11:30 - 20:00',
@@ -61,6 +72,12 @@ class _MemberClubDetailsPageState extends State<MemberClubDetailsPage> {
       maxTeams: 3,
       guestCapacity: 300,
       coaches: 4,
+      coachImages: [
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+      ],
       schedule: {
         'weekdays': '08:30 - 22:00',
         'saturday': '11:30 - 20:00',
@@ -114,9 +131,7 @@ class _MemberClubDetailsPageState extends State<MemberClubDetailsPage> {
                 _isFavorite = !_isFavorite;
               });
             },
-            icon: Icon(
-              _isFavorite ? Icons.bookmark : Icons.bookmark_border,
-            ),
+            icon: Icon(_isFavorite ? Icons.bookmark : Icons.bookmark_border),
             tooltip: _isFavorite ? 'Remove from favorites' : 'Add to favorites',
           ),
         ],
@@ -151,6 +166,9 @@ class _MemberClubDetailsPageState extends State<MemberClubDetailsPage> {
               onSportChanged: (index) =>
                   setState(() => _selectedSportIndex = index),
             ),
+
+            // Map Section
+            _MemberMapSection(location: widget.club.location),
 
             // Courts List
             _MemberCourtsList(courts: _courts),
@@ -223,9 +241,7 @@ class _MemberClubHeader extends StatelessWidget {
                   backgroundColor: isFavorite
                       ? const Color(0xFF009A69)
                       : Colors.grey.shade200,
-                  foregroundColor: isFavorite
-                      ? Colors.white
-                      : Colors.black87,
+                  foregroundColor: isFavorite ? Colors.white : Colors.black87,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 8,
@@ -247,51 +263,112 @@ class _MemberClubHeader extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 club.location,
-                style: const TextStyle(
-                  color: Color(0xFF6B7280),
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
               ),
             ],
           ),
 
           const SizedBox(height: 12),
 
-          // Available Sports
-          const Text(
-            'AVAILABLE SPORTS',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF6B7280),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: club.availableSports
-                .map(
-                  (sport) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF009A69),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      sport,
-                      style: const TextStyle(
-                        color: Colors.white,
+          // Available Sports and Coach Row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Available Sports Section
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'AVAILABLE SPORTS',
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
+                        color: Color(0xFF6B7280),
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: club.availableSports
+                          .map(
+                            (sport) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF009A69),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Text(
+                                sport,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Coach Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'COACH',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF6B7280),
+                    ),
                   ),
-                )
-                .toList(),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (club.coachImages.isNotEmpty)
+                        _buildCoachAvatar(club.coachImages[0]),
+                      if (club.coachImages.length > 1)
+                        Transform.translate(
+                          offset: const Offset(-8, 0),
+                          child: _buildCoachAvatar(club.coachImages[1]),
+                        ),
+                      if (club.coachImages.length > 2)
+                        Transform.translate(
+                          offset: const Offset(-16, 0),
+                          child: _buildCoachAvatar(club.coachImages[2]),
+                        ),
+                      if (club.coachImages.length > 3)
+                        Transform.translate(
+                          offset: const Offset(-24, 0),
+                          child: _buildCoachAvatar(club.coachImages[3]),
+                        ),
+                      if (club.coaches > club.coachImages.length)
+                        Transform.translate(
+                          offset: Offset(
+                            -8.0 * club.coachImages.length.clamp(0, 3),
+                            0,
+                          ),
+                          child: _buildCoachAvatar(
+                            null,
+                            remainingCount:
+                                club.coaches - club.coachImages.length,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
 
           const SizedBox(height: 16),
@@ -326,10 +403,7 @@ class _MemberClubHeader extends StatelessWidget {
                   ),
                   const Text(
                     'Club Rating',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF6B7280),
-                    ),
+                    style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                   ),
                 ],
               ),
@@ -348,25 +422,15 @@ class _MemberClubHeader extends StatelessWidget {
           // Action Buttons
           Row(
             children: [
-              Expanded(
-                child: _buildActionButton(Icons.share, 'Share'),
-              ),
+              Expanded(child: _buildActionButton(Icons.share, 'Share')),
               const SizedBox(width: 8),
-              Expanded(
-                child: _buildActionButton(Icons.sports_tennis, 'Coach'),
-              ),
+              Expanded(child: _buildActionButton(Icons.sports_tennis, 'Coach')),
               const SizedBox(width: 8),
-              Expanded(
-                child: _buildActionButton(Icons.group, 'Players'),
-              ),
+              Expanded(child: _buildActionButton(Icons.group, 'Players')),
               const SizedBox(width: 8),
-              Expanded(
-                child: _buildActionButton(Icons.business, 'Sponsor'),
-              ),
+              Expanded(child: _buildActionButton(Icons.business, 'Sponsor')),
               const SizedBox(width: 8),
-              Expanded(
-                child: _buildActionButton(Icons.reviews, 'Reviews'),
-              ),
+              Expanded(child: _buildActionButton(Icons.reviews, 'Reviews')),
             ],
           ),
         ],
@@ -383,16 +447,10 @@ class _MemberClubHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 10, color: Colors.grey),
-          ),
+          Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
           Text(
             value,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           ),
         ],
       ),
@@ -403,17 +461,56 @@ class _MemberClubHeader extends StatelessWidget {
     return ElevatedButton.icon(
       onPressed: () {},
       icon: Icon(icon, size: 16),
-      label: Text(
-        label,
-        style: const TextStyle(fontSize: 12),
-      ),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF009A69),
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+    );
+  }
+
+  Widget _buildCoachAvatar(String? imageUrl, {int? remainingCount}) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: imageUrl != null
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade300,
+                  child: const Icon(Icons.person, size: 24, color: Colors.grey),
+                ),
+              )
+            : Container(
+                color: Colors.grey.shade300,
+                child: Center(
+                  child: remainingCount != null && remainingCount > 0
+                      ? Text(
+                          '+$remainingCount',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : const Icon(Icons.person, size: 24, color: Colors.grey),
+                ),
+              ),
       ),
     );
   }
@@ -730,6 +827,15 @@ class _MemberCourtCard extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 // Schedule
+                const Text(
+                  'Schedule',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 _buildScheduleItem('Weekdays', court.schedule['weekdays']!),
                 const SizedBox(height: 8),
                 _buildScheduleItem('Saturday', court.schedule['saturday']!),
@@ -752,23 +858,37 @@ class _MemberCourtCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Row(
-                  children: List.generate(
-                    court.coaches,
-                    (index) => Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade100,
-                        shape: BoxShape.circle,
+                  children: [
+                    if (court.coachImages.isNotEmpty)
+                      _buildCoachAvatar(court.coachImages[0]),
+                    if (court.coachImages.length > 1)
+                      Transform.translate(
+                        offset: const Offset(-8, 0),
+                        child: _buildCoachAvatar(court.coachImages[1]),
                       ),
-                      child: const Icon(
-                        Icons.person,
-                        size: 16,
-                        color: Color(0xFF009A69),
+                    if (court.coachImages.length > 2)
+                      Transform.translate(
+                        offset: const Offset(-16, 0),
+                        child: _buildCoachAvatar(court.coachImages[2]),
                       ),
-                    ),
-                  ),
+                    if (court.coachImages.length > 3)
+                      Transform.translate(
+                        offset: const Offset(-24, 0),
+                        child: _buildCoachAvatar(court.coachImages[3]),
+                      ),
+                    if (court.coaches > court.coachImages.length)
+                      Transform.translate(
+                        offset: Offset(
+                          -8.0 * court.coachImages.length.clamp(0, 3),
+                          0,
+                        ),
+                        child: _buildCoachAvatar(
+                          null,
+                          remainingCount:
+                              court.coaches - court.coachImages.length,
+                        ),
+                      ),
+                  ],
                 ),
 
                 const SizedBox(height: 16),
@@ -831,10 +951,7 @@ class _MemberCourtCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -847,27 +964,195 @@ class _MemberCourtCard extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
           ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            border: Border.all(
-              color: const Color(0xFF009A69).withOpacity(0.3),
-            ),
+            border: Border.all(color: const Color(0xFF009A69).withOpacity(0.3)),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
             time,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCoachAvatar(String? imageUrl, {int? remainingCount}) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: imageUrl != null
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade300,
+                  child: const Icon(Icons.person, size: 20, color: Colors.grey),
+                ),
+              )
+            : Container(
+                color: Colors.grey.shade300,
+                child: Center(
+                  child: remainingCount != null && remainingCount > 0
+                      ? Text(
+                          '+$remainingCount',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : const Icon(Icons.person, size: 20, color: Colors.grey),
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+// Member Map Section Component
+class _MemberMapSection extends StatelessWidget {
+  final String location;
+
+  const _MemberMapSection({required this.location});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      height: 200,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Stack(
+        children: [
+          // Map Image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              'assets/images/9c71c0d0f90c1acfa57c561de796ac8136fe5724.png',
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.map, size: 40, color: Colors.grey.shade400),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Interactive Map',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        location,
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
+
+          // Map Legend
+          Positioned(
+            bottom: 8,
+            left: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildLegendItem('A', Colors.green, 'Slots Available'),
+                      _buildLegendItem('R', Colors.orange, 'Slots Rushing'),
+                      _buildLegendItem('X', Colors.red, 'Slots Not Available'),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'You can change the club selection of your choice from Map.',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey.shade600,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegendItem(String letter, Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          child: Center(
+            child: Text(
+              letter,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -892,31 +1177,33 @@ class _MemberMoreDetailsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // More Details Header
-          InkWell(
-            onTap: onToggle,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: InkWell(
+              onTap: onToggle,
               child: Row(
                 children: [
-                  const Text(
-                    'More Details',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  const Expanded(
+                    child: Text(
+                      'More Details',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F2937),
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   Icon(
                     showMoreDetails
                         ? Icons.keyboard_arrow_up
@@ -980,29 +1267,36 @@ class _MemberCoachesSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text(
-                'Coaches',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              const Expanded(
+                child: Text(
+                  'Coaches',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
                 ),
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF009A69),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'Upgrade To Unlock Coach Ratings And Reviews',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF009A69),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'Upgrade To Unlock Coach Ratings',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -1010,19 +1304,160 @@ class _MemberCoachesSection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
+          // Coach Table Header
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF009A69),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  SizedBox(
+                    width: 80,
+                    child: Text(
+                      'Action',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 100,
+                    child: Text(
+                      'Coach',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 90,
+                    child: Text(
+                      'Coach Ratings',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 80,
+                    child: Text(
+                      'Gender Pref',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 140,
+                    child: Text(
+                      'Specialisation',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 140,
+                    child: Text(
+                      'Coaching Experience',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 140,
+                    child: Text(
+                      'Certification',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 80,
+                    child: Text(
+                      'Languages',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 140,
+                    child: Text(
+                      'Availability',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 80,
+                    child: Text(
+                      'Distance',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 90,
+                    child: Text(
+                      'Hourly Rate',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
           // Coach Cards
           ...List.generate(
             3,
             (index) => _MemberCoachCard(
               name: 'Riya Mehra',
               rating: 3.8,
+              genderPreference: 'Female',
               specialization: 'Football (U17), Tennis, Strength & Conditioning',
               experience: '5+ Years, Former National Player',
               certification: 'AIFF D-License, NASM CPT, First-Aid Certified',
+              languages: 'English, Hindi',
               availability: 'Weekdays 6-9 PM, Weekends Full Day',
-              distance: '5 Miles From Event Venue',
+              distance: '5 Miles',
               rate: 'USD 50',
               isBlocked: index == 1,
+              isUpgraded: false,
             ),
           ),
         ],
@@ -1035,59 +1470,106 @@ class _MemberCoachesSection extends StatelessWidget {
 class _MemberCoachCard extends StatelessWidget {
   final String name;
   final double rating;
+  final String genderPreference;
   final String specialization;
   final String experience;
   final String certification;
+  final String languages;
   final String availability;
   final String distance;
   final String rate;
   final bool isBlocked;
+  final bool isUpgraded;
 
   const _MemberCoachCard({
     required this.name,
     required this.rating,
+    required this.genderPreference,
     required this.specialization,
     required this.experience,
     required this.certification,
+    required this.languages,
     required this.availability,
     required this.distance,
     required this.rate,
     required this.isBlocked,
+    required this.isUpgraded,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.blue.shade100,
-                child: const Icon(Icons.person, color: Color(0xFF009A69)),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            // Action
+            SizedBox(
+              width: 80,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isBlocked ? Colors.red : Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 6,
+                  ),
+                  minimumSize: const Size(0, 32),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  isBlocked ? 'Block' : 'Unblock',
+                  style: const TextStyle(fontSize: 9),
+                ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+            ),
+            const SizedBox(width: 8),
+            // Coach
+            SizedBox(
+              width: 100,
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 14,
+                    backgroundColor: Colors.blue.shade100,
+                    child: const Icon(
+                      Icons.person,
+                      size: 14,
+                      color: Color(0xFF009A69),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
                       name,
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 10,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    Row(
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Coach Ratings
+            SizedBox(
+              width: 90,
+              child: isUpgraded
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         ...List.generate(
                           5,
@@ -1095,76 +1577,117 @@ class _MemberCoachCard extends StatelessWidget {
                             index < rating.toInt()
                                 ? Icons.star
                                 : Icons.star_border,
-                            size: 12,
+                            size: 10,
                             color: Colors.amber,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Text('$rating', style: const TextStyle(fontSize: 12)),
+                        const SizedBox(width: 2),
+                        Text('$rating', style: const TextStyle(fontSize: 10)),
                       ],
+                    )
+                  : const Text(
+                      'Locked',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                  ],
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isBlocked ? Colors.red : Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Text(
-                  isBlocked ? 'Block' : 'Unblock',
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            specialization,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            experience,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            certification,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Language: English',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            availability,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            distance,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Rate: $rate',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            // Gender Preference
+            SizedBox(
+              width: 80,
+              child: Text(
+                genderPreference,
+                style: const TextStyle(fontSize: 10),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Specialisation
+            SizedBox(
+              width: 140,
+              child: Text(
+                specialization,
+                style: const TextStyle(fontSize: 10),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Coaching Experience
+            SizedBox(
+              width: 140,
+              child: Text(
+                experience,
+                style: const TextStyle(fontSize: 10),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Certification
+            SizedBox(
+              width: 140,
+              child: Text(
+                certification,
+                style: const TextStyle(fontSize: 10),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Languages
+            SizedBox(
+              width: 80,
+              child: Text(
+                languages,
+                style: const TextStyle(fontSize: 10),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Availability
+            SizedBox(
+              width: 140,
+              child: Text(
+                availability,
+                style: const TextStyle(fontSize: 10),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Distance
+            SizedBox(
+              width: 80,
+              child: Text(
+                distance,
+                style: const TextStyle(fontSize: 10),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Hourly Rate
+            SizedBox(
+              width: 90,
+              child: Text(
+                rate,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF009A69),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1197,6 +1720,41 @@ class _MemberBillingSection extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
+          // Table Header
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF009A69),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Billing Meter',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'Charges',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
           ..._buildBillingItems(),
         ],
       ),
@@ -1225,25 +1783,34 @@ class _MemberBillingSection extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
+                  flex: 2,
                   child: Text(
                     item['meter']!,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    item['charge']!,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF009A69),
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      item['charge']!,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF009A69),
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
@@ -1319,6 +1886,41 @@ class _MemberSponsorshipSection extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
+          // Table Header
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF009A69),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Type',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'Metre',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
           ..._buildSponsorshipItems(),
         ],
       ),
@@ -1345,25 +1947,34 @@ class _MemberSponsorshipSection extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
+                  flex: 2,
                   child: Text(
                     item['type']!,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade100,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    item['meter']!,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      item['meter']!,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
@@ -1383,6 +1994,7 @@ class MemberCourtData {
   final int maxTeams;
   final int guestCapacity;
   final int coaches;
+  final List<String> coachImages;
   final Map<String, String> schedule;
   final String imageUrl;
 
@@ -1393,8 +2005,8 @@ class MemberCourtData {
     required this.maxTeams,
     required this.guestCapacity,
     required this.coaches,
+    required this.coachImages,
     required this.schedule,
     required this.imageUrl,
   });
 }
-

@@ -66,37 +66,12 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _ClubToggle(),
-            const SizedBox(height: 12),
             _ShowSearchRow(isWide: isWide),
             const SizedBox(height: 12),
             if (_showFilters) const _FilterStrip(),
             const SizedBox(height: 16),
             // Multiple Arena Cards
             ..._buildArenaCards(context),
-            const SizedBox(height: 16),
-            // Branch Selection Dropdown
-            _buildBranchSelectionDropdown(),
-            const SizedBox(height: 16),
-            // Courts for Selected Branch
-            _buildCourtsForSelectedBranch(),
-            const SizedBox(height: 16),
-            // Map Section
-            _buildMapSection(),
-            const SizedBox(height: 16),
-            // Basketball Utilization Table
-            _buildBasketballUtilizationTable(),
-            const SizedBox(height: 16),
-            // Rating & Reviews Section
-            _buildRatingReviewsSection(),
-            const SizedBox(height: 20),
-            const _CoachListSection(),
-            const SizedBox(height: 16),
-            const _BillingMethodSection(),
-            const SizedBox(height: 16),
-            const _GuestSeatingSection(),
-            const SizedBox(height: 16),
-            const _SponsorshipSection(),
           ],
         ),
       ),
@@ -564,109 +539,221 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
 
   Widget _buildCourtCard(Map<String, String> court) {
     final isAvailable = court['status'] == 'Available';
-    final isOccupied = court['status'] == 'Occupied';
-
-    Color statusColor;
-    IconData statusIcon;
-
-    if (isAvailable) {
-      statusColor = Colors.green;
-      statusIcon = Icons.check_circle;
-    } else if (isOccupied) {
-      statusColor = Colors.orange;
-      statusIcon = Icons.person;
-    } else {
-      statusColor = Colors.red;
-      statusIcon = Icons.build;
-    }
+    
+    // Sample coach avatars
+    final coachAvatars = [
+      'https://i.pravatar.cc/150?img=1',
+      'https://i.pravatar.cc/150?img=2',
+      'https://i.pravatar.cc/150?img=3',
+      'https://i.pravatar.cc/150?img=4',
+    ];
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
-        children: [
-          // Court Icon
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              _getSportIcon(court['sport']!),
-              color: statusColor,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Court Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  court['name']!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  court['sport']!,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          ),
-
-          // Status and Utilization
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(statusIcon, color: statusColor, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    court['status']!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: statusColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${court['utilization']} Utilized',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.blue[700],
-                  ),
-                ),
-              ),
-            ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Left side - Court Image
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(12),
+              bottomLeft: Radius.circular(12),
+            ),
+            child: Container(
+              width: 200,
+              height: 300,
+              color: Colors.grey.shade200,
+              child: Image.network(
+                'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=600&fit=crop',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey.shade300,
+                    child: Icon(
+                      _getSportIcon(court['sport']!),
+                      size: 50,
+                      color: Colors.grey.shade600,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          
+          // Right side - Court Details
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Court Header with Status
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          court['name']!,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: isAvailable ? Colors.green : Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          isAvailable ? 'Available' : 'Unavailable',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isAvailable ? Colors.green : Colors.red,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Coach Section
+                  const Text(
+                    'COACH',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 32,
+                    child: Stack(
+                      children: List.generate(4, (index) {
+                        return Positioned(
+                          left: index * 24.0, // Overlap by 8px (32 - 24 = 8)
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                  spreadRadius: 0,
+                                ),
+                              ],
+                            ),
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
+                              ),
+                              child: ClipOval(
+                                child: Image.network(
+                                  coachAvatars[index],
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: Colors.grey.shade300,
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 18,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Schedule Section
+                  const Text(
+                    'SCHEDULE',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildScheduleRow('Weekdays', '08:30 - 22:00'),
+                  const SizedBox(height: 8),
+                  _buildScheduleRow('Saturday', '11:30 - 20:00'),
+                  const SizedBox(height: 8),
+                  _buildScheduleRow('Sunday & National Holidays', 'Off'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScheduleRow(String label, String value) {
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xFF007BFF)),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF007BFF),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1898,43 +1985,6 @@ class _ArenaCard extends StatelessWidget {
 }
 
 // UI pieces below
-
-class _ClubToggle extends StatelessWidget {
-  const _ClubToggle();
-  @override
-  Widget build(BuildContext context) {
-    Widget pill(String text, bool active) => Container(
-      decoration: BoxDecoration(
-        color: active ? Colors.black87 : Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: active ? Colors.black54 : Colors.black26),
-        boxShadow: const [
-          BoxShadow(
-            blurRadius: 6,
-            color: Color(0x14000000),
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: active ? Colors.white : Colors.black54,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-
-    return Row(
-      children: [
-        pill('Club', true),
-        const SizedBox(width: 8),
-        pill('Corporate', false),
-      ],
-    );
-  }
-}
 
 class _ShowSearchRow extends StatelessWidget {
   final bool isWide;

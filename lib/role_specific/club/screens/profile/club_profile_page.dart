@@ -3,10 +3,9 @@ import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
-import 'package:smart_sports/shared/widgets/profile_components.dart';
 import 'package:smart_sports/shared/widgets/profile_tab_components.dart';
 import 'package:smart_sports/shared/widgets/profile_tab_content_builder.dart';
-import 'package:smart_sports/shared/widgets/profile_tabs/members_tab.dart';
+import 'package:smart_sports/shared/widgets/profile_tabs/branches_tab.dart';
 import 'package:smart_sports/shared/widgets/profile_tabs/bank_details_tab.dart';
 import 'package:smart_sports/shared/widgets/profile_tabs/subscriptions_tab.dart';
 
@@ -211,7 +210,7 @@ class _ClubProfilePageState extends State<ClubProfilePage>
                       isMobile: isMobile,
                       tabs: const [
                         Tab(text: 'Profile'),
-                        Tab(text: 'Members'),
+                        Tab(text: 'Branch'),
                         Tab(text: 'Bank Details & Financials'),
                         Tab(text: 'Subscriptions'),
                       ],
@@ -266,7 +265,7 @@ class _ClubProfilePageState extends State<ClubProfilePage>
                             roleLabel: 'Club',
                             userEmail: 'john.smith@example.com',
                           ),
-                          MembersTab(
+                          BranchesTab(
                             roleColor: _roleColor,
                             isMobile: isMobile,
                           ),

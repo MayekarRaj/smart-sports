@@ -489,37 +489,75 @@ class _AddEventFormScreenState extends State<AddEventFormScreen> {
           }).toList(),
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search sports...',
-                  hintStyle: GoogleFonts.poppins(fontSize: 14),
-                  prefixIcon: const Icon(Icons.search, size: 20),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFF007BFF)),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _selectedSports.map((sport) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF007BFF),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              sport,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedSports.remove(sport);
+                                });
+                              },
+                              child: const Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
-                onSubmitted: (value) {
-                  if (value.isNotEmpty && !_selectedSports.contains(value)) {
-                    setState(() {
-                      _selectedSports.add(value);
-                    });
-                  }
-                },
               ),
-            ),
-          ],
+              Container(
+                padding: const EdgeInsets.all(12),
+                child: GestureDetector(
+                  onTap: () {
+                    _showSportSearchDialog();
+                  },
+                  child: const Icon(
+                    Icons.search,
+                    size: 20,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -529,10 +567,48 @@ class _AddEventFormScreenState extends State<AddEventFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFormField(
+        Text(
+          'Event Promotional Image',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
           controller: _promotionalImageController,
-          label: 'Event Promotional Image',
-          hint: 'Input Text',
+          readOnly: true,
+          style: GoogleFonts.poppins(fontSize: 14),
+          decoration: InputDecoration(
+            hintText: 'Input Text',
+            hintStyle: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+            suffixIcon: const Icon(Icons.attach_file, size: 20),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFF007BFF), width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+          onTap: () {
+            // Handle file selection
+          },
         ),
         const SizedBox(height: 12),
         GestureDetector(
@@ -552,50 +628,43 @@ class _AddEventFormScreenState extends State<AddEventFormScreen> {
             height: 200,
             width: double.infinity,
             decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.grey[300]!,
-                style: BorderStyle.solid,
-                width: 2,
-              ),
               borderRadius: BorderRadius.circular(8),
               color: Colors.grey[50],
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.cloud_upload_outlined,
-                  size: 48,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Tap to Upload Image',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
+            child: CustomPaint(
+              painter: DashedBorderPainter(),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Icon(
+                      Icons.image_outlined,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'JPG, PNG, GIF up to 10MB',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.grey[500],
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () {
+                        // Remove image
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF007BFF),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF007BFF),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.add, color: Colors.white, size: 20),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -1115,7 +1184,83 @@ class _AddEventFormScreenState extends State<AddEventFormScreen> {
         ),
         const SizedBox(height: 16),
         _buildScheduleTable(),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerRight,
+          child: ElevatedButton(
+            onPressed: () {
+              // Add sport type to schedule
+              if (_scheduleData.isNotEmpty) {
+                setState(() {
+                  // Add a new row or update existing
+                });
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF007BFF),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: Text(
+              'Add Sport Type',
+              style: GoogleFonts.poppins(fontSize: 12),
+            ),
+          ),
+        ),
       ],
+    );
+  }
+
+  void _showSportSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Add Sport', style: GoogleFonts.poppins()),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'Search or type sport name...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onSubmitted: (value) {
+                if (value.isNotEmpty && !_selectedSports.contains(value)) {
+                  setState(() {
+                    _selectedSports.add(value);
+                  });
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            ..._availableSports
+                .where((sport) => !_selectedSports.contains(sport))
+                .map((sport) => ListTile(
+                      title: Text(sport, style: GoogleFonts.poppins()),
+                      onTap: () {
+                        setState(() {
+                          _selectedSports.add(sport);
+                        });
+                        Navigator.pop(context);
+                      },
+                    )),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: GoogleFonts.poppins()),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2746,4 +2891,69 @@ class _AddEventFormScreenState extends State<AddEventFormScreen> {
     _organizerWebsiteController.dispose();
     super.dispose();
   }
+}
+
+// Custom painter for dashed border
+class DashedBorderPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey[400]!
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 5.0;
+    const dashSpace = 5.0;
+    double startX = 0;
+    double startY = 0;
+
+    // Top border
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, startY),
+        Offset(startX + dashWidth, startY),
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+
+    // Right border
+    startX = size.width;
+    startY = 0;
+    while (startY < size.height) {
+      canvas.drawLine(
+        Offset(startX, startY),
+        Offset(startX, startY + dashWidth),
+        paint,
+      );
+      startY += dashWidth + dashSpace;
+    }
+
+    // Bottom border
+    startX = 0;
+    startY = size.height;
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, startY),
+        Offset(startX + dashWidth, startY),
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+
+    // Left border
+    startX = 0;
+    startY = 0;
+    while (startY < size.height) {
+      canvas.drawLine(
+        Offset(startX, startY),
+        Offset(startX, startY + dashWidth),
+        paint,
+      );
+      startY += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(DashedBorderPainter oldDelegate) => false;
 }

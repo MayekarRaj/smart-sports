@@ -35,6 +35,7 @@ class _BankDetailsTabState extends State<BankDetailsTab> {
   String _accountType = 'SAVING';
   File? _bankPassbookImage;
   final ImagePicker _imagePicker = ImagePicker();
+  bool _isEditMode = false;
 
   // Revenue Earned Filters
   String _revenueFilter = 'Financial Year';
@@ -123,6 +124,38 @@ class _BankDetailsTabState extends State<BankDetailsTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Edit/Save Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _isEditMode = !_isEditMode;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(_isEditMode ? 'Changes saved' : 'Edit mode enabled'),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                },
+                icon: Icon(_isEditMode ? Icons.save : Icons.edit),
+                label: Text(_isEditMode ? 'Save' : 'Edit'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: widget.roleColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
           // Bank Details Section
           _buildBankDetailsSection(),
           const SizedBox(height: 32),
@@ -296,15 +329,24 @@ class _BankDetailsTabState extends State<BankDetailsTab> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          style: const TextStyle(fontSize: 15, color: Colors.black87),
+          enabled: _isEditMode,
+          readOnly: !_isEditMode,
+          style: TextStyle(
+            fontSize: 15,
+            color: _isEditMode ? Colors.black87 : Colors.grey.shade700,
+          ),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: _isEditMode ? Colors.grey.shade50 : Colors.grey.shade100,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
@@ -337,7 +379,7 @@ class _BankDetailsTabState extends State<BankDetailsTab> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
+            color: _isEditMode ? Colors.grey.shade50 : Colors.grey.shade100,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey.shade300),
           ),
@@ -346,20 +388,25 @@ class _BankDetailsTabState extends State<BankDetailsTab> {
             child: DropdownButton<String>(
               value: _accountType,
               isExpanded: true,
-              style: const TextStyle(fontSize: 15, color: Colors.black87),
+              style: TextStyle(
+                fontSize: 15,
+                color: _isEditMode ? Colors.black87 : Colors.grey.shade700,
+              ),
               items: const ['SAVING', 'CURRENT'].map((type) {
                 return DropdownMenuItem<String>(
                   value: type,
                   child: Text(type),
                 );
               }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _accountType = value;
-                  });
-                }
-              },
+              onChanged: _isEditMode
+                  ? (value) {
+                      if (value != null) {
+                        setState(() {
+                          _accountType = value;
+                        });
+                      }
+                    }
+                  : null,
             ),
           ),
         ),
@@ -390,7 +437,7 @@ class _BankDetailsTabState extends State<BankDetailsTab> {
         ),
         const SizedBox(height: 12),
         GestureDetector(
-          onTap: _pickBankPassbookImage,
+          onTap: _isEditMode ? _pickBankPassbookImage : null,
           child: Container(
             height: 200,
             decoration: BoxDecoration(
@@ -431,7 +478,7 @@ class _BankDetailsTabState extends State<BankDetailsTab> {
                   ),
           ),
         ),
-        if (_bankPassbookImage != null) ...[
+        if (_bankPassbookImage != null && _isEditMode) ...[
           const SizedBox(height: 8),
           ElevatedButton.icon(
             onPressed: () {
@@ -546,6 +593,7 @@ class _BankDetailsTabState extends State<BankDetailsTab> {
               _revenueEndYear = year;
             });
           },
+          showFlexibleDuration: false,
         ),
         const SizedBox(height: 24),
         // Summary Cards

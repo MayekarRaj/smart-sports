@@ -628,32 +628,97 @@ class MobileArenaHeader extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Available Sports
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: ['Basketball', 'Basketball', 'Basketball']
-                .map(
-                  (sport) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      sport,
-                      style: const TextStyle(
-                        color: Colors.white,
+          // Available Sports and Coach Row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Available Sports Section
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'AVAILABLE SPORTS',
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
+                        color: Color(0xFF6B7280),
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: ['Basketball', 'Tennis', 'Cricket']
+                          .map(
+                            (sport) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Text(
+                                sport,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Coach Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'COACH',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF6B7280),
+                    ),
                   ),
-                )
-                .toList(),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildCoachAvatar(
+                        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+                      ),
+                      Transform.translate(
+                        offset: const Offset(-8, 0),
+                        child: _buildCoachAvatar(
+                          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+                        ),
+                      ),
+                      Transform.translate(
+                        offset: const Offset(-16, 0),
+                        child: _buildCoachAvatar(
+                          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
+                        ),
+                      ),
+                      Transform.translate(
+                        offset: const Offset(-24, 0),
+                        child: _buildCoachAvatar(
+                          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
 
           const SizedBox(height: 16),
@@ -673,45 +738,10 @@ class MobileArenaHeader extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Coach and Rating Section
+          // Rating Section
           Row(
             children: [
-              // Coach Section
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'COACH',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: List.generate(
-                        4,
-                        (index) => Container(
-                          margin: const EdgeInsets.only(right: 4),
-                          width: 24,
-                          height: 24,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const Spacer(),
               // Rating Section
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -756,6 +786,50 @@ class MobileArenaHeader extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCoachAvatar(String? imageUrl, {int? remainingCount}) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: imageUrl != null
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade300,
+                  child: const Icon(Icons.person, size: 24, color: Colors.grey),
+                ),
+              )
+            : Container(
+                color: Colors.grey.shade300,
+                child: Center(
+                  child: remainingCount != null && remainingCount > 0
+                      ? Text(
+                          '+$remainingCount',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : const Icon(Icons.person, size: 24, color: Colors.grey),
+                ),
+              ),
       ),
     );
   }
@@ -1154,6 +1228,15 @@ class MobileCourtCard extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 // Schedule
+                const Text(
+                  'Schedule',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 _buildScheduleItem('Weekdays', court.schedule['weekdays']!),
                 const SizedBox(height: 8),
                 _buildScheduleItem('Saturday', court.schedule['saturday']!),
@@ -1261,203 +1344,319 @@ class MobileCoachesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: const Color(0xFF8B5CF6), width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with Upgrade Button
-          Row(
-            children: [
-              const Text(
-                'Coaches',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'Upgrade To Unlock Coach Ratings And Reviews',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Coach Cards
-          ...List.generate(3, (index) => _buildCoachCard(index)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCoachCard(int index) {
-    final isBlocked = index == 1; // Second coach is blocked
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Coach Header
-          Row(
-            children: [
-              // Coach Avatar
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.blue.shade100,
-                child: const Icon(Icons.person, color: Colors.blue),
-              ),
-              const SizedBox(width: 12),
-              // Coach Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Riya Mehra',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        ...List.generate(
-                          5,
-                          (starIndex) => Icon(
-                            starIndex < 4 ? Icons.star : Icons.star_border,
-                            size: 16,
-                            color: Colors.amber,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Text('4.0', style: TextStyle(fontSize: 12)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // Action Button
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isBlocked ? Colors.red : Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Text(
-                  isBlocked ? 'Block' : 'Unblock',
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Coach Details
-          _buildDetailRow('Gender Preference', 'Male, Female, Other'),
-          _buildDetailRow(
-            'Specialisation',
-            'Football (U17), Tennis, Strength & Conditioning',
-          ),
-          _buildDetailRow(
-            'Coaching Experience',
-            '5+ Years, Former National Player',
-          ),
-          _buildDetailRow(
-            'Certification',
-            'AIFF D-License, NASM CPT, First-Aid Certified',
-          ),
-          _buildDetailRow('Language Spoken', 'English'),
-          _buildDetailRow('Availability', 'Weekdays 6-9 PM, Weekends Full Day'),
-          _buildDetailRow(
-            'Distance',
-            '5 Miles From Event Venue Richardson 62226',
-          ),
-
-          const SizedBox(height: 8),
-
-          // Rate Section
-          Row(
-            children: [
-              const Text(
-                'Hourly/Session Rate: ',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const Text(
-                'USD 50',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () {},
-                child: const Text(
-                  'More Options',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              '$label:',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey,
+          // Heading
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Color(0xFF374151),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
               ),
             ),
+            child: const Row(
+              children: [
+                Icon(Icons.verified_user, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Verify Coach Details',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 12))),
+          // Table
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: _buildCoachTable(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCoachTable() {
+    final coaches = [
+      {'isBlocked': false},
+      {'isBlocked': true},
+      {'isBlocked': false},
+    ];
+
+    return Table(
+      border: TableBorder.all(color: Colors.grey.shade300),
+      columnWidths: const {
+        0: FixedColumnWidth(100), // Action
+        1: FixedColumnWidth(150), // Coach
+        2: FixedColumnWidth(150), // Rating
+        3: FixedColumnWidth(120), // Gender Preference
+        4: FixedColumnWidth(200), // Specialisation
+        5: FixedColumnWidth(180), // Coaching Experience
+        6: FixedColumnWidth(200), // Certification
+        7: FixedColumnWidth(120), // Language Spoken
+        8: FixedColumnWidth(180), // Availability
+        9: FixedColumnWidth(200), // Distance
+        10: FixedColumnWidth(150), // Hourly/Session Rate
+      },
+      children: [
+        // Header Row
+        TableRow(
+          decoration: const BoxDecoration(color: Color(0xFF374151)),
+          children: [
+            _buildHeaderCell('Action'),
+            _buildHeaderCell('Coach'),
+            _buildHeaderCell('Rating'),
+            _buildHeaderCell('Gender Preference'),
+            _buildHeaderCell('Specialisation'),
+            _buildHeaderCell('Coaching Experience'),
+            _buildHeaderCell('Certification'),
+            _buildHeaderCell('Language Spoken'),
+            _buildHeaderCell('Availability'),
+            _buildHeaderCell('Distance'),
+            _buildHeaderCell('Hourly/Session Rate'),
+          ],
+        ),
+        // Data Rows
+        ...coaches.map((coach) => _buildCoachRow(coach['isBlocked'] as bool)),
+      ],
+    );
+  }
+
+  Widget _buildHeaderCell(String text) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  TableRow _buildCoachRow(bool isBlocked) {
+    return TableRow(
+      decoration: const BoxDecoration(color: Colors.white),
+      children: [
+        _buildActionCell(isBlocked),
+        _buildCoachCell(),
+        _buildRatingCell(),
+        _buildGenderPreferenceCell(),
+        _buildSpecialisationCell(),
+        _buildExperienceCell(),
+        _buildCertificationCell(),
+        _buildLanguageCell(),
+        _buildAvailabilityCell(),
+        _buildDistanceCell(),
+        _buildRateCell(),
+      ],
+    );
+  }
+
+  Widget _buildActionCell(bool isBlocked) {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Center(
+        child: ElevatedButton(
+          onPressed: () {},
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isBlocked ? Colors.red : Colors.green,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            minimumSize: const Size(80, 36),
+          ),
+          child: Text(
+            isBlocked ? 'Block' : 'Unblock',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCoachCell() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.yellow.shade200,
+            backgroundImage: const NetworkImage(
+              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+            ),
+            onBackgroundImageError: (_, __) {},
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Riya Mehra',
+            style: TextStyle(
+              color: Colors.blue,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingCell() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                '4.8',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 4),
+              ...List.generate(5, (index) => const Icon(
+                    Icons.star,
+                    color: Colors.yellow,
+                    size: 14,
+                  )),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '(20 Reviews)',
+            style: TextStyle(
+              color: Colors.grey.shade400,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenderPreferenceCell() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: const Text(
+        'Male, Female, Other',
+        style: TextStyle(fontSize: 11, color: Colors.black87),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildSpecialisationCell() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: const Text(
+        'Football (U17), Tennis, Strength & Conditioning',
+        style: TextStyle(fontSize: 11, color: Colors.black87),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildExperienceCell() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: const Text(
+        '5+ Years, Former National Player',
+        style: TextStyle(fontSize: 11, color: Colors.black87),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildCertificationCell() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: const Text(
+        'AIFF D-License, NASM CPT, First-Aid Certified',
+        style: TextStyle(fontSize: 11, color: Colors.black87),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildLanguageCell() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: const Text(
+        'English',
+        style: TextStyle(fontSize: 11, color: Colors.black87),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildAvailabilityCell() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: const Text(
+        'Weekdays 6-9 PM, Weekends Full Day',
+        style: TextStyle(fontSize: 11, color: Colors.black87),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildDistanceCell() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: const Text(
+        '5 Miles From Event Venue Richardson 62226',
+        style: TextStyle(fontSize: 11, color: Colors.black87),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildRateCell() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'USD 50',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          GestureDetector(
+            onTap: () {},
+            child: const Text(
+              'More Options',
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.blue,
+                decoration: TextDecoration.underline,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
         ],
       ),
     );
@@ -1492,15 +1691,13 @@ class MobileBillingMethodSection extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-
-          // Billing Items
-          ..._buildBillingItems(),
+          _buildBillingTable(),
         ],
       ),
     );
   }
 
-  List<Widget> _buildBillingItems() {
+  Widget _buildBillingTable() {
     final items = [
       {'meter': 'Per 30 Minutes', 'charge': 'USD 10'},
       {'meter': 'Per Hour', 'charge': 'USD 18'},
@@ -1509,46 +1706,64 @@ class MobileBillingMethodSection extends StatelessWidget {
       {'meter': 'Per Month', 'charge': 'USD 1000'},
     ];
 
-    return items
-        .map(
-          (item) => Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    item['meter']!,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    item['charge']!,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    return Table(
+      border: TableBorder.all(
+        color: Colors.grey.shade300,
+        width: 1,
+      ),
+      columnWidths: const {
+        0: FlexColumnWidth(2),
+        1: FlexColumnWidth(1),
+      },
+      children: [
+        // Header Row
+        TableRow(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
           ),
-        )
-        .toList();
+          children: [
+            _buildHeaderCell('Billing Meter'),
+            _buildHeaderCell('Charges'),
+          ],
+        ),
+        // Data Rows
+        ...items.map((item) => TableRow(
+              children: [
+                _buildDataCell(item['meter']!, isLeft: true),
+                _buildDataCell(item['charge']!, isLeft: false),
+              ],
+            )),
+      ],
+    );
+  }
+
+  Widget _buildHeaderCell(String text) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildDataCell(String text, {required bool isLeft}) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 14,
+          color: Colors.black87,
+        ),
+        textAlign: isLeft ? TextAlign.left : TextAlign.right,
+      ),
+    );
   }
 }
 
@@ -1822,6 +2037,7 @@ class MobileSponsorshipsSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -1838,59 +2054,74 @@ class MobileSponsorshipsSection extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          ..._buildSponsorshipItems(),
+          _buildSponsorshipTable(),
         ],
       ),
     );
   }
 
-  List<Widget> _buildSponsorshipItems() {
+  Widget _buildSponsorshipTable() {
     final items = [
       {'type': 'Bill Board', 'meter': 'Per Year'},
       {'type': 'Shoes', 'meter': 'Per Day'},
       {'type': 'Uniform', 'meter': 'Per Week'},
     ];
 
-    return items
-        .map(
-          (item) => Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
+    return Table(
+      border: TableBorder.all(
+        color: Colors.black,
+        width: 1,
+      ),
+      columnWidths: const {
+        0: FlexColumnWidth(1),
+        1: FlexColumnWidth(1),
+      },
+      children: [
+        // Header Row
+        TableRow(
+          children: [
+            _buildSponsorshipHeaderCell('Type'),
+            _buildSponsorshipHeaderCell('Meter'),
+          ],
+        ),
+        // Data Rows
+        ...items.map((item) => TableRow(
               children: [
-                Expanded(
-                  child: Text(
-                    item['type']!,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade100,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    item['meter']!,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-                ),
+                _buildSponsorshipDataCell(item['type']!),
+                _buildSponsorshipDataCell(item['meter']!),
               ],
-            ),
-          ),
-        )
-        .toList();
+            )),
+      ],
+    );
+  }
+
+  Widget _buildSponsorshipHeaderCell(String text) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildSponsorshipDataCell(String text) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 14,
+          color: Colors.black87,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
   }
 }
 

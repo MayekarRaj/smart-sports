@@ -66,142 +66,269 @@ class DateFilterWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Filter Buttons
-        Row(
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
           children: [
             _buildFilterButton('All', selectedFilter == 'All'),
-            const SizedBox(width: 12),
             _buildFilterButton('Financial Year', selectedFilter == 'Financial Year'),
-            if (showFlexibleDuration) ...[
-              const SizedBox(width: 12),
+            if (showFlexibleDuration)
               _buildFilterButton('Flexible Duration', selectedFilter == 'Flexible Duration'),
-            ],
           ],
         ),
         const SizedBox(height: 16),
         // Date Selection
         if (selectedFilter == 'Financial Year')
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isSmallScreen = constraints.maxWidth < 600;
+              if (isSmallScreen) {
+                return Column(
                   children: [
-                    const Text(
-                      'Start Month',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: _buildDropdown(
-                            value: startMonth,
-                            items: _months,
-                            onChanged: onStartMonthChanged,
+                        const Text(
+                          'Start Month',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildDropdown(
-                            value: startYear,
-                            items: _years,
-                            onChanged: onStartYearChanged,
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildDropdown(
+                                value: startMonth,
+                                items: _months,
+                                onChanged: onStartMonthChanged,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildDropdown(
+                                value: startYear,
+                                items: _years,
+                                onChanged: onStartYearChanged,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'End Month',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
                           ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildDropdown(
+                                value: endMonth,
+                                items: _months,
+                                onChanged: onEndMonthChanged,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildDropdown(
+                                value: endYear,
+                                items: _years,
+                                onChanged: onEndYearChanged,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'End Month',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: _buildDropdown(
-                            value: endMonth,
-                            items: _months,
-                            onChanged: onEndMonthChanged,
+                        const Text(
+                          'Start Month',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildDropdown(
-                            value: endYear,
-                            items: _years,
-                            onChanged: onEndYearChanged,
-                          ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildDropdown(
+                                value: startMonth,
+                                items: _months,
+                                onChanged: onStartMonthChanged,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildDropdown(
+                                value: startYear,
+                                items: _years,
+                                onChanged: onStartYearChanged,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'End Month',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildDropdown(
+                                value: endMonth,
+                                items: _months,
+                                onChanged: onEndMonthChanged,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildDropdown(
+                                value: endYear,
+                                items: _years,
+                                onChanged: onEndYearChanged,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           )
         else if (selectedFilter == 'Flexible Duration' && showFlexibleDuration)
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isSmallScreen = constraints.maxWidth < 600;
+              if (isSmallScreen) {
+                return Column(
                   children: [
-                    const Text(
-                      'Start Date',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF64748B),
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Start Date',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildDatePicker(
+                          context,
+                          value: flexibleStartDate ?? DateTime.now(),
+                          onChanged: onFlexibleStartDateChanged ?? (date) {},
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    _buildDatePicker(
-                      context,
-                      value: flexibleStartDate ?? DateTime.now(),
-                      onChanged: onFlexibleStartDateChanged ?? (date) {},
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'End Date',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildDatePicker(
+                          context,
+                          value: flexibleEndDate ?? DateTime.now(),
+                          onChanged: onFlexibleEndDateChanged ?? (date) {},
+                        ),
+                      ],
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'End Date',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF64748B),
-                      ),
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Start Date',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildDatePicker(
+                          context,
+                          value: flexibleStartDate ?? DateTime.now(),
+                          onChanged: onFlexibleStartDateChanged ?? (date) {},
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    _buildDatePicker(
-                      context,
-                      value: flexibleEndDate ?? DateTime.now(),
-                      onChanged: onFlexibleEndDateChanged ?? (date) {},
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'End Date',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildDatePicker(
+                          context,
+                          value: flexibleEndDate ?? DateTime.now(),
+                          onChanged: onFlexibleEndDateChanged ?? (date) {},
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
           ),
       ],
     );
@@ -211,7 +338,8 @@ class DateFilterWidget extends StatelessWidget {
     return GestureDetector(
       onTap: () => onFilterChanged(label),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        constraints: const BoxConstraints(minWidth: 80),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF1F2937) : Colors.white,
           borderRadius: BorderRadius.circular(8),
@@ -226,6 +354,7 @@ class DateFilterWidget extends StatelessWidget {
             fontWeight: FontWeight.w600,
             color: isSelected ? Colors.white : Colors.grey.shade700,
           ),
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );
