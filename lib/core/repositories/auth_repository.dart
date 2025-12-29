@@ -438,23 +438,17 @@ class AuthRepository extends BaseRepository {
   }
 
   /// Get sports list
-  /// Returns SportsListResponse with paginated sports data
+  /// Returns SportsListResponse with list of sports
   Future<SportsListResponse> getSportsList({
-    int? perPage,
     String? orderBy,
-    String? commonSearch,
     String? sportsName,
     int? isActive,
-    int? page,
   }) async {
     final response = await networkClient.get<Map<String, dynamic>>(
-      ApiEndpoints.getMstSportsUrl(
-        perPage: perPage,
+      ApiEndpoints.getSportsListUrl(
         orderBy: orderBy,
-        commonSearch: commonSearch,
         sportsName: sportsName,
         isActive: isActive,
-        page: page,
       ),
       requiresAuth: true, // API requires authentication token
       fromJson: null, // Get full response to parse manually
@@ -680,6 +674,9 @@ class AuthRepository extends BaseRepository {
   Future<Map<String, dynamic>> savePaymentInformation(
     SavePaymentInformationRequest request,
   ) async {
+    // Validate required fields based on payment method
+    request.validate();
+
     final fields = request.toFormFields();
     final files = <String, File>{};
 

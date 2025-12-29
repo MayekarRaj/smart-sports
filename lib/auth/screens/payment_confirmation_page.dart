@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../../core/models/api_models.dart';
-import '../../core/exceptions/api_exception.dart';
 import '../../role_specific/common/role_router.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'dart:io';
@@ -15,6 +14,7 @@ class PaymentConfirmationPage extends StatefulWidget {
   final String? clientSecret;
   final String? stripePaymentMethodId;
   final CardFieldInputDetails? cardFieldDetails;
+  final String? subscriptionId; // Required only when Add Club or Branch
 
   const PaymentConfirmationPage({
     super.key,
@@ -25,6 +25,7 @@ class PaymentConfirmationPage extends StatefulWidget {
     this.clientSecret,
     this.stripePaymentMethodId,
     this.cardFieldDetails,
+    this.subscriptionId,
   });
 
   @override
@@ -522,30 +523,13 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
       );
 
       final paymentMethodId = paymentMethod.id;
-      if (paymentMethodId == null) {
-        throw Exception('Failed to create payment method');
-      }
-
-      // Create subscription with the payment method
-      final subscriptionRequest = StripeCreateSubscriptionRequest(
-        stripePaymentMethodId: paymentMethodId,
-        paymentMethod: paymentMethodId,
-      );
-
-      final subscriptionResponse = await _authRepository.createStripeSubscription(
-        subscriptionRequest,
-      );
-
-      // Handle SCA if required
-      if (subscriptionResponse.clientSecret != null) {
-        // Additional authentication may be required
-        // For now, we proceed with payment info saving
-      }
 
       // Save payment information
+      // Subscription creation is handled on the backend when payment info is saved
       final paymentInfoRequest = SavePaymentInformationRequest(
         paymentMethod: 'Stripe',
         stripePaymentMethodId: paymentMethodId,
+        subscriptionId: widget.subscriptionId,
       );
 
       await _authRepository.savePaymentInformation(paymentInfoRequest);
@@ -569,6 +553,7 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
       paymentMethod: 'Bank Transfer',
       referenceNumber: widget.referenceNumber,
       paymentReceiptImagePath: widget.receiptImage!.path,
+      subscriptionId: widget.subscriptionId,
     );
 
     await _authRepository.savePaymentInformation(paymentInfoRequest);
@@ -579,6 +564,7 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
   Future<void> _processPayPalPayment() async {
     final paymentInfoRequest = SavePaymentInformationRequest(
       paymentMethod: 'Paypal',
+      subscriptionId: widget.subscriptionId,
     );
 
     await _authRepository.savePaymentInformation(paymentInfoRequest);

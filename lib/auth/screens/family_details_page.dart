@@ -128,15 +128,13 @@ class _FamilyDetailsPageState extends State<FamilyDetailsPage> {
 
     try {
       final response = await _authRepository.getSportsList(
-        perPage: 1000,
         orderBy: 'id|ASC',
         isActive: 1,
-        page: 1,
       );
 
       if (mounted) {
         setState(() {
-          _allSports = response.data.data
+          _allSports = response.data
               .map((sport) => sport.sportsName)
               .toList();
           _isLoadingSports = false;

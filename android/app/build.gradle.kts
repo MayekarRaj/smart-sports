@@ -54,6 +54,14 @@ flutter {
     source = "../.."
 }
 
+configurations.all {
+    resolutionStrategy {
+        // Exclude core-common from dependencies to avoid conflict with core:1.10.3
+        // Some dependencies may bring in core-common:2.0.4 which has duplicate classes with core:1.10.3
+        exclude(group = "com.google.android.play", module = "core-common")
+    }
+}
+
 dependencies {
     // MultiDex support for older Android versions
     implementation("androidx.multidex:multidex:2.0.1")

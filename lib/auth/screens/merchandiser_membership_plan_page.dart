@@ -253,7 +253,7 @@ class _MerchandiserMembershipPlanPageState
         merchandizerClubIds: _selectedClubIds.isNotEmpty ? _selectedClubIds.toList() : null,
       );
 
-      await _authRepository.saveOptionalPaidServices(request);
+      final response = await _authRepository.saveOptionalPaidServices(request);
 
       if (mounted) {
         setState(() => _isLoadingServices = false);
@@ -264,10 +264,16 @@ class _MerchandiserMembershipPlanPageState
           await _storageService.saveString('user_role', 'merchandiser');
         }
         
+        // Extract subscription_id from response (required for Branch)
+        final subscriptionId = response.data?['subscription_id']?.toString();
+        
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PaymentMethodPage(amount: _finalAmount),
+            builder: (context) => PaymentMethodPage(
+              amount: _finalAmount,
+              subscriptionId: subscriptionId,
+            ),
           ),
         );
       }

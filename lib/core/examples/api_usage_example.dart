@@ -19,8 +19,8 @@ class ApiUsageExample {
 
       if (response.success) {
         print('Sign in successful!');
-        print('User: ${response.data?.user.name}');
-        print('Token: ${response.data?.token}');
+        print('User: ${response.data?.user.fullName}');
+        print('Token: ${response.data?.accessToken}');
       } else {
         print('Sign in failed: ${response.message}');
       }

@@ -126,7 +126,7 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
         clubUsersCount: _getClubUsersCount(),
       );
 
-      await _authRepository.saveOptionalPaidServices(request);
+      final response = await _authRepository.saveOptionalPaidServices(request);
 
       if (mounted) {
         setState(() => _isLoadingServices = false);
@@ -137,10 +137,16 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
           await _storageService.saveString('user_role', 'club');
         }
         
+        // Extract subscription_id from response (required for Club/Branch)
+        final subscriptionId = response.data?['subscription_id']?.toString();
+        
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PaymentMethodPage(amount: _finalAmount),
+            builder: (context) => PaymentMethodPage(
+              amount: _finalAmount,
+              subscriptionId: subscriptionId,
+            ),
           ),
         );
       }

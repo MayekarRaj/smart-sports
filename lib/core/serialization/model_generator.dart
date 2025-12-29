@@ -1,6 +1,6 @@
 /// Model Generator Helper
 /// This file contains utilities to help generate models from API responses
-/// 
+///
 /// Usage: When you provide API responses, I'll use these helpers to generate
 /// proper Dart models with fromJson/toJson methods
 
@@ -13,10 +13,12 @@ class ModelGenerator {
     String? parentClass,
   }) {
     final buffer = StringBuffer();
-    
+
     // Class definition
-    buffer.writeln('class $className${parentClass != null ? ' extends $parentClass' : ''} {');
-    
+    buffer.writeln(
+      'class $className${parentClass != null ? ' extends $parentClass' : ''} {',
+    );
+
     // Generate fields
     final fields = <String, String>{};
     jsonStructure.forEach((key, value) {
@@ -25,21 +27,23 @@ class ModelGenerator {
       fields[fieldName] = dartType;
       buffer.writeln('  final $dartType $fieldName;');
     });
-    
+
     buffer.writeln();
-    
+
     // Constructor
     buffer.writeln('  $className({');
     fields.forEach((name, type) {
       final isRequired = !type.contains('?');
       final requiredStr = isRequired ? 'required ' : '';
-      buffer.writeln('    $requiredStr$this.type $name,');
+      buffer.writeln('    $requiredStr$type $name,');
     });
     buffer.writeln('  });');
     buffer.writeln();
-    
+
     // fromJson factory
-    buffer.writeln('  factory $className.fromJson(Map<String, dynamic> json) {');
+    buffer.writeln(
+      '  factory $className.fromJson(Map<String, dynamic> json) {',
+    );
     buffer.writeln('    return $className(');
     fields.forEach((name, type) {
       final jsonKey = _snakeCase(name);
@@ -48,7 +52,7 @@ class ModelGenerator {
     buffer.writeln('    );');
     buffer.writeln('  }');
     buffer.writeln();
-    
+
     // toJson method
     buffer.writeln('  @override');
     buffer.writeln('  Map<String, dynamic> toJson() {');
@@ -60,10 +64,10 @@ class ModelGenerator {
     buffer.writeln('    };');
     buffer.writeln('  }');
     buffer.writeln('}');
-    
+
     return buffer.toString();
   }
-  
+
   static String _getDartType(dynamic value) {
     if (value == null) return 'dynamic?';
     if (value is String) return 'String';
@@ -78,13 +82,13 @@ class ModelGenerator {
     if (value is Map) return 'Map<String, dynamic>';
     return 'dynamic';
   }
-  
+
   static String _camelCase(String str) {
     final parts = str.split('_');
     return parts.first.toLowerCase() +
         parts.skip(1).map((p) => p[0].toUpperCase() + p.substring(1)).join();
   }
-  
+
   static String _snakeCase(String str) {
     return str.replaceAllMapped(
       RegExp(r'[A-Z]'),
@@ -92,4 +96,3 @@ class ModelGenerator {
     );
   }
 }
-

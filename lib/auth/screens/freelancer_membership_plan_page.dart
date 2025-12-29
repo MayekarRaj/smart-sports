@@ -197,7 +197,7 @@ class _FreelancerMembershipPlanPageState
         freelancerClubIds: _selectedClubIds.isNotEmpty ? _selectedClubIds.toList() : null,
       );
 
-      await _authRepository.saveOptionalPaidServices(request);
+      final response = await _authRepository.saveOptionalPaidServices(request);
 
       if (mounted) {
         setState(() => _isLoadingServices = false);
@@ -208,10 +208,16 @@ class _FreelancerMembershipPlanPageState
           await _storageService.saveString('user_role', 'freelancer');
         }
         
+        // Extract subscription_id from response (if present)
+        final subscriptionId = response.data?['subscription_id']?.toString();
+        
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PaymentMethodPage(amount: _finalAmount),
+            builder: (context) => PaymentMethodPage(
+              amount: _finalAmount,
+              subscriptionId: subscriptionId,
+            ),
           ),
         );
       }

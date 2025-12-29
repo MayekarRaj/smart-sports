@@ -41,21 +41,8 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   final companyWebsite = TextEditingController();
 
   final List<String> _selectedSports = [];
-  // TODO: Re-enable API call when ready
-  // List<String> _allSports = [];
-  // bool _isLoadingSports = false;
-  final List<String> _allSports = const [
-    'Cricket',
-    'Football',
-    'Basketball',
-    'Hockey',
-    'Tennis',
-    'Badminton',
-    'Volleyball',
-    'Baseball',
-    'Rugby',
-    'Table Tennis',
-  ];
+  List<Sport> _allSports = [];
+  bool _isLoadingSports = false;
 
   // OTP UI removed from the form; we show a dedicated Verify Email page after register
   bool _emailVerified = false;
@@ -65,49 +52,45 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   @override
   void initState() {
     super.initState();
-    // TODO: Re-enable API call when ready
-    // _loadSports();
+    // Clear any old data from hot reload
+    _allSports = [];
+    _loadSports();
   }
 
-  // TODO: Re-enable API call when ready
-  // Future<void> _loadSports() async {
-  //   if (!mounted) return;
-  //   
-  //   setState(() {
-  //     _isLoadingSports = true;
-  //   });
-  //
-  //   try {
-  //     // Fetch all active sports with a large perPage to get complete list
-  //     final response = await _authRepository.getSportsList(
-  //       perPage: 1000, // Large number to get all sports
-  //       orderBy: 'id|ASC',
-  //       isActive: 1,
-  //       page: 1,
-  //     );
-  //
-  //     if (mounted) {
-  //       setState(() {
-  //         _allSports = response.data.data
-  //             .map((sport) => sport.sportsName)
-  //             .toList();
-  //         _isLoadingSports = false;
-  //       });
-  //     }
-  //   } catch (e) {
-  //     if (mounted) {
-  //       setState(() {
-  //         _isLoadingSports = false;
-  //       });
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text('Failed to load sports: ${e.toString()}'),
-  //           backgroundColor: Colors.red,
-  //         ),
-  //       );
-  //     }
-  //   }
-  // }
+  Future<void> _loadSports() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoadingSports = true;
+    });
+
+    try {
+      // Fetch all active sports
+      final response = await _authRepository.getSportsList(
+        orderBy: 'id|ASC',
+        isActive: 1,
+      );
+
+      if (mounted) {
+        setState(() {
+          _allSports = response.data;
+          _isLoadingSports = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingSports = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load sports: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -168,7 +151,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
           _emailVerified = response.verified;
         });
       }
-    } on ApiException catch (e) {
+    } on ApiException {
       // Email not found or not verified - that's okay, user needs to verify
       if (mounted) {
         setState(() {
@@ -191,14 +174,32 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     }
   }
 
+  Widget _buildSkeletonLoading() {
+    return Row(
+      children: List.generate(
+        3,
+        (index) => Expanded(
+          child: Container(
+            margin: const EdgeInsets.only(right: 8),
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     // Check email verification before allowing sign up
     if (!_emailVerified) {
       // First check if email is verified
       await _checkEmailVerification();
-      
+
       if (!_emailVerified && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -210,7 +211,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
         return;
       }
     }
-    
+
     // Validate sports selection
     if (_selectedSports.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -234,12 +235,20 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
       state: state.text.trim().isNotEmpty ? state.text.trim() : null,
       country: country.text.trim().isNotEmpty ? country.text.trim() : null,
       addressLine1: address.text.trim().isNotEmpty ? address.text.trim() : null,
-      addressLine2: address2.text.trim().isNotEmpty ? address2.text.trim() : null,
+      addressLine2: address2.text.trim().isNotEmpty
+          ? address2.text.trim()
+          : null,
       officePhoneExt: _extractPhoneCode(officePhoneCode.text.trim()),
-      officePhone: officePhone.text.trim().isNotEmpty ? officePhone.text.trim() : null,
+      officePhone: officePhone.text.trim().isNotEmpty
+          ? officePhone.text.trim()
+          : null,
       mobilePhoneExt: _extractPhoneCode(mobilePhoneCode.text.trim()),
-      mobilePhone: mobilePhone.text.trim().isNotEmpty ? mobilePhone.text.trim() : null,
-      companyWebsite: companyWebsite.text.trim().isNotEmpty ? companyWebsite.text.trim() : null,
+      mobilePhone: mobilePhone.text.trim().isNotEmpty
+          ? mobilePhone.text.trim()
+          : null,
+      companyWebsite: companyWebsite.text.trim().isNotEmpty
+          ? companyWebsite.text.trim()
+          : null,
     );
 
     // Use Riverpod auth provider
@@ -251,7 +260,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
     final isLoading = authState.isLoading;
-    
+
     // Listen to auth state changes in build method (for navigation)
     ref.listen<AuthState>(authStateProvider, (previous, next) {
       if (next.isAuthenticated && mounted) {
@@ -279,7 +288,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
         );
       }
     });
-    
+
     return SingleChildScrollView(
       child: Form(
         key: _formKey,
@@ -322,8 +331,8 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : _emailVerified
-                      ? const Icon(Icons.check_circle, color: Colors.green)
-                      : null,
+                  ? const Icon(Icons.check_circle, color: Colors.green)
+                  : null,
               onChanged: (value) {
                 if (_emailVerified) {
                   setState(() {
@@ -348,9 +357,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     : () async {
                         final err = Validators.email(email.text);
                         if (err != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(err)),
-                          );
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(err)));
                           return;
                         }
                         final verified = await Navigator.of(context).push<bool>(
@@ -376,15 +385,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                         color: Colors.green,
                         size: 18,
                       )
-                    : const Icon(
-                        Icons.mark_email_read_outlined,
-                        size: 18,
-                      ),
+                    : const Icon(Icons.mark_email_read_outlined, size: 18),
                 label: Text(
                   _emailVerified ? 'Email Verified' : 'Verify Email',
-                  style: TextStyle(
-                    color: _emailVerified ? Colors.green : null,
-                  ),
+                  style: TextStyle(color: _emailVerified ? Colors.green : null),
                 ),
               ),
             ),
@@ -463,7 +467,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 Expanded(
                   flex: 2,
                   child: PhoneCodeDropdown(
-                    value: officePhoneCode.text.isNotEmpty ? officePhoneCode.text : null,
+                    value: officePhoneCode.text.isNotEmpty
+                        ? officePhoneCode.text
+                        : null,
                     onChanged: (value) {
                       officePhoneCode.text = value ?? '';
                     },
@@ -486,7 +492,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 Expanded(
                   flex: 2,
                   child: PhoneCodeDropdown(
-                    value: mobilePhoneCode.text.isNotEmpty ? mobilePhoneCode.text : null,
+                    value: mobilePhoneCode.text.isNotEmpty
+                        ? mobilePhoneCode.text
+                        : null,
                     onChanged: (value) {
                       mobilePhoneCode.text = value ?? '';
                     },
@@ -510,53 +518,112 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
               keyboardType: TextInputType.url,
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Sports',
-              style: TextStyle(fontWeight: FontWeight.w600),
+            Row(
+              children: [
+                const Text(
+                  'Sports',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                if (_selectedSports.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8E2DE2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${_selectedSports.length} selected',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 8),
             InkWell(
-              onTap: () async {
-                final result = await showDialog<List<String>>(
-                  context: context,
-                  builder: (ctx) => SportsMultiSelect(
-                    allSports: _allSports,
-                    initialSelected: _selectedSports,
-                  ),
-                );
-                if (result != null) setState(() => _selectedSports
-                  ..clear()
-                  ..addAll(result));
-              },
+              onTap: _isLoadingSports
+                  ? null
+                  : () async {
+                      if (_allSports.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'No sports available. Please try again later.',
+                            ),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                        return;
+                      }
+                      final result = await showDialog<List<String>>(
+                        context: context,
+                        builder: (ctx) => SportsMultiSelect(
+                          allSports: _allSports,
+                          initialSelected: _selectedSports,
+                        ),
+                      );
+                      if (result != null)
+                        setState(
+                          () => _selectedSports
+                            ..clear()
+                            ..addAll(result),
+                        );
+                    },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade50,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade200),
                 ),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _selectedSports.isNotEmpty
-                      ? [
-                          ..._selectedSports.take(3).map((s) => Chip(label: Text(s))),
-                          if (_selectedSports.length > 3)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4.0),
-                              child: Text(
-                                '+${_selectedSports.length - 3} more',
-                                style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                        ]
-                      : [
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Text('Select sport', style: TextStyle(color: Colors.grey)),
-                          ),
-                        ],
-                ),
+                child: _isLoadingSports
+                    ? _buildSkeletonLoading()
+                    : Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _selectedSports.isNotEmpty
+                            ? [
+                                ..._selectedSports
+                                    .take(3)
+                                    .map((s) => Chip(label: Text(s))),
+                                if (_selectedSports.length > 3)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 4.0,
+                                    ),
+                                    child: Text(
+                                      '+${_selectedSports.length - 3} more',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                              ]
+                            : [
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
+                                  child: Text(
+                                    'Select sport',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                ),
+                              ],
+                      ),
               ),
             ),
             const SizedBox(height: 20),

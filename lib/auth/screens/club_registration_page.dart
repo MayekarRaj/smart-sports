@@ -28,7 +28,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
 
   // Sports data
   List<String> _selectedSports = [];
-  List<String> _allSports = [];
+  List<Sport> _allSports = [];
   bool _isLoadingSports = false;
   final AuthRepository _authRepository = AuthRepository();
 
@@ -190,17 +190,13 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
 
     try {
       final response = await _authRepository.getSportsList(
-        perPage: 1000,
         orderBy: 'id|ASC',
         isActive: 1,
-        page: 1,
       );
 
       if (mounted) {
         setState(() {
-          _allSports = response.data.data
-              .map((sport) => sport.sportsName)
-              .toList();
+          _allSports = response.data;
           _isLoadingSports = false;
         });
       }

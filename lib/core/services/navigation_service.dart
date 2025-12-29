@@ -8,22 +8,25 @@ class NavigationService {
   NavigationService._internal();
 
   /// Global navigator key for accessing Navigator without BuildContext
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
   /// Get current context
   BuildContext? get currentContext => navigatorKey.currentContext;
 
   /// Navigate to a route
   Future<T?>? navigateTo<T>(String routeName, {Object? arguments}) {
-    return navigatorKey.currentState?.pushNamed<T>(routeName, arguments: arguments);
+    return navigatorKey.currentState?.pushNamed<T>(
+      routeName,
+      arguments: arguments,
+    );
   }
 
   /// Navigate and replace current route
   Future<T?>? navigateReplacement<T>(String routeName, {Object? arguments}) {
-    return navigatorKey.currentState?.pushReplacementNamed<T>(
-      routeName,
-      arguments: arguments,
-    );
+    final state = navigatorKey.currentState;
+    if (state == null) return null;
+    return state.pushReplacementNamed<T, T>(routeName, arguments: arguments);
   }
 
   /// Navigate and remove all previous routes

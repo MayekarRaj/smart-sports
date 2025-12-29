@@ -197,7 +197,7 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
         coachUsersCount: _getCoachUsersCount(),
       );
 
-      await _authRepository.saveOptionalPaidServices(request);
+      final response = await _authRepository.saveOptionalPaidServices(request);
 
       if (mounted) {
         setState(() => _isSavingServices = false);
@@ -208,10 +208,16 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
           await _storageService.saveString('user_role', 'coach');
         }
         
+        // Extract subscription_id from response (required for Club/Branch)
+        final subscriptionId = response.data?['subscription_id']?.toString();
+        
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PaymentMethodPage(amount: _finalAmount),
+            builder: (context) => PaymentMethodPage(
+              amount: _finalAmount,
+              subscriptionId: subscriptionId,
+            ),
           ),
         );
       }

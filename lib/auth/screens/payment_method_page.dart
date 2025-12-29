@@ -9,8 +9,13 @@ import 'payment_confirmation_page.dart';
 
 class PaymentMethodPage extends StatefulWidget {
   final double amount;
+  final String? subscriptionId; // Required only when Add Club or Branch
 
-  const PaymentMethodPage({super.key, required this.amount});
+  const PaymentMethodPage({
+    super.key,
+    required this.amount,
+    this.subscriptionId,
+  });
 
   @override
   State<PaymentMethodPage> createState() => _PaymentMethodPageState();
@@ -749,6 +754,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
             clientSecret: _clientSecret,
             stripePaymentMethodId: _stripePaymentMethodId,
             cardFieldDetails: _cardFieldDetails,
+            subscriptionId: widget.subscriptionId,
           ),
         ),
       );

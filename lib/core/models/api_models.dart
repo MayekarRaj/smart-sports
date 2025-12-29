@@ -1671,7 +1671,7 @@ class SportsListData {
 class SportsListResponse {
   final bool success;
   final String message;
-  final SportsListData data;
+  final List<Sport> data;
 
   SportsListResponse({
     required this.success,
@@ -2172,13 +2172,33 @@ class SavePaymentInformationRequest {
   final String? referenceNumber; // Required only for Bank Transfer
   final String? stripePaymentMethodId; // Required only for Stripe
   final String? paymentReceiptImagePath; // File path for Bank Transfer receipt
+  final String? subscriptionId; // Required only when Add Club or Branch
 
   SavePaymentInformationRequest({
     required this.paymentMethod,
     this.referenceNumber,
     this.stripePaymentMethodId,
     this.paymentReceiptImagePath,
+    this.subscriptionId,
   });
+
+  /// Validate required fields based on payment method
+  /// Throws [Exception] if validation fails
+  void validate() {
+    if (paymentMethod == 'Bank Transfer') {
+      if (referenceNumber == null || referenceNumber!.isEmpty) {
+        throw Exception('Reference number is required for Bank Transfer');
+      }
+      if (paymentReceiptImagePath == null || paymentReceiptImagePath!.isEmpty) {
+        throw Exception('Payment receipt image is required for Bank Transfer');
+      }
+    } else if (paymentMethod == 'Stripe') {
+      if (stripePaymentMethodId == null || stripePaymentMethodId!.isEmpty) {
+        throw Exception('Stripe payment method ID is required for Stripe');
+      }
+    }
+    // Note: PayPal validation will be added later
+  }
 
   /// Convert to form fields map (excluding file)
   Map<String, String> toFormFields() {
@@ -2192,6 +2212,10 @@ class SavePaymentInformationRequest {
 
     if (stripePaymentMethodId != null && stripePaymentMethodId!.isNotEmpty) {
       fields['stripe_payment_method_id'] = stripePaymentMethodId!;
+    }
+
+    if (subscriptionId != null && subscriptionId!.isNotEmpty) {
+      fields['subscription_id'] = subscriptionId!;
     }
 
     return fields;

@@ -47,7 +47,7 @@ class ApiEndpoints {
   static const String getMerchandizerBranchList = '/signup-getMerchandizerBranchList';
 
   // ==================== Sports ====================
-  static const String mstSports = '/mst-sports';
+  static const String sportsList = '/sports-list';
 
   // ==================== Coach Experience Levels ====================
   static const String mstCoachExperienceLevel = '/mst-coach-experience-level';
@@ -162,23 +162,17 @@ class ApiEndpoints {
       '${ApiConfig.apiBaseUrl}$getMerchandizerBranchList/$merchandizerId';
 
   // Sports
-  static String getMstSportsUrl({
-    int? perPage,
+  static String getSportsListUrl({
     String? orderBy,
-    String? commonSearch,
     String? sportsName,
     int? isActive,
-    int? page,
   }) {
-    final baseUrl = '${ApiConfig.apiBaseUrl}$mstSports';
+    final baseUrl = '${ApiConfig.apiBaseUrl}$sportsList';
     final params = <String, String>{};
     
-    if (perPage != null) params['perPage'] = perPage.toString();
     if (orderBy != null) params['orderBy'] = orderBy;
-    if (commonSearch != null && commonSearch.isNotEmpty) params['common_search'] = commonSearch;
     if (sportsName != null && sportsName.isNotEmpty) params['sports_name'] = sportsName;
     if (isActive != null) params['is_active'] = isActive.toString();
-    if (page != null) params['page'] = page.toString();
     
     if (params.isEmpty) return baseUrl;
     

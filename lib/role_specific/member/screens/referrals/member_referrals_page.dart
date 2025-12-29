@@ -11,7 +11,8 @@ class MemberReferralsPage extends ConsumerStatefulWidget {
   const MemberReferralsPage({super.key});
 
   @override
-  ConsumerState<MemberReferralsPage> createState() => _MemberReferralsPageState();
+  ConsumerState<MemberReferralsPage> createState() =>
+      _MemberReferralsPageState();
 }
 
 class _MemberReferralsPageState extends ConsumerState<MemberReferralsPage> {

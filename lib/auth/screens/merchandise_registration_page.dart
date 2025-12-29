@@ -15,19 +15,19 @@ class BranchData {
   final TextEditingController numberOfUsersController;
   bool addressSameAsSignup;
   bool contactSameAsSignup;
-  
+
   // Address Controllers (per branch)
   final TextEditingController address1Controller;
   final TextEditingController cityController;
   final TextEditingController stateController;
   final TextEditingController zipController;
   final TextEditingController countryController;
-  
+
   // Contact Details Controllers (per branch)
   final TextEditingController officePhoneController;
   final TextEditingController mobilePhoneController;
   final TextEditingController websiteController;
-  
+
   // Sports selection (per branch)
   List<String> selectedSports;
 
@@ -83,7 +83,7 @@ class _MerchandiseRegistrationPageState
   final List<BranchData> _branches = [];
 
   // Sports data
-  List<String> _allSports = [];
+  List<Sport> _allSports = [];
   bool _isLoadingSports = false;
 
   @override
@@ -96,24 +96,20 @@ class _MerchandiseRegistrationPageState
 
   Future<void> _loadSports() async {
     if (!mounted) return;
-    
+
     setState(() {
       _isLoadingSports = true;
     });
 
     try {
       final response = await _authRepository.getSportsList(
-        perPage: 1000,
         orderBy: 'id|ASC',
         isActive: 1,
-        page: 1,
       );
 
       if (mounted) {
         setState(() {
-          _allSports = response.data.data
-              .map((sport) => sport.sportsName)
-              .toList();
+          _allSports = response.data;
           _isLoadingSports = false;
         });
       }
@@ -215,84 +211,98 @@ class _MerchandiseRegistrationPageState
     try {
       // Step 1: Submit first branch
       final firstBranchData = _branches[0];
-      
+
       // Parse phone numbers for first branch
-      final officePhone = PhoneParser.parsePhoneNumber(firstBranchData.officePhoneController.text);
-      final mobilePhone = PhoneParser.parsePhoneNumber(firstBranchData.mobilePhoneController.text);
+      final officePhone = PhoneParser.parsePhoneNumber(
+        firstBranchData.officePhoneController.text,
+      );
+      final mobilePhone = PhoneParser.parsePhoneNumber(
+        firstBranchData.mobilePhoneController.text,
+      );
 
       final step1Request = MerchandizerSignupRequest(
         userRole: 'merchandizer',
         branchName: firstBranchData.branchNameController.text.trim(),
-        noOfUsers: int.tryParse(firstBranchData.numberOfUsersController.text) ?? 1,
+        noOfUsers:
+            int.tryParse(firstBranchData.numberOfUsersController.text) ?? 1,
         isAddressIsSameAsUser: firstBranchData.addressSameAsSignup ? 1 : 0,
         addressLine1: firstBranchData.addressSameAsSignup
             ? null
             : firstBranchData.address1Controller.text.trim().isNotEmpty
-                ? firstBranchData.address1Controller.text.trim()
-                : null,
+            ? firstBranchData.address1Controller.text.trim()
+            : null,
         addressLine2: null, // Not in API request
         city: firstBranchData.addressSameAsSignup
             ? null
             : firstBranchData.cityController.text.trim().isNotEmpty
-                ? firstBranchData.cityController.text.trim()
-                : null,
+            ? firstBranchData.cityController.text.trim()
+            : null,
         state: firstBranchData.addressSameAsSignup
             ? null
             : firstBranchData.stateController.text.trim().isNotEmpty
-                ? firstBranchData.stateController.text.trim()
-                : null,
+            ? firstBranchData.stateController.text.trim()
+            : null,
         zipcode: firstBranchData.addressSameAsSignup
             ? null
             : firstBranchData.zipController.text.trim().isNotEmpty
-                ? firstBranchData.zipController.text.trim()
-                : null,
+            ? firstBranchData.zipController.text.trim()
+            : null,
         country: firstBranchData.addressSameAsSignup
             ? null
             : firstBranchData.countryController.text.trim().isNotEmpty
-                ? firstBranchData.countryController.text.trim()
-                : null,
+            ? firstBranchData.countryController.text.trim()
+            : null,
         isContactDetailsIsSameUser: firstBranchData.contactSameAsSignup ? 1 : 0,
         designation: null, // Not in API request
         department: null, // Not in API request
         officePhoneExt: firstBranchData.contactSameAsSignup
             ? null
             : officePhone['ext']?.isNotEmpty == true
-                ? officePhone['ext']
-                : null,
+            ? officePhone['ext']
+            : null,
         officePhone: firstBranchData.contactSameAsSignup
             ? null
             : officePhone['number']?.isNotEmpty == true
-                ? officePhone['number']
-                : null,
+            ? officePhone['number']
+            : null,
         mobilePhoneExt: firstBranchData.contactSameAsSignup
             ? null
             : mobilePhone['ext']?.isNotEmpty == true
-                ? mobilePhone['ext']
-                : null,
+            ? mobilePhone['ext']
+            : null,
         mobilePhone: firstBranchData.contactSameAsSignup
             ? null
             : mobilePhone['number']?.isNotEmpty == true
-                ? mobilePhone['number']
-                : null,
+            ? mobilePhone['number']
+            : null,
         companyWebsite: firstBranchData.contactSameAsSignup
             ? null
             : firstBranchData.websiteController.text.trim().isNotEmpty
-                ? firstBranchData.websiteController.text.trim()
-                : null,
+            ? firstBranchData.websiteController.text.trim()
+            : null,
       );
 
-      final step1Response = await _authRepository.merchandizerSignup(step1Request);
-      
+      final step1Response = await _authRepository.merchandizerSignup(
+        step1Request,
+      );
+
       // Save merchandizer ID for later use (e.g., fetching branches)
       final storageService = StorageService();
-      await storageService.saveInt('merchandizer_id', step1Response.merchandizerId);
+      await storageService.saveInt(
+        'merchandizer_id',
+        step1Response.merchandizerId,
+      );
 
       // Step 2: Submit additional branches (if any)
       if (_branches.length > 1) {
         final additionalBranches = _branches.sublist(1).map((branch) {
           // Parse phone numbers
-          final officePhone = PhoneParser.parsePhoneNumber(branch.officePhoneController.text);
-          final mobilePhone = PhoneParser.parsePhoneNumber(branch.mobilePhoneController.text);
+          final officePhone = PhoneParser.parsePhoneNumber(
+            branch.officePhoneController.text,
+          );
+          final mobilePhone = PhoneParser.parsePhoneNumber(
+            branch.mobilePhoneController.text,
+          );
 
           // Validate branch name
           if (branch.branchNameController.text.trim().isEmpty) {
@@ -301,7 +311,9 @@ class _MerchandiseRegistrationPageState
 
           // Validate sports selection
           if (branch.selectedSports.isEmpty) {
-            throw Exception('Please select at least one sport for all branches');
+            throw Exception(
+              'Please select at least one sport for all branches',
+            );
           }
 
           return MerchandizerBranch(
@@ -311,49 +323,51 @@ class _MerchandiseRegistrationPageState
             addressLine1: branch.addressSameAsSignup
                 ? null
                 : branch.address1Controller.text.trim().isNotEmpty
-                    ? branch.address1Controller.text.trim()
-                    : null,
+                ? branch.address1Controller.text.trim()
+                : null,
             city: branch.addressSameAsSignup
                 ? null
                 : branch.cityController.text.trim().isNotEmpty
-                    ? branch.cityController.text.trim()
-                    : null,
+                ? branch.cityController.text.trim()
+                : null,
             state: branch.addressSameAsSignup
                 ? null
                 : branch.stateController.text.trim().isNotEmpty
-                    ? branch.stateController.text.trim()
-                    : null,
+                ? branch.stateController.text.trim()
+                : null,
             zipCode: branch.addressSameAsSignup
                 ? null
                 : branch.zipController.text.trim().isNotEmpty
-                    ? branch.zipController.text.trim()
-                    : null,
+                ? branch.zipController.text.trim()
+                : null,
             country: branch.addressSameAsSignup
                 ? null
                 : branch.countryController.text.trim().isNotEmpty
-                    ? branch.countryController.text.trim()
-                    : null,
+                ? branch.countryController.text.trim()
+                : null,
             isContactSameAsUser: branch.contactSameAsSignup ? 1 : 0,
             officePhone: branch.contactSameAsSignup
                 ? null
                 : officePhone['number']?.isNotEmpty == true
-                    ? officePhone['number']
-                    : null,
+                ? officePhone['number']
+                : null,
             mobilePhone: branch.contactSameAsSignup
                 ? null
                 : mobilePhone['number']?.isNotEmpty == true
-                    ? mobilePhone['number']
-                    : null,
+                ? mobilePhone['number']
+                : null,
             companyWebsite: branch.contactSameAsSignup
                 ? null
                 : branch.websiteController.text.trim().isNotEmpty
-                    ? branch.websiteController.text.trim()
-                    : null,
+                ? branch.websiteController.text.trim()
+                : null,
             sportsNames: branch.selectedSports,
           );
         }).toList();
 
-        final step2Request = MerchandizerBranchSignupRequest(branches: additionalBranches);
+        final step2Request = MerchandizerBranchSignupRequest(
+          branches: additionalBranches,
+        );
         await _authRepository.merchandizerBranchSignup(step2Request);
       }
 
@@ -384,7 +398,9 @@ class _MerchandiseRegistrationPageState
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(errorMessages.isNotEmpty ? errorMessages.first : e.message),
+              content: Text(
+                errorMessages.isNotEmpty ? errorMessages.first : e.message,
+              ),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 4),
             ),
@@ -474,7 +490,8 @@ class _MerchandiseRegistrationPageState
                           while (_branches.length < numBranches) {
                             _addBranch();
                           }
-                          while (_branches.length > numBranches && _branches.length > 1) {
+                          while (_branches.length > numBranches &&
+                              _branches.length > 1) {
                             _removeBranch(_branches.length - 1);
                           }
                         });
@@ -786,8 +803,16 @@ class _MerchandiseRegistrationPageState
             Expanded(
               child: _buildDropdownField(
                 label: 'City',
-                value: branchData.cityController.text.isNotEmpty ? branchData.cityController.text : null,
-                items: const ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata'],
+                value: branchData.cityController.text.isNotEmpty
+                    ? branchData.cityController.text
+                    : null,
+                items: const [
+                  'Mumbai',
+                  'Delhi',
+                  'Bangalore',
+                  'Chennai',
+                  'Kolkata',
+                ],
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {
@@ -801,8 +826,16 @@ class _MerchandiseRegistrationPageState
             Expanded(
               child: _buildDropdownField(
                 label: 'State',
-                value: branchData.stateController.text.isNotEmpty ? branchData.stateController.text : null,
-                items: const ['Maharashtra', 'Delhi', 'Karnataka', 'Tamil Nadu', 'West Bengal'],
+                value: branchData.stateController.text.isNotEmpty
+                    ? branchData.stateController.text
+                    : null,
+                items: const [
+                  'Maharashtra',
+                  'Delhi',
+                  'Karnataka',
+                  'Tamil Nadu',
+                  'West Bengal',
+                ],
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {
@@ -829,7 +862,9 @@ class _MerchandiseRegistrationPageState
             Expanded(
               child: _buildDropdownField(
                 label: 'Country',
-                value: branchData.countryController.text.isNotEmpty ? branchData.countryController.text : null,
+                value: branchData.countryController.text.isNotEmpty
+                    ? branchData.countryController.text
+                    : null,
                 items: const ['India', 'USA', 'UK', 'Canada', 'Australia'],
                 onChanged: (value) {
                   if (value != null) {
@@ -918,7 +953,9 @@ class _MerchandiseRegistrationPageState
                   if (_allSports.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('No sports available. Please try again later.'),
+                        content: Text(
+                          'No sports available. Please try again later.',
+                        ),
                         backgroundColor: Colors.orange,
                       ),
                     );
@@ -955,10 +992,15 @@ class _MerchandiseRegistrationPageState
                               SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                               SizedBox(width: 8),
-                              Text('Loading sports...', style: TextStyle(color: Colors.grey)),
+                              Text(
+                                'Loading sports...',
+                                style: TextStyle(color: Colors.grey),
+                              ),
                             ],
                           ),
                         )
@@ -968,7 +1010,9 @@ class _MerchandiseRegistrationPageState
                           children: branchData.selectedSports.isEmpty
                               ? [
                                   const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
                                     child: Text(
                                       'Select sports',
                                       style: TextStyle(color: Colors.grey),
@@ -976,52 +1020,58 @@ class _MerchandiseRegistrationPageState
                                   ),
                                 ]
                               : branchData.selectedSports.map((sport) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF8E2DE2).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: const Color(0xFF8E2DE2)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    sport,
-                                    style: const TextStyle(
-                                      color: Color(0xFF8E2DE2),
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
                                     ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        branchData.selectedSports.remove(sport);
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.red,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.close,
-                                        size: 10,
-                                        color: Colors.white,
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFF8E2DE2,
+                                      ).withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: const Color(0xFF8E2DE2),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                  ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          sport,
+                                          style: const TextStyle(
+                                            color: Color(0xFF8E2DE2),
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              branchData.selectedSports.remove(
+                                                sport,
+                                              );
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(2),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              size: 10,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                        ),
                 ),
                 const Icon(
                   Icons.keyboard_arrow_down,
@@ -1043,7 +1093,10 @@ class _MerchandiseRegistrationPageState
     required Function(String?) onChanged,
   }) {
     // Ensure value is in items list, otherwise use null
-    final validValue = value != null && value.isNotEmpty && items.contains(value) ? value : null;
+    final validValue =
+        value != null && value.isNotEmpty && items.contains(value)
+        ? value
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1182,7 +1235,11 @@ class _MerchandiseRegistrationPageState
                           ),
                         ),
                         SizedBox(width: 8),
-                        Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                        Icon(
+                          Icons.arrow_forward,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                       ],
                     ),
             ),

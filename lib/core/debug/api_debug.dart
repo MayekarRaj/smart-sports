@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../constants/api_endpoints.dart';
 import '../models/api_models.dart';
+import '../config/api_config.dart';
 
 class ApiDebug {
   static Future<void> testSignupAPI() async {
@@ -15,7 +16,8 @@ class ApiDebug {
       lastName: 'User',
       email: 'test@example.com',
       password: 'password123',
-      phone: '1234567890',
+      sportsNames: ['Cricket', 'Football'],
+      mobilePhone: '1234567890',
     );
 
     final url = ApiEndpoints.getSignUpUrl();
