@@ -17,9 +17,9 @@
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     
     <application
-        android:label="smart_sports"
+        android:label="Universal Sport Connect (USC)"
         android:name="androidx.multidex.MultiDexApplication"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher_icon"
         android:allowBackup="true"
         android:theme="@style/LaunchTheme"
         android:usesCleartextTraffic="true"

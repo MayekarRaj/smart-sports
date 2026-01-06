@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 import 'package:smart_sports/events/screens/add_event_form_screen.dart';
 import 'member_tournament_details_page.dart';
 
@@ -13,7 +14,7 @@ class MemberEventsPage extends ConsumerStatefulWidget {
   ConsumerState<MemberEventsPage> createState() => _MemberEventsPageState();
 }
 
-class _MemberEventsPageState extends State<MemberEventsPage> {
+class _MemberEventsPageState extends ConsumerState<MemberEventsPage> {
   int _selectedEventTypeIndex = 0; // 0 = Upcoming Events, 1 = Past Events
   int _selectedTabIndex = 0; // 0 = As An Organizer, 1 = As A Subscriber, 2 = Unsubscribed Events
   String _selectedSport = 'Cricket';

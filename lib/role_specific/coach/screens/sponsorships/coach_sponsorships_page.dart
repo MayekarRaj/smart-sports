@@ -4,16 +4,17 @@ import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 import 'add_sponsorship_screen.dart';
 
-class CoachSponsorshipsPage extends StatefulWidget {
+class CoachSponsorshipsPage extends ConsumerStatefulWidget {
   const CoachSponsorshipsPage({super.key});
 
   @override
-  State<CoachSponsorshipsPage> createState() => _CoachSponsorshipsPageState();
+  ConsumerState<CoachSponsorshipsPage> createState() => _CoachSponsorshipsPageState();
 }
 
-class _CoachSponsorshipsPageState extends State<CoachSponsorshipsPage> {
+class _CoachSponsorshipsPageState extends ConsumerState<CoachSponsorshipsPage> {
   final TextEditingController _eventNameController = TextEditingController();
 
   String _selectedMainTab = 'My Offers';

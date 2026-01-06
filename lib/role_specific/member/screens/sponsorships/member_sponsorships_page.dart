@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_sports/shared/widgets/role_sidebar.dart';
 import 'package:smart_sports/role_specific/common/role_router.dart';
 import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
+import 'package:smart_sports/core/utils/auth_utils.dart';
 import 'add_sponsorship_screen.dart';
 
 class MemberSponsorshipsPage extends ConsumerStatefulWidget {
@@ -12,7 +13,7 @@ class MemberSponsorshipsPage extends ConsumerStatefulWidget {
   ConsumerState<MemberSponsorshipsPage> createState() => _MemberSponsorshipsPageState();
 }
 
-class _MemberSponsorshipsPageState extends State<MemberSponsorshipsPage> {
+class _MemberSponsorshipsPageState extends ConsumerState<MemberSponsorshipsPage> {
   final TextEditingController _eventNameController = TextEditingController();
 
   String _selectedMainTab = 'My Offers';
