@@ -868,7 +868,7 @@ class _ViewUserScreenState extends State<ViewUserScreen>
                 ),
                 IconButton(
                   onPressed: () => _handleEditEmployee(employee),
-                  icon: const Icon(Icons.edit, color: Colors.orange, size: 20),
+                  icon: const Icon(Icons.edit, color: Color(0xFF414384), size: 20),
                   tooltip: 'Edit Employee',
                 ),
                 IconButton(
@@ -916,7 +916,7 @@ class _ViewUserScreenState extends State<ViewUserScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Editing ${employee['name']}', style: const TextStyle()),
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFF414384),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

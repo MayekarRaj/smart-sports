@@ -30,7 +30,7 @@ class _SimpleUsersPageState extends State<SimpleUsersPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Simple Users Test'),
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFF414384),
         foregroundColor: Colors.white,
       ),
       body: _users.isEmpty

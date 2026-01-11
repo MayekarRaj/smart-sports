@@ -37,6 +37,19 @@ class _CorporateTransactionsPageState extends State<CorporateTransactionsPage>
   String _period = 'ALL'; // ALL, Financial Year, Flexible Duration
   bool _showFilters = false;
   String _searchQuery = '';
+  
+  // Filter visibility for each tab (Slack, Club Branches, Forum, Member, User, Event)
+  final Map<int, bool> _showTableFilters = <int, bool>{
+    0: false, // Slack
+    1: false, // Club Branches
+    2: false, // Forum
+    3: false, // Member
+    4: false, // User
+    5: false, // Event
+  };
+  
+  // Table filter controllers for each tab
+  final Map<int, Map<String, TextEditingController>> _tabFilters = {};
   List<Map<String, dynamic>> _transactions = [];
   List<Map<String, dynamic>> _filteredTransactions = [];
   int _currentPage = 0;
@@ -48,6 +61,22 @@ class _CorporateTransactionsPageState extends State<CorporateTransactionsPage>
     _tableTabs.addListener(_onTabChanged);
     _initializeData();
     _searchController.addListener(_onSearchChanged);
+    _initializeTabFilters();
+  }
+  
+  void _initializeTabFilters() {
+    // Initialize filter controllers for each tab
+    for (int i = 0; i < 6; i++) {
+      _tabFilters[i] = {
+        'transactionId': TextEditingController(),
+        'startDate': TextEditingController(),
+        'endDate': TextEditingController(),
+        'amount': TextEditingController(),
+        'paymentMethod': TextEditingController(),
+        'paymentStatus': TextEditingController(),
+        'paymentDate': TextEditingController(),
+      };
+    }
   }
 
   void _onTabChanged() {
@@ -175,6 +204,12 @@ class _CorporateTransactionsPageState extends State<CorporateTransactionsPage>
     _tableTabs.dispose();
     _searchController.dispose();
     _scrollController.dispose();
+    // Dispose all tab filter controllers
+    for (final filters in _tabFilters.values) {
+      for (final controller in filters.values) {
+        controller.dispose();
+      }
+    }
     super.dispose();
   }
 
@@ -209,7 +244,7 @@ class _CorporateTransactionsPageState extends State<CorporateTransactionsPage>
                     content: Text(
                       'Invoice for ${transaction['id']} downloaded successfully',
                     ),
-                    backgroundColor: Colors.green,
+                    backgroundColor: const Color(0xFF414384),
                   ),
                 );
               },
@@ -260,7 +295,7 @@ class _CorporateTransactionsPageState extends State<CorporateTransactionsPage>
                     content: Text(
                       'Receipt for ${transaction['id']} downloaded successfully',
                     ),
-                    backgroundColor: Colors.green,
+                    backgroundColor: const Color(0xFF414384),
                   ),
                 );
               },
@@ -296,7 +331,7 @@ class _CorporateTransactionsPageState extends State<CorporateTransactionsPage>
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF009A69), Color(0xFF232534)],
+              colors: [Color(0xFF414384), Color(0xFF232534)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -442,6 +477,51 @@ class _CorporateTransactionsPageState extends State<CorporateTransactionsPage>
                   transactions: _filteredTransactions,
                   showEntries: _showEntries,
                   currentPage: _currentPage,
+                  currentTab: _tableTabs.index,
+                  showTableFilters: _showTableFilters[_tableTabs.index] ?? false,
+                  tabFilters: _tabFilters[_tableTabs.index]!,
+                  onStartDatePick: () async {
+                    final result = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(2018),
+                      lastDate: DateTime(2100),
+                      initialDate: DateTime.now(),
+                    );
+                    if (!mounted) return;
+                    if (result != null) {
+                      setState(() {
+                        _tabFilters[_tableTabs.index]!['startDate']!.text = _formatDate(result);
+                      });
+                    }
+                  },
+                  onEndDatePick: () async {
+                    final result = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(2018),
+                      lastDate: DateTime(2100),
+                      initialDate: DateTime.now(),
+                    );
+                    if (!mounted) return;
+                    if (result != null) {
+                      setState(() {
+                        _tabFilters[_tableTabs.index]!['endDate']!.text = _formatDate(result);
+                      });
+                    }
+                  },
+                  onPaymentDatePick: () async {
+                    final result = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(2018),
+                      lastDate: DateTime(2100),
+                      initialDate: DateTime.now(),
+                    );
+                    if (!mounted) return;
+                    if (result != null) {
+                      setState(() {
+                        _tabFilters[_tableTabs.index]!['paymentDate']!.text = _formatDate(result);
+                      });
+                    }
+                  },
                   onPageChanged: (page) {
                     setState(() {
                       _currentPage = page;
@@ -456,6 +536,12 @@ class _CorporateTransactionsPageState extends State<CorporateTransactionsPage>
                   },
                   onShowInvoice: _showInvoiceDialog,
                   onDownloadReceipt: _downloadReceipt,
+                  onToggleFilters: () {
+                    setState(() {
+                      final currentIndex = _tableTabs.index;
+                      _showTableFilters[currentIndex] = !(_showTableFilters[currentIndex] ?? false);
+                    });
+                  },
                 ),
                 const SizedBox(height: 24),
                 const _FooterSection(),
@@ -627,7 +713,7 @@ class _TableTabs extends StatelessWidget {
         child: TabBar(
           controller: controller,
           isScrollable: true,
-          labelColor: const Color(0xFF1E40AF),
+          labelColor: const Color(0xFF414384),
           unselectedLabelColor: const Color(0xFF4B5563),
           labelStyle: const TextStyle(
             fontWeight: FontWeight.w700,
@@ -638,7 +724,7 @@ class _TableTabs extends StatelessWidget {
             fontSize: 16,
           ),
           indicator: const UnderlineTabIndicator(
-            borderSide: BorderSide(color: Color(0xFF1E40AF), width: 3),
+            borderSide: BorderSide(color: Color(0xFF414384), width: 3),
             insets: EdgeInsets.symmetric(horizontal: 16),
           ),
           tabs: const [
@@ -660,20 +746,34 @@ class _TransactionsTable extends StatelessWidget {
   final List<Map<String, dynamic>> transactions;
   final int showEntries;
   final int currentPage;
+  final int currentTab;
+  final bool showTableFilters;
+  final Map<String, TextEditingController> tabFilters;
+  final VoidCallback onStartDatePick;
+  final VoidCallback onEndDatePick;
+  final VoidCallback onPaymentDatePick;
   final ValueChanged<int> onPageChanged;
   final ValueChanged<int> onEntriesChanged;
   final Function(Map<String, dynamic>) onShowInvoice;
   final Function(Map<String, dynamic>) onDownloadReceipt;
+  final VoidCallback onToggleFilters;
 
   const _TransactionsTable({
     required this.isWide,
     required this.transactions,
     required this.showEntries,
     required this.currentPage,
+    required this.currentTab,
+    required this.showTableFilters,
+    required this.tabFilters,
+    required this.onStartDatePick,
+    required this.onEndDatePick,
+    required this.onPaymentDatePick,
     required this.onPageChanged,
     required this.onEntriesChanged,
     required this.onShowInvoice,
     required this.onDownloadReceipt,
+    required this.onToggleFilters,
   });
 
   String _formatDate(DateTime date) {
@@ -683,7 +783,7 @@ class _TransactionsTable extends StatelessWidget {
   Color _getPaymentMethodColor(String method) {
     switch (method) {
       case 'Bank Transfer':
-        return const Color(0xFF1E40AF);
+        return const Color(0xFF414384);
       case 'Credit Card':
         return const Color(0xFF7C3AED);
       case 'UPI':
@@ -829,7 +929,7 @@ class _TransactionsTable extends StatelessWidget {
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
-                  color: Color(0xFF1E40AF),
+                  color: Color(0xFF414384),
                 ),
               ),
             ),
@@ -868,7 +968,7 @@ class _TransactionsTable extends StatelessWidget {
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
-                  color: Color(0xFF059669),
+                  color: Color(0xFF414384),
                 ),
               ),
             ),
@@ -1013,7 +1113,7 @@ class _TransactionsTable extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1E40AF),
+                                  color: Color(0xFF414384),
                                 ),
                               ),
                               Container(
@@ -1090,7 +1190,7 @@ class _TransactionsTable extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF059669),
+                                  color: Color(0xFF414384),
                                 ),
                               ),
                             ],
@@ -1126,6 +1226,132 @@ class _TransactionsTable extends StatelessWidget {
             )
           : Column(
               children: [
+                // Toggle Filter Button
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: onToggleFilters,
+                        icon: Icon(
+                          showTableFilters ? Icons.filter_list_off : Icons.filter_list,
+                        ),
+                        label: Text(showTableFilters ? 'Hide Filters' : 'Show Filters'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: showTableFilters
+                              ? const Color(0xFF414384)
+                              : Colors.grey.shade200,
+                          foregroundColor: showTableFilters
+                              ? Colors.white
+                              : Colors.black87,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Filter Row
+                if (showTableFilters)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF232534),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                      ),
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                        SizedBox(
+                          width: 150,
+                          child: _buildFilterColumn(
+                            label: 'Transaction ID',
+                            controller: tabFilters['transactionId']!,
+                            hint: 'Search',
+                            icon: Icons.search,
+                            hasFilterIcon: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 150,
+                          child: _buildFilterColumn(
+                            label: 'Start Date',
+                            controller: tabFilters['startDate']!,
+                            hint: '02-28-2025',
+                            icon: Icons.calendar_today,
+                            onTap: onStartDatePick,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 150,
+                          child: _buildFilterColumn(
+                            label: 'End Date',
+                            controller: tabFilters['endDate']!,
+                            hint: '02-28-2025',
+                            icon: Icons.calendar_today,
+                            onTap: onEndDatePick,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 150,
+                          child: _buildFilterColumn(
+                            label: 'Amount',
+                            controller: tabFilters['amount']!,
+                            hint: 'Search',
+                            icon: Icons.search,
+                            hasFilterIcon: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 150,
+                          child: _buildFilterColumn(
+                            label: 'Payment Method',
+                            controller: tabFilters['paymentMethod']!,
+                            hint: 'Search',
+                            icon: Icons.search,
+                            hasFilterIcon: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 150,
+                          child: _buildFilterColumn(
+                            label: 'Payment Status',
+                            controller: tabFilters['paymentStatus']!,
+                            hint: 'Search',
+                            icon: Icons.search,
+                            hasFilterIcon: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 150,
+                          child: _buildFilterColumn(
+                            label: 'Payment Date',
+                            controller: tabFilters['paymentDate']!,
+                            hint: '02-28-2025',
+                            icon: Icons.calendar_today,
+                            onTap: onPaymentDatePick,
+                          ),
+                        ),
+                        ],
+                      ),
+                    ),
+                  ),
                 SizedBox(
                   height: isWide ? 520 : 420,
                   child: Scrollbar(
@@ -1143,6 +1369,62 @@ class _TransactionsTable extends StatelessWidget {
                 _buildPaginationControls(),
               ],
             ),
+    );
+  }
+
+  Widget _buildFilterColumn({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    VoidCallback? onTap,
+    bool hasFilterIcon = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: TextField(
+            controller: controller,
+            readOnly: onTap != null,
+            onTap: onTap,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+              prefixIcon: Icon(icon, size: 18, color: const Color(0xFF9CA3AF)),
+              suffixIcon: hasFilterIcon
+                  ? IconButton(
+                      icon: const Icon(Icons.filter_list, size: 18),
+                      color: const Color(0xFF6B7280),
+                      onPressed: () {},
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+            ),
+            style: const TextStyle(fontSize: 14),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1207,7 +1489,7 @@ class _TransactionsTable extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   child: Material(
                     color: pageIndex == currentPage
-                        ? const Color(0xFF1E40AF)
+                        ? const Color(0xFF414384)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                     child: InkWell(
@@ -1316,7 +1598,7 @@ class _FooterSection extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E40AF).withValues(alpha: 0.1),
+                color: const Color(0xFF414384).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
@@ -1324,7 +1606,7 @@ class _FooterSection extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF1E40AF),
+                  color: Color(0xFF414384),
                 ),
               ),
             ),

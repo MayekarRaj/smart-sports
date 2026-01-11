@@ -961,7 +961,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen>
                 ),
                 IconButton(
                   onPressed: () => _handleEditEmployee(employee),
-                  icon: const Icon(Icons.edit, color: Colors.orange, size: 20),
+                  icon: const Icon(Icons.edit, color: Color(0xFF414384), size: 20),
                   tooltip: 'Edit Employee',
                 ),
                 IconButton(
@@ -1040,7 +1040,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen>
           'Editing ${employee['name']}',
           style: GoogleFonts.poppins(),
         ),
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFF414384),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

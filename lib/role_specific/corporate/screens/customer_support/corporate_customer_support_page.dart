@@ -1547,12 +1547,12 @@ class _ComplaintDetailsDialog extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: complaint.status == 'Open'
-                            ? Colors.orange.withValues(alpha: 0.15)
+                            ? const Color(0xFF414384).withValues(alpha: 0.15)
                             : Colors.green.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(25),
                         border: Border.all(
                           color: complaint.status == 'Open'
-                              ? Colors.orange
+                              ? const Color(0xFF414384)
                               : Colors.green,
                           width: 1.5,
                         ),
@@ -1560,7 +1560,7 @@ class _ComplaintDetailsDialog extends StatelessWidget {
                           BoxShadow(
                             color:
                                 (complaint.status == 'Open'
-                                        ? Colors.orange
+                                        ? const Color(0xFF414384)
                                         : Colors.green)
                                     .withValues(alpha: 0.1),
                             blurRadius: 8,
@@ -1577,7 +1577,7 @@ class _ComplaintDetailsDialog extends StatelessWidget {
                                 : Icons.check_circle_rounded,
                             size: 18,
                             color: complaint.status == 'Open'
-                                ? Colors.orange
+                                ? const Color(0xFF414384)
                                 : Colors.green,
                           ),
                           const SizedBox(width: 8),
@@ -1585,7 +1585,7 @@ class _ComplaintDetailsDialog extends StatelessWidget {
                             complaint.status,
                             style: TextStyle(
                               color: complaint.status == 'Open'
-                                  ? Colors.orange
+                                  ? const Color(0xFF414384)
                                   : Colors.green,
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
@@ -1979,7 +1979,7 @@ class _ViewComplaintScreenState extends State<ViewComplaintScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     color: widget.complaint.status == 'Open'
-                        ? Colors.orange
+                        ? const Color(0xFF414384)
                         : Colors.green,
                     fontWeight: FontWeight.w600,
                   ),

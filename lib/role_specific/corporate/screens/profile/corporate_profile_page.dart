@@ -5,7 +5,6 @@ import 'package:smart_sports/shared/navigation/role_navigation_manager.dart';
 import 'package:smart_sports/auth/screens/auth_shell.dart';
 import 'package:smart_sports/shared/widgets/profile_tab_components.dart';
 import 'package:smart_sports/shared/widgets/profile_tab_content_builder.dart';
-import 'package:smart_sports/shared/widgets/profile_tabs/members_tab.dart';
 import 'package:smart_sports/shared/widgets/profile_tabs/bank_details_tab.dart';
 import 'package:smart_sports/shared/widgets/profile_tabs/subscriptions_tab.dart';
 
@@ -21,7 +20,7 @@ class _CorporateProfilePageState extends State<CorporateProfilePage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late TabController _tabController;
-  final Color _roleColor = const Color(0xFFF59E0B); // Orange for Corporate
+  final Color _roleColor = const Color(0xFF414384); // Blue for Corporate
 
   // Form controllers
   final _firstNameController = TextEditingController(text: 'Michael');
@@ -58,7 +57,7 @@ class _CorporateProfilePageState extends State<CorporateProfilePage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_handleTabChange);
     _animationController = AnimationController(
       vsync: this,
@@ -160,16 +159,14 @@ class _CorporateProfilePageState extends State<CorporateProfilePage>
                 ),
                 centerTitle: true,
                 background: Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        _roleColor,
-                        _roleColor.withValues(alpha: 0.85),
-                        _roleColor.withValues(alpha: 0.7),
+                        Color(0xFF414384), // Lighter blue
+                        Color(0xFF232534), // Darker blue
                       ],
-                      stops: const [0.0, 0.5, 1.0],
                     ),
                   ),
                   child: Stack(
@@ -222,7 +219,6 @@ class _CorporateProfilePageState extends State<CorporateProfilePage>
                       isMobile: isMobile,
                       tabs: const [
                         Tab(text: 'Profile'),
-                        Tab(text: 'Members'),
                         Tab(text: 'Bank Details & Financials'),
                         Tab(text: 'Subscriptions'),
                       ],
@@ -277,7 +273,6 @@ class _CorporateProfilePageState extends State<CorporateProfilePage>
                             roleLabel: 'Corporate',
                             userEmail: 'michael.chen@example.com',
                           ),
-                          MembersTab(roleColor: _roleColor, isMobile: isMobile),
                           BankDetailsTab(
                             roleColor: _roleColor,
                             isMobile: isMobile,

@@ -9,14 +9,14 @@ class DemoUsersScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Demo Users'),
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFF414384),
         foregroundColor: Colors.white,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.people, size: 64, color: Colors.orange),
+            const Icon(Icons.people, size: 64, color: Color(0xFF414384)),
             const SizedBox(height: 16),
             const Text(
               'Coach Users Management',

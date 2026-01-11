@@ -581,31 +581,31 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: Colors.grey.shade300,
-                    child: Icon(
-                      _getSportIcon(court['sport']!),
+            child: Icon(
+              _getSportIcon(court['sport']!),
                       size: 50,
                       color: Colors.grey.shade600,
-                    ),
+            ),
                   );
                 },
-              ),
+          ),
             ),
           ),
-          
+
           // Right side - Court Details
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                   // Court Header with Status
                   Row(
                     children: [
                       Flexible(
                         child: Text(
-                          court['name']!,
-                          style: const TextStyle(
+                  court['name']!,
+                  style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
@@ -626,7 +626,7 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
                         child: Text(
                           isAvailable ? 'Available' : 'Unavailable',
                           style: TextStyle(
-                            fontSize: 14,
+                    fontSize: 14,
                             color: isAvailable ? Colors.green : Colors.red,
                             fontWeight: FontWeight.w500,
                           ),
@@ -641,10 +641,10 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
                     'COACH',
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
                   ),
+                ),
                   const SizedBox(height: 8),
                   SizedBox(
                     height: 32,
@@ -661,9 +661,9 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                   spreadRadius: 0,
-                                ),
-                              ],
-                            ),
+                ),
+              ],
+            ),
                             child: Container(
                               width: 32,
                               height: 32,
@@ -706,7 +706,7 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
                       fontWeight: FontWeight.w600,
                       color: Colors.black87,
                     ),
-                  ),
+              ),
                   const SizedBox(height: 12),
                   _buildScheduleRow('Weekdays', '08:30 - 22:00'),
                   const SizedBox(height: 8),
@@ -726,15 +726,15 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
     return Row(
       children: [
         Flexible(
-          child: Text(
+                child: Text(
             label,
             style: const TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w500,
               color: Colors.black87,
-            ),
-          ),
-        ),
+                  ),
+                ),
+              ),
         const SizedBox(width: 12),
         Flexible(
           child: Container(
@@ -752,8 +752,8 @@ class _ClubCourtsPageState extends State<ClubCourtsPage> {
               ),
             ),
           ),
-        ),
-      ],
+          ),
+        ],
     );
   }
 

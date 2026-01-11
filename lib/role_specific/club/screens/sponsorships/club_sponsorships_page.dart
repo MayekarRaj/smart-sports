@@ -34,7 +34,7 @@ class _ClubSponsorshipsPageState extends State<ClubSponsorshipsPage> {
     'Merchandisers Offer',
     'Freelancers Offer',
   ];
-  
+
   final List<String> _mainTabs = [
     'My Offers',
     'Requested',
@@ -551,51 +551,51 @@ class _ClubSponsorshipsPageState extends State<ClubSponsorshipsPage> {
 
             // Secondary Navigation Tabs (only show when "My Offers" is selected in top-level)
             if (_selectedOfferTypeTab == 'My Offers')
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                color: const Color(0xFFFFF5F0),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: _mainTabs.map((tab) {
-                      final isSelected = _selectedMainTab == tab;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: InkWell(
-                          onTap: () => setState(() => _selectedMainTab = tab),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: const Color(0xFFFFF5F0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: _mainTabs.map((tab) {
+                    final isSelected = _selectedMainTab == tab;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: InkWell(
+                        onTap: () => setState(() => _selectedMainTab = tab),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xFF009A69)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
                               color: isSelected
                                   ? const Color(0xFF009A69)
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected
-                                    ? const Color(0xFF009A69)
-                                    : const Color(0xFFE5E7EB),
-                              ),
+                                  : const Color(0xFFE5E7EB),
                             ),
-                            child: Text(
-                              tab,
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : const Color(0xFF1F2937),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          ),
+                          child: Text(
+                            tab,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF1F2937),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                      );
-                    }).toList(),
-                  ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
+            ),
 
             // Main Content Area
             Container(

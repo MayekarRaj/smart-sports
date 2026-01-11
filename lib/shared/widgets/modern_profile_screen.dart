@@ -116,12 +116,19 @@ class _ModernProfileScreenState extends State<ModernProfileScreen>
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        roleColor,
-                        roleColor.withValues(alpha: 0.85),
-                        roleColor.withValues(alpha: 0.7),
-                      ],
-                      stops: const [0.0, 0.5, 1.0],
+                      colors: widget.role == UserRole.corporate
+                          ? [
+                              const Color(0xFF414384), // Lighter blue
+                              const Color(0xFF232534), // Darker blue
+                            ]
+                          : [
+                              roleColor,
+                              roleColor.withValues(alpha: 0.85),
+                              roleColor.withValues(alpha: 0.7),
+                            ],
+                      stops: widget.role == UserRole.corporate
+                          ? null
+                          : const [0.0, 0.5, 1.0],
                     ),
                   ),
                   child: Stack(
@@ -201,7 +208,7 @@ class _ModernProfileScreenState extends State<ModernProfileScreen>
       case UserRole.coach:
         return const Color(0xFF10B981); // Green
       case UserRole.corporate:
-        return const Color(0xFFF59E0B); // Orange
+        return const Color(0xFF414384); // Blue
       case UserRole.member:
         return const Color(0xFF009A69); // Green
       case UserRole.freelancer:

@@ -151,8 +151,8 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
 
             // Select Date Section - Only show for single slot booking
             if (!isMultipleSlot) ...[
-              _buildSelectDateSection(),
-              const SizedBox(height: 24),
+            _buildSelectDateSection(),
+            const SizedBox(height: 24),
             ],
 
             // Full Slots Section
@@ -163,14 +163,14 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
             if (isMultipleSlot)
               _buildMultipleRepeatedPrivilegeSlotsSection()
             else
-              _buildPrivilegeSlotsSection(),
+            _buildPrivilegeSlotsSection(),
             const SizedBox(height: 24),
 
             // General Slots Section
             if (isMultipleSlot)
               _buildMultipleRepeatedGeneralSlotsSection()
             else
-              _buildGeneralSlotsSection(),
+            _buildGeneralSlotsSection(),
             const SizedBox(height: 24),
 
             // Selection Summary Section
@@ -836,11 +836,11 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
             children: [
               Text(
                 'Select Available slots to make your court booking.',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.white,
-                  height: 1.4,
-                ),
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Colors.white,
+              height: 1.4,
+            ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -906,56 +906,56 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
           // Court Label (Vertical)
           SizedBox(
             width: 80,
             child: RotatedBox(
               quarterTurns: -1,
               child: Text(
-                'Court $courtNumber',
-                style: GoogleFonts.poppins(
+          'Court $courtNumber',
+          style: GoogleFonts.poppins(
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
             ),
           ),
           const SizedBox(width: 8),
           // Slot Cards
-          Expanded(
-            child: _buildSlotCard(
-              'Whole Month',
-              'Not Available',
-              Colors.red,
-              courtNumber,
-              0,
+            Expanded(
+              child: _buildSlotCard(
+                'Whole Month',
+                'Not Available',
+                Colors.red,
+                courtNumber,
+                0,
+              ),
             ),
-          ),
           const SizedBox(width: 8),
-          Expanded(
-            child: _buildSlotCard(
-              'Full Week',
-              'Available',
-              Colors.green,
-              courtNumber,
-              1,
+            Expanded(
+              child: _buildSlotCard(
+                'Full Week',
+                'Available',
+                Colors.green,
+                courtNumber,
+                1,
+              ),
             ),
-          ),
           const SizedBox(width: 8),
-          Expanded(
-            child: _buildSlotCard(
-              'Full Day',
-              'Rushing',
-              Colors.orange,
-              courtNumber,
-              2,
+            Expanded(
+              child: _buildSlotCard(
+                'Full Day',
+                'Rushing',
+                Colors.orange,
+                courtNumber,
+                2,
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
     );
   }
 
@@ -1046,31 +1046,31 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
                           quarterTurns: -1,
                           child: Text(
                             '20% Off',
-                            style: GoogleFonts.poppins(
+              style: GoogleFonts.poppins(
                               fontSize: 8,
-                              fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
+              ),
+            ),
                   
                   // Status text in center
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.only(left: 4),
-                      child: Text(
+              child: Text(
                         actualStatus,
-                        style: GoogleFonts.poppins(
+                style: GoogleFonts.poppins(
                           fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w600,
                           color: Colors.white,
-                        ),
+                ),
                         textAlign: TextAlign.center,
-                      ),
-                    ),
+              ),
+            ),
                   ),
                 ],
               ),
@@ -1084,30 +1084,30 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(12),
                   bottomRight: Radius.circular(12),
-                ),
               ),
+            ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'USD 5000',
-                    style: GoogleFonts.poppins(
+              children: [
+                Text(
+                  'USD 5000',
+                  style: GoogleFonts.poppins(
                       fontSize: 8,
-                      decoration: TextDecoration.lineThrough,
+                    decoration: TextDecoration.lineThrough,
                       color: Colors.white.withOpacity(0.8),
-                    ),
                   ),
+                ),
                   const SizedBox(width: 2),
-                  Text(
-                    '4900',
-                    style: GoogleFonts.poppins(
+                Text(
+                  '4900',
+                  style: GoogleFonts.poppins(
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w600,
                       color: Colors.white,
-                    ),
                   ),
-                ],
+                ),
+              ],
               ),
             ),
           ],
@@ -1226,34 +1226,34 @@ class _SelectedClubBookingScreenState extends State<SelectedClubBookingScreen> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Selected: $selectionInfo. Proceeding to time slots...',
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Selected: $selectionInfo. Proceeding to time slots...',
+            style: GoogleFonts.poppins(),
           ),
-        );
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
 
         // Navigate to time slot booking screen for other cases
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => TimeSlotBookingScreen(
-              selectedClub: widget.selectedClub,
-              selectedSport: widget.selectedSport,
-              selectedArea: widget.selectedArea,
-              selectedDate: selectedDate ?? widget.selectedDate,
-              distanceRange: widget.distanceRange,
-              role: widget.role,
-              selectedSlot: selectedSlot,
-              selectedCourt: selectedCourt,
-              selectedTime: selectedTime,
-            ),
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => TimeSlotBookingScreen(
+            selectedClub: widget.selectedClub,
+            selectedSport: widget.selectedSport,
+            selectedArea: widget.selectedArea,
+            selectedDate: selectedDate ?? widget.selectedDate,
+            distanceRange: widget.distanceRange,
+            role: widget.role,
+            selectedSlot: selectedSlot,
+            selectedCourt: selectedCourt,
+            selectedTime: selectedTime,
           ),
-        );
+        ),
+      );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -24,6 +24,7 @@ class _CorporateSettingsPageState extends State<CorporateSettingsPage>
       TextEditingController(text: 'XXXXXXXXXXXXXXX');
   String _selectedCurrency = 'USD';
   bool _feedbackPublish = false;
+  String _selectedSidebarColor = 'gradient'; // 'gradient', '#232534', '#414384'
 
   // Finance & Audit Settings
   String _startMonth = 'January';
@@ -403,6 +404,142 @@ class _CorporateSettingsPageState extends State<CorporateSettingsPage>
               ],
             ),
           ),
+          const SizedBox(height: 20),
+
+          // Sidebar Color Theme Selection
+          _buildSidebarColorSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarColorSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF232534), // Dark gray background
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with circular color swatch
+          Row(
+            children: [
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [const Color(0xFF232534), const Color(0xFF414384)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Sidebar Color/Corporate',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Color options
+          Padding(
+            padding: const EdgeInsets.only(left: 32),
+            child: Column(
+              children: [
+                // Linear Gradient option
+                _buildColorOption(
+                  'Linear Gradient',
+                  'gradient',
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF232534),
+                          const Color(0xFF414384),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // #232534 option
+                _buildColorOption(
+                  '#232534',
+                  '#232534',
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: const Color(0xFF232534),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // #414384 option
+                _buildColorOption(
+                  '#414384',
+                  '#414384',
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: const Color(0xFF414384),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildColorOption(String label, String value, Widget colorSwatch) {
+    final isSelected = _selectedSidebarColor == value;
+    // Linear Gradient shows in lighter gray, hex codes in white
+    final textColor = label == 'Linear Gradient'
+        ? Colors.grey[400]
+        : Colors.white;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedSidebarColor = value;
+        });
+      },
+      child: Row(
+        children: [
+          colorSwatch,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: textColor,
+              ),
+            ),
+          ),
+          if (isSelected)
+            const Icon(Icons.check, color: Colors.white, size: 18),
         ],
       ),
     );

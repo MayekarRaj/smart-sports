@@ -411,25 +411,25 @@ class _CourtsListPageState extends State<CourtsListPage> {
     ];
 
     return InkWell(
-      onTap: () => _navigateToBooking(context, courtName),
+        onTap: () => _navigateToBooking(context, courtName),
       borderRadius: BorderRadius.circular(12),
-      child: Container(
+        child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
+          decoration: BoxDecoration(
+            color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Top - Court Image (Full Width, Smaller)
             ClipRRect(
               borderRadius: const BorderRadius.only(
@@ -447,22 +447,22 @@ class _CourtsListPageState extends State<CourtsListPage> {
                     return Container(
                       color: Colors.grey.shade300,
                       child: const Icon(
-                        Icons.sports_tennis,
+                      Icons.sports_tennis,
                         size: 40,
                         color: Colors.grey,
-                      ),
+                    ),
                     );
                   },
-                ),
+                  ),
               ),
             ),
-            
+
             // Bottom - Court Details (Compact)
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                   // Court Header with Status
                   Row(
                     children: [
@@ -475,22 +475,22 @@ class _CourtsListPageState extends State<CourtsListPage> {
                             color: Colors.black87,
                           ),
                         ),
-                      ),
+                          ),
                       const SizedBox(width: 8),
                       Container(
                         width: 10,
                         height: 10,
-                        decoration: BoxDecoration(
-                          color: available ? Colors.green : Colors.red,
+                          decoration: BoxDecoration(
+                            color: available ? Colors.green : Colors.red,
                           shape: BoxShape.circle,
-                        ),
+                          ),
                       ),
                       const SizedBox(width: 4),
                       Flexible(
-                        child: Text(
-                          available ? 'Available' : 'Unavailable',
+                          child: Text(
+                            available ? 'Available' : 'Unavailable',
                           style: TextStyle(
-                            fontSize: 12,
+                              fontSize: 12,
                             color: available ? Colors.green : Colors.red,
                             fontWeight: FontWeight.w500,
                           ),
@@ -529,10 +529,10 @@ class _CourtsListPageState extends State<CourtsListPage> {
                               'COACH',
                               style: TextStyle(
                                 fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w600,
                                 color: Colors.black87,
-                              ),
                             ),
+                          ),
                             const SizedBox(height: 6),
                             SizedBox(
                               height: 28,
@@ -549,9 +549,9 @@ class _CourtsListPageState extends State<CourtsListPage> {
                                             blurRadius: 3,
                                             offset: const Offset(0, 1.5),
                                             spreadRadius: 0,
-                                          ),
-                                        ],
-                                      ),
+                        ),
+                      ],
+                    ),
                                       child: Container(
                                         width: 28,
                                         height: 28,
@@ -571,7 +571,7 @@ class _CourtsListPageState extends State<CourtsListPage> {
                                                 color: Colors.grey.shade300,
                                                 child: const Icon(
                                                   Icons.person,
-                                                  size: 16,
+                    size: 16,
                                                   color: Colors.grey,
                                                 ),
                                               );
@@ -583,23 +583,23 @@ class _CourtsListPageState extends State<CourtsListPage> {
                                   );
                                 }),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ),
-                  const SizedBox(height: 12),
-                  
+                ],
+              ),
+                      ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
                   // Schedule Section
-                  const Text(
+              const Text(
                     'SCHEDULE',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: Colors.black87,
                     ),
-                  ),
+              ),
                   const SizedBox(height: 8),
                   _buildScheduleRowMobile('Weekdays', schedule['weekdays'] ?? '08:30 - 22:00'),
                   const SizedBox(height: 6),
@@ -608,7 +608,7 @@ class _CourtsListPageState extends State<CourtsListPage> {
                   _buildScheduleRowMobile('Sunday & National Holidays', schedule['sunday'] ?? 'Off'),
                 ],
               ),
-            ),
+              ),
           ],
         ),
       ),
@@ -617,7 +617,7 @@ class _CourtsListPageState extends State<CourtsListPage> {
 
   Widget _buildCapacityRowMobile(String label, String value) {
     return Row(
-      children: [
+                children: [
         Flexible(
           child: Text(
             label,
@@ -625,25 +625,25 @@ class _CourtsListPageState extends State<CourtsListPage> {
               fontSize: 11,
               fontWeight: FontWeight.w500,
               color: Colors.black87,
-            ),
+                  ),
           ),
-        ),
+              ),
         const SizedBox(width: 8),
-        Container(
+              Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
+                decoration: BoxDecoration(
             border: Border.all(color: const Color(0xFF007BFF)),
             borderRadius: BorderRadius.circular(4),
-          ),
+                ),
           child: Text(
             value,
-            style: const TextStyle(
+                      style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: Color(0xFF007BFF),
             ),
-          ),
-        ),
+                      ),
+                    ),
       ],
     );
   }
@@ -657,11 +657,11 @@ class _CourtsListPageState extends State<CourtsListPage> {
             label,
             style: const TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w500,
               color: Colors.black87,
-            ),
-          ),
-        ),
+                    ),
+                ),
+              ),
         const SizedBox(width: 8),
         Flexible(
           child: Container(
@@ -677,9 +677,9 @@ class _CourtsListPageState extends State<CourtsListPage> {
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF007BFF),
               ),
-            ),
           ),
         ),
+      ),
       ],
     );
   }

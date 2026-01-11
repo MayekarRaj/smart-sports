@@ -1078,7 +1078,7 @@ class MobileMapSection extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildLegendItem('A', Colors.green, 'Available'),
-                    _buildLegendItem('R', Colors.orange, 'Rushing'),
+                    _buildLegendItem('R', const Color(0xFF414384), 'Rushing'),
                     _buildLegendItem('X', Colors.red, 'Not Available'),
                   ],
                 ),

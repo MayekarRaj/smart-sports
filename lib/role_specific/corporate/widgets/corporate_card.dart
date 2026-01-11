@@ -164,12 +164,12 @@ class CoachCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: status == 'Available'
                           ? Colors.green[50]
-                          : Colors.orange[50],
+                          : const Color(0xFF414384).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: status == 'Available'
                             ? Colors.green[200]!
-                            : Colors.orange[200]!,
+                            : const Color(0xFF414384).withValues(alpha: 0.3),
                       ),
                     ),
                     child: Text(
@@ -177,7 +177,7 @@ class CoachCard extends StatelessWidget {
                       style: TextStyle(
                         color: status == 'Available'
                             ? Colors.green[700]
-                            : Colors.orange[700],
+                            : const Color(0xFF414384),
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
                       ),

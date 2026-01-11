@@ -347,15 +347,15 @@ class _BookingCardState extends State<BookingCard> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Players',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+                Text(
+                  'Players',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
                     if (_isEliteArena())
                       // IGVAE Image as circular avatars with shadows (exact match to image)
                       SizedBox(
@@ -409,11 +409,11 @@ class _BookingCardState extends State<BookingCard> {
                         ),
                       )
                     else
-                      // Player avatars
-                      PlayerAvatarRow(
-                        players: widget.booking.players,
-                        maxVisible: 4,
-                        avatarSize: 32,
+                // Player avatars
+                PlayerAvatarRow(
+                  players: widget.booking.players,
+                  maxVisible: 4,
+                  avatarSize: 32,
                       ),
                   ],
                 ),
@@ -463,7 +463,7 @@ class _BookingCardState extends State<BookingCard> {
                         ),
                       ),
                     ],
-                  ),
+                ),
               ],
             ),
           ),

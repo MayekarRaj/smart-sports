@@ -210,95 +210,95 @@ class _InviteReferralDialogState extends State<InviteReferralDialog> {
                         ),
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              // Paragraph dropdown
-                              DropdownButton<String>(
-                                value: _selectedParagraph,
-                                underline: const SizedBox(),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: 'paragraph',
-                                    child: Text('paragraph'),
-                                  ),
-                                ],
-                                onChanged: (value) {
-                                  setState(() => _selectedParagraph = value!);
-                                },
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                              const SizedBox(width: 8),
-                              // Formatting buttons
-                              _buildToolbarButton(
-                                icon: Icons.format_bold,
-                                isActive: _isBold,
-                                onTap: () => setState(() => _isBold = !_isBold),
-                              ),
-                              _buildToolbarButton(
-                                icon: Icons.format_italic,
-                                isActive: _isItalic,
-                                onTap: () => setState(() => _isItalic = !_isItalic),
-                              ),
-                              _buildToolbarButton(
-                                icon: Icons.format_underlined,
-                                isActive: _isUnderline,
-                                onTap: () => setState(() => _isUnderline = !_isUnderline),
-                              ),
-                              _buildToolbarButton(
-                                icon: Icons.strikethrough_s,
-                                isActive: _isStrikethrough,
-                                onTap: () => setState(() => _isStrikethrough = !_isStrikethrough),
-                              ),
-                              const SizedBox(width: 8),
-                              // Alignment buttons
-                              _buildToolbarButton(
-                                icon: Icons.format_align_left,
-                                isActive: _textAlign == TextAlign.left,
-                                onTap: () => setState(() => _textAlign = TextAlign.left),
-                              ),
-                              _buildToolbarButton(
-                                icon: Icons.format_align_center,
-                                isActive: _textAlign == TextAlign.center,
-                                onTap: () => setState(() => _textAlign = TextAlign.center),
-                              ),
-                              _buildToolbarButton(
-                                icon: Icons.format_align_right,
-                                isActive: _textAlign == TextAlign.right,
-                                onTap: () => setState(() => _textAlign = TextAlign.right),
-                              ),
-                              _buildToolbarButton(
-                                icon: Icons.format_align_justify,
-                                isActive: _textAlign == TextAlign.justify,
-                                onTap: () => setState(() => _textAlign = TextAlign.justify),
-                              ),
-                              const SizedBox(width: 8),
-                              // List buttons
-                              _buildToolbarButton(
-                                icon: Icons.format_list_bulleted,
-                                isActive: _isBulletList,
-                                onTap: () => setState(() => _isBulletList = !_isBulletList),
-                              ),
-                              _buildToolbarButton(
-                                icon: Icons.format_list_numbered,
-                                isActive: _isNumberedList,
-                                onTap: () => setState(() => _isNumberedList = !_isNumberedList),
-                              ),
-                              _buildToolbarButton(
-                                icon: Icons.format_quote,
-                                isActive: _isBlockquote,
-                                onTap: () => setState(() => _isBlockquote = !_isBlockquote),
-                              ),
-                              _buildToolbarButton(
-                                icon: Icons.format_indent_increase,
-                                isActive: false,
-                                onTap: () {},
-                              ),
-                              _buildToolbarButton(
-                                icon: Icons.format_indent_decrease,
-                                isActive: false,
-                                onTap: () {},
-                              ),
-                            ],
+                        child: Row(
+                          children: [
+                            // Paragraph dropdown
+                            DropdownButton<String>(
+                              value: _selectedParagraph,
+                              underline: const SizedBox(),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'paragraph',
+                                  child: Text('paragraph'),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                setState(() => _selectedParagraph = value!);
+                              },
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(width: 8),
+                            // Formatting buttons
+                            _buildToolbarButton(
+                              icon: Icons.format_bold,
+                              isActive: _isBold,
+                              onTap: () => setState(() => _isBold = !_isBold),
+                            ),
+                            _buildToolbarButton(
+                              icon: Icons.format_italic,
+                              isActive: _isItalic,
+                              onTap: () => setState(() => _isItalic = !_isItalic),
+                            ),
+                            _buildToolbarButton(
+                              icon: Icons.format_underlined,
+                              isActive: _isUnderline,
+                              onTap: () => setState(() => _isUnderline = !_isUnderline),
+                            ),
+                            _buildToolbarButton(
+                              icon: Icons.strikethrough_s,
+                              isActive: _isStrikethrough,
+                              onTap: () => setState(() => _isStrikethrough = !_isStrikethrough),
+                            ),
+                            const SizedBox(width: 8),
+                            // Alignment buttons
+                            _buildToolbarButton(
+                              icon: Icons.format_align_left,
+                              isActive: _textAlign == TextAlign.left,
+                              onTap: () => setState(() => _textAlign = TextAlign.left),
+                            ),
+                            _buildToolbarButton(
+                              icon: Icons.format_align_center,
+                              isActive: _textAlign == TextAlign.center,
+                              onTap: () => setState(() => _textAlign = TextAlign.center),
+                            ),
+                            _buildToolbarButton(
+                              icon: Icons.format_align_right,
+                              isActive: _textAlign == TextAlign.right,
+                              onTap: () => setState(() => _textAlign = TextAlign.right),
+                            ),
+                            _buildToolbarButton(
+                              icon: Icons.format_align_justify,
+                              isActive: _textAlign == TextAlign.justify,
+                              onTap: () => setState(() => _textAlign = TextAlign.justify),
+                            ),
+                            const SizedBox(width: 8),
+                            // List buttons
+                            _buildToolbarButton(
+                              icon: Icons.format_list_bulleted,
+                              isActive: _isBulletList,
+                              onTap: () => setState(() => _isBulletList = !_isBulletList),
+                            ),
+                            _buildToolbarButton(
+                              icon: Icons.format_list_numbered,
+                              isActive: _isNumberedList,
+                              onTap: () => setState(() => _isNumberedList = !_isNumberedList),
+                            ),
+                            _buildToolbarButton(
+                              icon: Icons.format_quote,
+                              isActive: _isBlockquote,
+                              onTap: () => setState(() => _isBlockquote = !_isBlockquote),
+                            ),
+                            _buildToolbarButton(
+                              icon: Icons.format_indent_increase,
+                              isActive: false,
+                              onTap: () {},
+                            ),
+                            _buildToolbarButton(
+                              icon: Icons.format_indent_decrease,
+                              isActive: false,
+                              onTap: () {},
+                            ),
+                          ],
                           ),
                         ),
                       ),

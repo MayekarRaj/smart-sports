@@ -836,12 +836,12 @@ class _CoachEventsPageState extends State<CoachEventsPage> {
               // Background Image
               Positioned.fill(
                 child: Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage(
-                        'assets/images/pngtree-a-large-cricket-stadium-green-field-empty-picture-image_15985507.jpg',
-                      ),
-                      fit: BoxFit.cover,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(
+                      'assets/images/pngtree-a-large-cricket-stadium-green-field-empty-picture-image_15985507.jpg',
+                    ),
+                    fit: BoxFit.cover,
                     ),
                   ),
                 ),
@@ -849,21 +849,21 @@ class _CoachEventsPageState extends State<CoachEventsPage> {
 
               // Overlay Content
               Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.2),
-                      Colors.black.withOpacity(0.8),
-                    ],
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.2),
+                        Colors.black.withOpacity(0.8),
+                      ],
+                    ),
                   ),
-                ),
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-                child: Column(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                  child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       // Tournament Title and Favourite
                       Row(
                         children: [
@@ -1243,8 +1243,8 @@ class _CoachEventsPageState extends State<CoachEventsPage> {
                         ],
                       ),
                     ],
-                  ),
                 ),
+              ),
             ],
           ),
         ),

@@ -20,11 +20,11 @@ class ProfilePillTabBar extends StatefulWidget {
 }
 
 class _ProfilePillTabBarState extends State<ProfilePillTabBar> {
-  // Members tab gradient colors
-  static const Color _membersGradientStart = Color(0xFF232534);
-  static const Color _membersGradientEnd = Color(0xFF009A69);
-  static const LinearGradient _membersGradient = LinearGradient(
-    colors: [_membersGradientStart, _membersGradientEnd],
+  // Bank Details tab gradient colors (Corporate theme)
+  static const Color _bankDetailsGradientStart = Color(0xFF414384);
+  static const Color _bankDetailsGradientEnd = Color(0xFF232534);
+  static const LinearGradient _bankDetailsGradient = LinearGradient(
+    colors: [_bankDetailsGradientStart, _bankDetailsGradientEnd],
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
   );
@@ -49,8 +49,10 @@ class _ProfilePillTabBarState extends State<ProfilePillTabBar> {
 
   @override
   Widget build(BuildContext context) {
-    // Check if Members tab (index 1) is selected
-    final isMembersTab = widget.controller.index == 1;
+    // Check if Bank Details tab is selected (check by tab text or index)
+    final currentIndex = widget.controller.index;
+    final isBankDetailsTab = currentIndex < widget.tabs.length &&
+        (widget.tabs[currentIndex].text?.contains('Bank Details') ?? false);
 
     return Container(
       height: widget.isMobile ? 48 : 52,
@@ -62,13 +64,13 @@ class _ProfilePillTabBarState extends State<ProfilePillTabBar> {
       padding: const EdgeInsets.all(4),
       child: TabBar(
         controller: widget.controller,
-        indicator: isMembersTab
+        indicator: isBankDetailsTab
             ? BoxDecoration(
-                gradient: _membersGradient,
+                gradient: _bankDetailsGradient,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: _membersGradientEnd.withValues(alpha: 0.3),
+                    color: _bankDetailsGradientEnd.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),

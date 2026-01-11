@@ -599,7 +599,7 @@ class MobileArenaHeader extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: isFavourite ? Colors.orange : Colors.blue,
+                    color: isFavourite ? const Color(0xFF414384) : Colors.blue,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(

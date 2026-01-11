@@ -130,7 +130,7 @@ class DemoReferralsScreen extends StatelessWidget {
               title: 'Real-time Analytics',
               description:
                   'Track referral performance with status indicators and subscription metrics.',
-              color: const Color(0xFFF59E0B),
+              color: const Color(0xFF414384),
             ),
             const SizedBox(height: 12),
             _buildFeatureCard(
@@ -181,7 +181,7 @@ class DemoReferralsScreen extends StatelessWidget {
                     title: 'Pending',
                     value: '23',
                     icon: Icons.schedule,
-                    color: const Color(0xFFF59E0B),
+                    color: const Color(0xFF414384),
                   ),
                 ),
                 const SizedBox(width: 12),
