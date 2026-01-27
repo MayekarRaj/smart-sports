@@ -29,7 +29,8 @@ class PaymentConfirmationPage extends StatefulWidget {
   });
 
   @override
-  State<PaymentConfirmationPage> createState() => _PaymentConfirmationPageState();
+  State<PaymentConfirmationPage> createState() =>
+      _PaymentConfirmationPageState();
 }
 
 class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
@@ -224,18 +225,18 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
 
           // Additional details based on payment method
           if (widget.paymentMethod == 'BANK TRANSFER') ...[
-            if (widget.referenceNumber != null && widget.referenceNumber!.isNotEmpty)
+            if (widget.referenceNumber != null &&
+                widget.referenceNumber!.isNotEmpty)
               _buildDetailField(
                 'Reference Number:',
                 widget.referenceNumber!,
                 icon: Icons.numbers,
               ),
-            if (widget.referenceNumber != null && widget.referenceNumber!.isNotEmpty)
+            if (widget.referenceNumber != null &&
+                widget.referenceNumber!.isNotEmpty)
               const SizedBox(height: 16),
-            if (widget.receiptImage != null)
-              _buildReceiptPreview(),
-            if (widget.receiptImage != null)
-              const SizedBox(height: 16),
+            if (widget.receiptImage != null) _buildReceiptPreview(),
+            if (widget.receiptImage != null) const SizedBox(height: 16),
           ],
 
           // Payment Date and Time
@@ -293,7 +294,9 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
           decoration: BoxDecoration(
-            color: statusColor != null ? statusColor.withOpacity(0.1) : Colors.grey[50],
+            color: statusColor != null
+                ? statusColor.withOpacity(0.1)
+                : Colors.grey[50],
             border: Border.all(
               color: statusColor != null
                   ? statusColor.withOpacity(0.3)
@@ -468,7 +471,7 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
     return '${now.day} ${months[now.month - 1]} ${now.year}';
   }
@@ -510,7 +513,8 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
   Future<void> _processStripePayment() async {
     try {
       // Validate card details from CardField
-      if (widget.cardFieldDetails == null || !widget.cardFieldDetails!.complete) {
+      if (widget.cardFieldDetails == null ||
+          !widget.cardFieldDetails!.complete) {
         throw Exception('Please enter complete card details');
       }
 
@@ -587,67 +591,121 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 28),
-            SizedBox(width: 12),
-            Text('Payment Successful!'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Text(
-              'Your payment of USD ${widget.amount.toInt()} has been processed successfully.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green.shade200),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 10),
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.verified, color: Colors.green, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Your membership has been activated!',
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_rounded,
+                  color: Colors.green,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Payment Successful!',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Your payment of USD ${widget.amount.toInt()} has been processed successfully.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.black54,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4), // Green 50
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFBBF7D0),
+                  ), // Green 200
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.verified, color: Colors.green, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Your membership has been activated!',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.green.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close dialog
+                    // Navigate to role-specific dashboard
+                    final dashboard = RoleRouter.dashboardFor(userRole);
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => dashboard),
+                      (route) => false, // Remove all previous routes
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Continue',
                     style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.green,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              // Navigate to role-specific dashboard
-              final dashboard = RoleRouter.dashboardFor(userRole);
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => dashboard),
-                (route) => false, // Remove all previous routes
-              );
-            },
-            child: const Text('Continue'),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
-

@@ -93,18 +93,20 @@ class _AuthShellState extends State<AuthShell> {
                                   ),
                                 ],
                               ),
-                              child: Icon(
-                                Icons.sports_cricket,
-                                size: 40,
-                                color: Colors.green.shade600,
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Image.asset(
+                                  'assets/images/app_icon.png',
+                                  fit: BoxFit.contain,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Smart Sports',
+                              'Universal Sport Connect\n(USC)',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: isTablet ? 36 : 30,
+                                fontSize: isTablet ? 32 : 26,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                                 letterSpacing: -0.5,
@@ -119,12 +121,13 @@ class _AuthShellState extends State<AuthShell> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Your Ultimate Sports Management Platform',
+                              'Match, Play, Repeat',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: isTablet ? 16 : 14,
+                                fontSize: isTablet ? 18 : 16,
                                 color: Colors.white.withValues(alpha: 0.95),
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
+                                fontStyle: FontStyle.italic,
                                 shadows: [
                                   Shadow(
                                     color: Colors.black.withValues(alpha: 0.6),

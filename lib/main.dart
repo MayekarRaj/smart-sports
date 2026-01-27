@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'core/theme/app_theme.dart';
-import 'core/config/api_config.dart';
-import 'auth/screens/splash_screen.dart';
+import 'core/services/payment_settings_service.dart';
+import 'core/providers/auth_provider.dart';
 import 'auth/screens/auth_shell.dart';
+import 'auth/screens/splash_screen.dart';
 import 'auth/screens/forgot_password_page.dart';
 import 'auth/screens/reset_password_page.dart';
 import 'auth/screens/change_password_page.dart';
@@ -22,45 +22,47 @@ import 'role_specific/club/screens/bookings/club_bookings_page.dart';
 import 'role_specific/club/screens/events/club_events_page.dart';
 import 'role_specific/club/screens/clubs/clubs_page.dart';
 
+// Global navigator key to allow navigation from outside the widget tree or root widget
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Stripe with publishable key
-  final stripeKey = ApiConfig.stripePublishableKey;
-  if (stripeKey != null) {
-    Stripe.publishableKey = stripeKey;
-    // Set Stripe to test mode for test keys, live mode for live keys
-    Stripe.merchantIdentifier = 'merchant.com.courtreserve.sekai_ichi';
-  } else {
-    print('⚠️ Stripe publishable key not configured. Payment features will not work.');
-  }
-  
-  runApp(
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
+
+  // Stripe is initialized dynamically in PaymentSettingsService
+
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch payment settings to trigger fetch on app start
+    // ignore: unused_local_variable
+    final paymentSettings = ref.watch(paymentSettingsServiceProvider);
+
+    // Listen for auth state changes to handle global logout
+    ref.listen(authStateProvider, (previous, next) {
+      if (previous?.isAuthenticated == true && !next.isAuthenticated) {
+        // User was logged out (e.g. session expired and refresh failed)
+        // Navigate to AuthShell and clear stack
+        navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          '/auth',
+          (route) => false,
+        );
+      }
+    });
+
     return MaterialApp(
-      title: 'Smart Sports',
+      navigatorKey: navigatorKey, // Assign global key
+      title: 'Universal Sport Connect (USC)',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
       home: const SplashScreen(),
-      // Temporary: Add direct navigation for testing
-      // home: const ClubReferralsPage(),
-      // home: const coach.CoachUsersPage(), // Uncomment to test coach directly
-      // home: const BookingManagementScreen(
-      //   role: UserRole.member,
-      //   selectedIndex: 4,
-      // ), // Uncomment to test booking management directly
       routes: {
+        '/auth': (_) => const AuthShell(), // Added auth route
         '/forgot': (_) => const ForgotPasswordPage(),
         '/reset': (_) => const ResetPasswordPage(),
         '/change': (_) => const ChangePasswordPage(),

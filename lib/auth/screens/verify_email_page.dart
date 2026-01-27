@@ -4,6 +4,8 @@ import '../../core/repositories/auth_repository.dart';
 import '../../core/exceptions/api_exception.dart';
 import '../widgets/otp_fields.dart';
 import '../widgets/dialogs.dart';
+import '../../core/services/storage_service.dart';
+import '../../core/constants/registration_constants.dart';
 
 class VerifyEmailPage extends StatefulWidget {
   final String email;
@@ -46,12 +48,12 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
 
     try {
       final response = await _authRepository.sendOtp(widget.email);
-      
+
       if (mounted) {
         setState(() {
           _otpSent = true;
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(response.message),
@@ -100,7 +102,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
       await showErrorDialog(context, 'Enter 4-digit OTP');
       return;
     }
-    
+
     if (!mounted) return;
 
     setState(() {
@@ -109,7 +111,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
 
     try {
       final response = await _authRepository.verifyOtp(widget.email, code);
-      
+
       if (mounted) {
         if (response.verified) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -119,8 +121,14 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
               duration: const Duration(seconds: 3),
             ),
           );
-          
-          // Navigate back with success
+
+          // Save registration state
+          await StorageService().saveString(
+            RegistrationConstants.KEY_REGISTRATION_STEP,
+            RegistrationConstants.STEP_EMAIL_VERIFIED,
+          );
+
+          if (!mounted) return;
           Navigator.of(context).pop(true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -141,7 +149,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
             duration: const Duration(seconds: 4),
           ),
         );
-        
+
         // Clear OTP fields on error
         for (final ctrl in ctrls) {
           ctrl.clear();

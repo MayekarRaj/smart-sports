@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import '../../core/utils/file_utils.dart';
 import '../../core/models/api_models.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../../core/exceptions/api_exception.dart';
-import '../../core/utils/phone_parser.dart';
-import '../../core/utils/file_utils.dart';
 import '../widgets/city_search_field.dart';
 import '../widgets/phone_code_dropdown.dart';
 import '../widgets/rounded_text_field.dart';
@@ -35,41 +36,99 @@ class ServiceDayTime {
   TimeOfDay? startTime;
   TimeOfDay? endTime;
 
-  ServiceDayTime({
-    this.day = 'Monday',
-    this.startTime,
-    this.endTime,
-  });
+  ServiceDayTime({this.day = 'Monday', this.startTime, this.endTime});
 }
 
 class CoachRegistrationPage extends ConsumerStatefulWidget {
   const CoachRegistrationPage({super.key});
 
   @override
-  ConsumerState<CoachRegistrationPage> createState() => _CoachRegistrationPageState();
+  ConsumerState<CoachRegistrationPage> createState() =>
+      _CoachRegistrationPageState();
 }
 
 class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
-  final AuthRepository _authRepository = AuthRepository();
+  final _authRepository = AuthRepository();
   final ImagePicker _imagePicker = ImagePicker();
   bool _isLoading = false;
 
   // Coach Details Controllers
-  String? _experienceLevel;
   final _numberOfUsersController = TextEditingController(text: '2');
-  
-  // Experience levels from API
-  List<MstCoachExperienceLevel> _experienceLevels = [];
+
+  // Experience Level & Certificates
   bool _isLoadingExperienceLevels = false;
-  
+  List<MstCoachExperienceLevel> _experienceLevels = [];
+  String? _experienceLevel;
+  final List<XFile> _certificateFiles = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Add one initial club
+    _addClub();
+    _loadClubDays();
+    _loadExperienceLevels();
+  }
+
+  Future<void> _loadExperienceLevels() async {
+    setState(() => _isLoadingExperienceLevels = true);
+    try {
+      final response = await _authRepository.getCoachExperienceLevels(
+        isActive: 1,
+        orderBy: 'id',
+      );
+      if (mounted) {
+        setState(() {
+          _experienceLevels = response.data.data;
+          _isLoadingExperienceLevels = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingExperienceLevels = false);
+        debugPrint('Error loading experience levels: $e');
+      }
+    }
+  }
+
+  Future<void> _pickCertificateFile() async {
+    try {
+      final XFile? file = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70,
+        maxWidth: 1200,
+        maxHeight: 1200,
+      );
+      if (file != null) {
+        final isValidSize = await FileUtils.validateFileSize(file);
+        if (!isValidSize) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'File size exceeds 2MB. Please select a smaller image.',
+                ),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          return;
+        }
+
+        setState(() {
+          _certificateFiles.add(file);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking file: $e');
+    }
+  }
+
   // Club days from API
   List<MstClubDay> _clubDays = [];
   bool _isLoadingClubDays = false;
-  
-  // Certificate files (for experience levels)
-  List<XFile> _certificateFiles = [];
 
   // Clubs Data - Dynamic structure
   final List<ClubData> _clubs = [];
@@ -95,18 +154,9 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
   final _mobileNumberController = TextEditingController();
   final _websiteController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    // Add one initial club
-    _addClub();
-    _loadExperienceLevels();
-    _loadClubDays();
-  }
-
   Future<void> _loadClubDays() async {
     if (!mounted) return;
-    
+
     setState(() {
       _isLoadingClubDays = true;
     });
@@ -141,46 +191,6 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load club days: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _loadExperienceLevels() async {
-    if (!mounted) return;
-    
-    setState(() {
-      _isLoadingExperienceLevels = true;
-    });
-
-    try {
-      final response = await _authRepository.getCoachExperienceLevels(
-        perPage: 1000,
-        orderBy: 'id|ASC',
-        isActive: 1,
-        page: 1,
-      );
-
-      if (mounted) {
-        setState(() {
-          _experienceLevels = response.data.data;
-          // Set default to first experience level if available
-          if (_experienceLevels.isNotEmpty && _experienceLevel == null) {
-            _experienceLevel = _experienceLevels.first.name;
-          }
-          _isLoadingExperienceLevels = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingExperienceLevels = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load experience levels: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -316,7 +326,7 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Coach Experience Level
+                    // Coach Experience Level UI
                     _isLoadingExperienceLevels
                         ? Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,52 +355,63 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
                                     SizedBox(
                                       width: 16,
                                       height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
                                     ),
                                     SizedBox(width: 12),
-                                    Text('Loading experience levels...', style: TextStyle(color: Colors.grey)),
+                                    Text(
+                                      'Loading experience levels...',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
                                   ],
                                 ),
                               ),
                             ],
                           )
                         : _experienceLevels.isEmpty
-                            ? Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Coach Experience Level',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xFF64748B),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 16,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[50],
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.grey[200]!),
-                                    ),
-                                    child: const Text(
-                                      'No experience levels available',
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : _buildDropdownField(
-                                label: 'Coach Experience Level',
-                                value: _experienceLevel ?? (_experienceLevels.isNotEmpty ? _experienceLevels.first.name : null),
-                                items: _experienceLevels.map((level) => level.name).toList(),
-                                onChanged: (value) =>
-                                    setState(() => _experienceLevel = value!),
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Coach Experience Level',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.grey[200]!),
+                                ),
+                                child: const Text(
+                                  'No experience levels available',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ),
+                            ],
+                          )
+                        : _buildDropdownField(
+                            label: 'Coach Experience Level',
+                            value:
+                                _experienceLevel ??
+                                (_experienceLevels.isNotEmpty
+                                    ? _experienceLevels.first.name
+                                    : null),
+                            items: _experienceLevels
+                                .map((level) => level.name)
+                                .toList(),
+                            onChanged: (value) =>
+                                setState(() => _experienceLevel = value!),
+                          ),
                     const SizedBox(height: 20),
 
                     // Add File Section
@@ -598,8 +619,11 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
     required Function(String?) onChanged,
   }) {
     // Ensure value is in items list, otherwise use null
-    final validValue = value != null && value.isNotEmpty && items.contains(value) ? value : null;
-    
+    final validValue =
+        value != null && value.isNotEmpty && items.contains(value)
+        ? value
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -628,10 +652,7 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
               ),
               hintText: 'Select',
             ),
-            hint: Text(
-              'Select',
-              style: TextStyle(color: Colors.grey[400]),
-            ),
+            hint: Text('Select', style: TextStyle(color: Colors.grey[400])),
             items: items.map((String item) {
               return DropdownMenuItem<String>(value: item, child: Text(item));
             }).toList(),
@@ -661,7 +682,11 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
             ),
             child: Column(
               children: [
-                Icon(Icons.upload_file, size: 48, color: const Color(0xFF11998E)),
+                Icon(
+                  Icons.upload_file,
+                  size: 48,
+                  color: const Color(0xFF11998E),
+                ),
                 const SizedBox(height: 12),
                 const Text(
                   'Add file',
@@ -724,47 +749,6 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
         ],
       ],
     );
-  }
-
-  Future<void> _pickCertificateFile() async {
-    try {
-      final XFile? file = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70, // Compress image to 70% quality (reduced from 85)
-        maxWidth: 1200, // Limit width (reduced from 1920)
-        maxHeight: 1200, // Limit height (reduced from 1920)
-      );
-      if (file != null) {
-        // Validate file size (max 2MB)
-        final isValidSize = await FileUtils.validateFileSize(file);
-        if (!isValidSize) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('File size exceeds 2MB. Please select a smaller image.'),
-                backgroundColor: Colors.orange,
-                duration: Duration(seconds: 4),
-              ),
-            );
-          }
-          return;
-        }
-
-        setState(() {
-          _certificateFiles.add(file);
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error picking file: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    }
   }
 
   Widget _buildClubsSection() {
@@ -908,18 +892,18 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
           ),
           const SizedBox(height: 16),
           _buildTextField(
-                  controller: club.clubNameController,
-                  label: 'Club Name',
-                  hint: 'Enter club name',
-                ),
+            controller: club.clubNameController,
+            label: 'Club Name',
+            hint: 'Enter club name',
+          ),
           const SizedBox(height: 8),
 
-                _buildTextField(
-                  controller: club.sportTypeController,
-                  label: 'Sport Type',
-                  hint: 'Enter sport type',
-                ),
-              
+          _buildTextField(
+            controller: club.sportTypeController,
+            label: 'Sport Type',
+            hint: 'Enter sport type',
+          ),
+
           // Row(
           //   children: [
           //     Expanded(
@@ -1005,59 +989,65 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
                                 SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
                                 SizedBox(width: 12),
-                                Text('Loading...', style: TextStyle(color: Colors.grey)),
+                                Text(
+                                  'Loading...',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
                               ],
                             ),
                           ),
                         ],
                       )
                     : _clubDays.isEmpty
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Service Day',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF64748B),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[50],
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey[200]!),
-                                ),
-                                child: const Text(
-                                  'No days available',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                            ],
-                          )
-                        : _buildDropdownField(
-                            label: 'Service Day',
-                            value: _clubDays.any((day) => day.name == serviceDay.day)
-                                ? serviceDay.day
-                                : _clubDays.isNotEmpty
-                                    ? _clubDays.first.name
-                                    : 'Monday',
-                            items: _clubDays.map((day) => day.name).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                serviceDay.day = value!;
-                              });
-                            },
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Service Day',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: const Text(
+                              'No days available',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        ],
+                      )
+                    : _buildDropdownField(
+                        label: 'Service Day',
+                        value:
+                            _clubDays.any((day) => day.name == serviceDay.day)
+                            ? serviceDay.day
+                            : _clubDays.isNotEmpty
+                            ? _clubDays.first.name
+                            : 'Monday',
+                        items: _clubDays.map((day) => day.name).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            serviceDay.day = value!;
+                          });
+                        },
+                      ),
               ),
               const SizedBox(width: 12),
               // Remove button (only show if more than one day)
@@ -1165,11 +1155,7 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                Icon(
-                  Icons.access_time,
-                  color: Colors.grey[600],
-                  size: 18,
-                ),
+                Icon(Icons.access_time, color: Colors.grey[600], size: 18),
               ],
             ),
           ),
@@ -1328,16 +1314,16 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
               color: Color(0xFF64748B),
             ),
           ),
-                        const SizedBox(height: 4),
+          const SizedBox(height: 4),
 
           _buildTextField(
-                  controller: _designationController,
-                  label: '',
-                  hint: 'Enter designation',
-                ),
-              const SizedBox(height: 8),
+            controller: _designationController,
+            label: '',
+            hint: 'Enter designation',
+          ),
+          const SizedBox(height: 8),
 
-                Text(
+          Text(
             'Department',
             style: TextStyle(
               fontSize: 14,
@@ -1345,13 +1331,13 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
               color: Color(0xFF64748B),
             ),
           ),
-              const SizedBox(height: 4),
+          const SizedBox(height: 4),
 
-                 _buildTextField(
-                  controller: _departmentController,
-                  label: '',
-                  hint: 'Enter department',
-                ),
+          _buildTextField(
+            controller: _departmentController,
+            label: '',
+            hint: 'Enter department',
+          ),
           const SizedBox(height: 8),
           // Row(
           //   children: [
@@ -1387,7 +1373,9 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
               Expanded(
                 flex: 2,
                 child: PhoneCodeDropdown(
-                  value: _officePhoneCodeController.text.isNotEmpty ? _officePhoneCodeController.text : null,
+                  value: _officePhoneCodeController.text.isNotEmpty
+                      ? _officePhoneCodeController.text
+                      : null,
                   onChanged: (value) {
                     _officePhoneCodeController.text = value ?? '';
                   },
@@ -1420,7 +1408,9 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
               Expanded(
                 flex: 2,
                 child: PhoneCodeDropdown(
-                  value: _mobilePhoneCodeController.text.isNotEmpty ? _mobilePhoneCodeController.text : null,
+                  value: _mobilePhoneCodeController.text.isNotEmpty
+                      ? _mobilePhoneCodeController.text
+                      : null,
                   onChanged: (value) {
                     _mobilePhoneCodeController.text = value ?? '';
                   },
@@ -1548,7 +1538,11 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
                           ),
                         ),
                         SizedBox(width: 8),
-                        Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                        Icon(
+                          Icons.arrow_forward,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                       ],
                     ),
             ),
@@ -1613,50 +1607,19 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
         return null;
       }
 
-      final officePhoneExt = _extractPhoneCode(_officePhoneCodeController.text.trim());
+      final officePhoneExt = _extractPhoneCode(
+        _officePhoneCodeController.text.trim(),
+      );
       final officePhoneNumber = _officeNumberController.text.trim();
-      final mobilePhoneExt = _extractPhoneCode(_mobilePhoneCodeController.text.trim());
+      final mobilePhoneExt = _extractPhoneCode(
+        _mobilePhoneCodeController.text.trim(),
+      );
       final mobilePhoneNumber = _mobileNumberController.text.trim();
-
-      // Convert certificate files to base64 (with size validation)
-      final experienceLevels = <CoachExperienceLevel>[];
-      for (final file in _certificateFiles) {
-        try {
-          // Double-check file size before encoding
-          final fileSizeMB = await FileUtils.getFileSizeInMB(file);
-          if (fileSizeMB > 2.0) {
-            throw Exception(
-              'Certificate "${file.name}" is too large (${fileSizeMB.toStringAsFixed(2)} MB). Maximum size is 2MB.',
-            );
-          }
-
-          final base64 = await FileUtils.xFileToBase64(file);
-          experienceLevels.add(
-            CoachExperienceLevel(
-              expLevelName: _experienceLevel!,
-              certificateName: file.name,
-              certificateBase64: base64,
-            ),
-          );
-        } catch (e) {
-          // If one file fails, show error and stop
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(e.toString().replaceFirst('Exception: ', '')),
-                backgroundColor: Colors.red,
-                duration: const Duration(seconds: 5),
-              ),
-            );
-          }
-          return;
-        }
-      }
 
       // Transform clubs data to API format
       final clubs = _clubs.map((club) {
         final serviceDays = <CoachServiceDay>[];
-        
+
         // Validate club name and sport type
         if (club.clubNameController.text.trim().isEmpty) {
           throw Exception('Please enter club name for all clubs');
@@ -1664,24 +1627,28 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
         if (club.sportTypeController.text.trim().isEmpty) {
           throw Exception('Please enter sport type for all clubs');
         }
-        
+
         // Map service days and times
         for (final serviceDay in club.serviceDays) {
           if (serviceDay.startTime == null || serviceDay.endTime == null) {
-            throw Exception('Please select start and end time for all service days');
+            throw Exception(
+              'Please select start and end time for all service days',
+            );
           }
-          
+
           serviceDays.add(
             CoachServiceDay(
               day: serviceDay.day,
-              timeSlotsStart: '${serviceDay.startTime!.hour.toString().padLeft(2, '0')}:${serviceDay.startTime!.minute.toString().padLeft(2, '0')}',
-              timeSlotsEnd: '${serviceDay.endTime!.hour.toString().padLeft(2, '0')}:${serviceDay.endTime!.minute.toString().padLeft(2, '0')}',
+              timeSlotsStart:
+                  '${serviceDay.startTime!.hour.toString().padLeft(2, "0")}:${serviceDay.startTime!.minute.toString().padLeft(2, "0")}',
+              timeSlotsEnd:
+                  '${serviceDay.endTime!.hour.toString().padLeft(2, "0")}:${serviceDay.endTime!.minute.toString().padLeft(2, "0")}',
             ),
           );
         }
 
         return CoachClub(
-          clubName: club.clubNameController.text.trim(),
+          clubId: club.clubNameController.text.trim(),
           sportType: club.sportTypeController.text.trim(),
           serviceDays: serviceDays,
         );
@@ -1689,50 +1656,49 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
 
       // Build request
       final request = CoachSignupRequest(
-        userRole: 'coach',
         noOfUsers: int.tryParse(_numberOfUsersController.text) ?? 0,
         isAddressIsSameAsUser: _companyAddressSameAsSignup ? 1 : 0,
         addressLine1: _companyAddressSameAsSignup
             ? null
             : _address1Controller.text.trim().isNotEmpty
-                ? _address1Controller.text.trim()
-                : null,
+            ? _address1Controller.text.trim()
+            : null,
         addressLine2: _companyAddressSameAsSignup
             ? null
             : _address2Controller.text.trim().isNotEmpty
-                ? _address2Controller.text.trim()
-                : null,
+            ? _address2Controller.text.trim()
+            : null,
         city: _companyAddressSameAsSignup
             ? null
             : _cityController.text.trim().isNotEmpty
-                ? _cityController.text.trim()
-                : null,
+            ? _cityController.text.trim()
+            : null,
         state: _companyAddressSameAsSignup
             ? null
             : _stateController.text.trim().isNotEmpty
-                ? _stateController.text.trim()
-                : null,
+            ? _stateController.text.trim()
+            : null,
         zipcode: _companyAddressSameAsSignup
             ? null
             : _zipController.text.trim().isNotEmpty
-                ? _zipController.text.trim()
-                : null,
+            ? _zipController.text.trim()
+            : null,
         country: _companyAddressSameAsSignup
             ? null
             : _countryController.text.trim().isNotEmpty
-                ? _countryController.text.trim()
-                : null,
+            ? _countryController.text.trim()
+            : null,
         isContactDetailsIsSameUser: _contactDetailsSameAsSignup ? 1 : 0,
         designation: _contactDetailsSameAsSignup
             ? null
             : _designationController.text.trim().isNotEmpty
-                ? _designationController.text.trim()
-                : null,
+            ? _designationController.text.trim()
+            : null,
         department: _contactDetailsSameAsSignup
             ? null
             : _departmentController.text.trim().isNotEmpty
-                ? _departmentController.text.trim()
-                : null,
+            ? _departmentController.text.trim()
+            : null,
         officePhoneExt: _contactDetailsSameAsSignup
             ? null
             : (officePhoneExt?.isNotEmpty == true ? officePhoneExt : null),
@@ -1748,14 +1714,37 @@ class _CoachRegistrationPageState extends ConsumerState<CoachRegistrationPage> {
         companyWebsite: _contactDetailsSameAsSignup
             ? null
             : _websiteController.text.trim().isNotEmpty
-                ? _websiteController.text.trim()
-                : null,
+            ? _websiteController.text.trim()
+            : null,
         clubs: clubs,
-        experienceLevels: experienceLevels,
       );
 
       // Call API
       await _authRepository.coachSignup(request);
+
+      // After successful signup, upload experience levels
+      for (final file in _certificateFiles) {
+        try {
+          await _authRepository.uploadCoachExperienceLevel(
+            expLevelName: _experienceLevel!,
+            certificateFile: File(file.path),
+          );
+        } catch (e) {
+          debugPrint('Failed to upload certificate ${file.name}: $e');
+          // For now, we continue uploading other files even if one fails
+          // But we should probably alert the user
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Failed to upload ${file.name}, but registration was successful.',
+                ),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        }
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

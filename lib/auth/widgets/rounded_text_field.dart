@@ -9,7 +9,8 @@ class RoundedTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final bool enabled;
   final bool readOnly;
-  
+  final FocusNode? focusNode;
+
   const RoundedTextField({
     super.key,
     required this.controller,
@@ -20,6 +21,7 @@ class RoundedTextField extends StatelessWidget {
     this.onChanged,
     this.enabled = true,
     this.readOnly = false,
+    this.focusNode,
   });
   @override
   Widget build(BuildContext context) {
@@ -31,15 +33,13 @@ class RoundedTextField extends StatelessWidget {
       ),
       child: TextFormField(
         controller: controller,
+        focusNode: focusNode,
         keyboardType: keyboardType,
         validator: validator,
         onChanged: onChanged,
         enabled: enabled,
         readOnly: readOnly,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(

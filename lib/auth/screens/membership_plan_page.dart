@@ -19,7 +19,7 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
   final StorageService _storageService = StorageService();
   bool _isLoadingServices = false;
   List<PaidService> _paidServices = [];
-  
+
   final Map<String, bool> _selectedServices = {
     'priority_booking': false,
     'avail_discounts': false,
@@ -46,10 +46,12 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
 
     try {
       final response = await _authRepository.getPaidServicesList('club');
-      
+
       if (mounted) {
         setState(() {
-          _paidServices = response.data.where((service) => service.isDeleted == 0).toList();
+          _paidServices = response.data
+              .where((service) => service.isDeleted == 0)
+              .toList();
           _isLoadingServices = false;
         });
       }
@@ -130,16 +132,16 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
 
       if (mounted) {
         setState(() => _isLoadingServices = false);
-        
+
         // Save role to storage if not already saved
         final roleStr = await _storageService.getString('user_role');
         if (roleStr == null || roleStr.isEmpty) {
           await _storageService.saveString('user_role', 'club');
         }
-        
+
         // Extract subscription_id from response (required for Club/Branch)
         final subscriptionId = response.data?['subscription_id']?.toString();
-        
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -504,102 +506,121 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
     double price,
     List<String>? tags,
   ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Checkbox(
-                value: _selectedServices[key],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedServices[key] = value!;
-                  });
-                },
-                activeColor: const Color(0xFF8BB6D9),
-              ),
-              const SizedBox(width: 8),
-              _getServiceIcon(key),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (tags != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        'You Will Be Allowed To Avail Priority Booking Slots For Your Preferred Clubs Selected @ USD 50 /Club.',
-                        style: TextStyle(fontSize: 12, color: Colors.red[400]),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Column(
-                children: [
-                  const Text(
-                    'Monthly Fee',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  Text(
-                    'USD ${price.toInt()}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+    final isSelected = _selectedServices[key] ?? false;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedServices[key] = !isSelected;
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? const Color(0xFF8BB6D9) : Colors.grey[300]!,
+            width: isSelected ? 2 : 1,
           ),
-          if (tags != null) ...[
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: tags
-                  .map(
-                    (tag) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        tag,
+          borderRadius: BorderRadius.circular(12),
+          color: isSelected
+              ? const Color(0xFF8BB6D9).withOpacity(0.05)
+              : Colors.white,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _getServiceIcon(key),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
                         style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
                         ),
                       ),
+                      if (tags != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'You Will Be Allowed To Avail Priority Booking Slots For Your Preferred Clubs Selected @ USD 50 /Club.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red[400],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'Monthly Fee',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  )
-                  .toList(),
+                    const SizedBox(height: 4),
+                    Text(
+                      'USD ${price.toInt()}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            if (tags != null) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: tags
+                    .map(
+                      (tag) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          tag,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -938,12 +959,50 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
           Expanded(
             child: ElevatedButton(
               onPressed: () async {
-                if (_isFreeMembership) {
-                  // Complete registration for free membership
-                  _showRegistrationComplete();
-                } else {
-                  // Save optional paid services before navigating to payment
-                  await _saveOptionalPaidServices();
+                // Set loading state
+                setState(() => _isLoadingServices = true);
+
+                try {
+                  // 1. Choose Membership Type API Call
+                  await _authRepository.chooseMembershipType(
+                    ChooseMembershipTypeRequest(
+                      membershipType: _isFreeMembership ? 'Free' : 'Paid',
+                    ),
+                  );
+
+                  if (!mounted) return;
+
+                  // 2. Handle specific flow based on choice
+                  if (_isFreeMembership) {
+                    // Complete registration for free membership
+                    setState(() => _isLoadingServices = false);
+                    _showRegistrationComplete();
+                  } else {
+                    // Save optional paid services before navigating to payment
+                    // verify saveOptionalPaidServices handles its own loading state correctly
+                    // or we might need to reset it here if it doesn't set it immediately
+                    await _saveOptionalPaidServices();
+                  }
+                } on ApiException catch (e) {
+                  if (mounted) {
+                    setState(() => _isLoadingServices = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.message),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    setState(() => _isLoadingServices = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('An error occurred: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -953,14 +1012,23 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: Text(
-                _isFreeMembership ? 'Submit' : 'Next',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+              child: _isLoadingServices
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      _isFreeMembership ? 'Submit' : 'Next',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         ],
@@ -974,7 +1042,7 @@ class _MembershipPlanPageState extends State<MembershipPlanPage> {
     if (roleStr == null || roleStr.isEmpty) {
       await _storageService.saveString('user_role', 'club');
     }
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

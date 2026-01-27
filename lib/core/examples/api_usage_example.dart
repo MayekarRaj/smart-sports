@@ -131,6 +131,7 @@ class ApiUsageExample {
                 clubEndTime: '14:00',
               ),
             ],
+            sportsNames: ['Football', 'Basketball'],
           ),
           ClubBranch(
             clubName: 'Uptown Club Branch',
@@ -144,6 +145,7 @@ class ApiUsageExample {
                 clubEndTime: '20:00',
               ),
             ],
+            sportsNames: ['Basketball'],
           ),
         ],
       );
@@ -217,6 +219,7 @@ class ApiUsageExample {
                 clubEndTime: '20:00',
               ),
             ],
+            sportsNames: ['Tennis'],
           ),
         ],
       );

@@ -2,6 +2,7 @@ import '../repositories/auth_repository.dart';
 import '../models/api_models.dart';
 import 'storage_service.dart';
 import '../config/api_config.dart';
+import '../constants/registration_constants.dart';
 
 /// Authentication service - Business logic layer
 /// Provides high-level authentication operations
@@ -22,32 +23,33 @@ class AuthService {
       keepMeLoggedIn: keepMeLoggedIn ? 'true' : 'false',
     );
     final response = await _authRepository.signIn(request);
-    
+
     // Token is automatically saved by AuthRepository via NetworkClient
     // But we also save user info for quick access
     if (response.accessToken.isNotEmpty) {
       await _storageService.saveString('user_email', email);
       await _storageService.saveString('user_id', response.user.id.toString());
-      
+
       // Save user role if available
-      if (response.user.userRole != null && response.user.userRole!.isNotEmpty) {
+      if (response.user.userRole != null &&
+          response.user.userRole!.isNotEmpty) {
         await _storageService.saveString('user_role', response.user.userRole!);
       }
     }
-    
+
     return response;
   }
 
   /// Sign up user
   Future<SignUpResponse> signUp(SignUpRequest request) async {
     final response = await _authRepository.signUp(request);
-    
+
     // Save user info
     if (response.accessToken.isNotEmpty) {
       await _storageService.saveString('user_email', request.email);
       await _storageService.saveString('user_id', response.userId.toString());
     }
-    
+
     return response;
   }
 
@@ -127,5 +129,17 @@ class AuthService {
   Future<int?> getStoredUserId() async {
     final idStr = await _storageService.getString('user_id');
     return idStr != null ? int.tryParse(idStr) : null;
+  }
+
+  /// Check if user is authenticated (synchronous check against Config/Memory)
+  bool isAuthenticatedNoWait() {
+    return ApiConfig.authToken != null && ApiConfig.authToken!.isNotEmpty;
+  }
+
+  /// Get registration step
+  Future<String?> getRegistrationStep() async {
+    return await _storageService.getString(
+      RegistrationConstants.KEY_REGISTRATION_STEP,
+    );
   }
 }

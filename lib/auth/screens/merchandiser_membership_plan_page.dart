@@ -28,7 +28,7 @@ class _MerchandiserMembershipPlanPageState
   // Selected clubs and branches
   final Set<int> _selectedClubIds = {}; // Store club IDs instead of names
   final Set<int> _selectedBranchIds = {}; // Store branch IDs instead of names
-  
+
   // Fetched data
   List<Club> _clubs = [];
   List<MerchandizerBranchListItem> _branches = [];
@@ -51,20 +51,25 @@ class _MerchandiserMembershipPlanPageState
   /// Map service name to key for selectedServices map
   String _getServiceKey(String serviceName) {
     // Normalize service name to key format
-    final normalized = serviceName.toLowerCase()
+    final normalized = serviceName
+        .toLowerCase()
         .replaceAll(' ', '_')
         .replaceAll('&', '')
         .replaceAll('(', '')
         .replaceAll(')', '');
-    
+
     // Map known service names to keys
-    if (normalized.contains('access_clubs') || normalized.contains('access clubs')) {
+    if (normalized.contains('access_clubs') ||
+        normalized.contains('access clubs')) {
       return 'access_clubs';
-    } else if (normalized.contains('access_members') || normalized.contains('access to members')) {
+    } else if (normalized.contains('access_members') ||
+        normalized.contains('access to members')) {
       return 'access_members';
-    } else if (normalized.contains('coach_ratings') || normalized.contains('coach ratings')) {
+    } else if (normalized.contains('coach_ratings') ||
+        normalized.contains('coach ratings')) {
       return 'coach_ratings';
-    } else if (normalized.contains('events') || normalized.contains('tournaments')) {
+    } else if (normalized.contains('events') ||
+        normalized.contains('tournaments')) {
       return 'events_tournaments';
     } else if (normalized.contains('branches')) {
       return 'branches';
@@ -75,7 +80,7 @@ class _MerchandiserMembershipPlanPageState
     } else if (normalized.contains('slack')) {
       return 'slack';
     }
-    
+
     // Default: use normalized name as key
     return normalized;
   }
@@ -90,14 +95,18 @@ class _MerchandiserMembershipPlanPageState
     });
 
     try {
-      final response = await _authRepository.getPaidServicesList('merchandizer');
-      
+      final response = await _authRepository.getPaidServicesList(
+        'merchandizer',
+      );
+
       if (mounted) {
         setState(() {
           // _paidServices = response.data.where((service) => service.isServiceActive).toList();
           // Filter out only deleted services (is_deleted == 1)
           // Show all services that are not deleted, regardless of is_active status
-          _paidServices = response.data.where((service) => service.isDeleted == 0).toList();
+          _paidServices = response.data
+              .where((service) => service.isDeleted == 0)
+              .toList();
           // Initialize selectedServices map for all services
           for (var service in _paidServices) {
             final key = _getServiceKey(service.name);
@@ -136,7 +145,7 @@ class _MerchandiserMembershipPlanPageState
 
     try {
       final response = await _authRepository.getAllClubList();
-      
+
       if (mounted) {
         setState(() {
           _clubs = response.data;
@@ -182,8 +191,10 @@ class _MerchandiserMembershipPlanPageState
     });
 
     try {
-      final response = await _authRepository.getMerchandizerBranchList(merchandizerId);
-      
+      final response = await _authRepository.getMerchandizerBranchList(
+        merchandizerId,
+      );
+
       if (mounted) {
         setState(() {
           _branches = response.data;
@@ -243,30 +254,57 @@ class _MerchandiserMembershipPlanPageState
       return;
     }
 
+    // Validation: Check if Access Clubs is selected but no clubs selected
+    if (_selectedServices['access_clubs'] == true && _selectedClubIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one club'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Validation: Check if Branches is selected but no branches selected
+    if (_selectedServices['branches'] == true && _selectedBranchIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one branch'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoadingServices = true);
+
+    // Combine club IDs and branch IDs
+    final allSelectedIds = <int>{..._selectedClubIds, ..._selectedBranchIds};
 
     try {
       final request = SaveOptionalPaidServicesRequest(
         userRole: 'merchandizer',
         optionalServicesIds: selectedServiceIds,
         merchandizerUserCount: _getMerchandizerUsersCount(),
-        merchandizerClubIds: _selectedClubIds.isNotEmpty ? _selectedClubIds.toList() : null,
+        merchandizerClubIds: allSelectedIds.isNotEmpty
+            ? allSelectedIds.toList()
+            : null,
       );
 
       final response = await _authRepository.saveOptionalPaidServices(request);
 
       if (mounted) {
         setState(() => _isLoadingServices = false);
-        
+
         // Save role to storage if not already saved
         final roleStr = await _storageService.getString('user_role');
         if (roleStr == null || roleStr.isEmpty) {
           await _storageService.saveString('user_role', 'merchandiser');
         }
-        
+
         // Extract subscription_id from response (required for Branch)
         final subscriptionId = response.data?['subscription_id']?.toString();
-        
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -590,15 +628,22 @@ class _MerchandiserMembershipPlanPageState
             // Build service options dynamically from API
             ..._paidServices.map((service) {
               final serviceKey = _getServiceKey(service.name);
-              final hasClubTypes = service.name.toLowerCase().contains('access clubs');
-              final isBranches = service.name.toLowerCase().contains('branches');
-              final isUsers = service.name.toLowerCase().contains('users') && 
-                             !service.name.toLowerCase().contains('access to members');
-              
+              final hasClubTypes = service.name.toLowerCase().contains(
+                'access clubs',
+              );
+              final isBranches = service.name.toLowerCase().contains(
+                'branches',
+              );
+              final isUsers =
+                  service.name.toLowerCase().contains('users') &&
+                  !service.name.toLowerCase().contains('access to members');
+
               return _buildServiceOption(
                 serviceKey,
                 service.name,
-                (service.description2?.isNotEmpty ?? false) ? service.description2! : (service.description1 ?? ''),
+                (service.description2?.isNotEmpty ?? false)
+                    ? service.description2!
+                    : (service.description1 ?? ''),
                 service.amountValue,
                 hasClubTypes: hasClubTypes,
                 branchCount: isBranches ? 4 : null,
@@ -624,20 +669,20 @@ class _MerchandiserMembershipPlanPageState
     int? userCount,
   }) {
     final isSelected = _selectedServices[key] ?? false;
-    
+
     return InkWell(
       onTap: () {
         setState(() {
           _selectedServices[key] = !isSelected;
         });
-        
+
         // Fetch clubs when Access Clubs is selected
         if (!isSelected && hasClubTypes) {
           if (_clubs.isEmpty && !_isLoadingClubs) {
             _fetchClubs();
           }
         }
-        
+
         // Fetch branches when Branches is selected
         if (!isSelected && branchCount != null) {
           if (_branches.isEmpty && !_isLoadingBranches) {
@@ -655,7 +700,9 @@ class _MerchandiserMembershipPlanPageState
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: isSelected ? const Color(0xFF8BB6D9).withOpacity(0.05) : Colors.white,
+          color: isSelected
+              ? const Color(0xFF8BB6D9).withOpacity(0.05)
+              : Colors.white,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -748,17 +795,27 @@ class _MerchandiserMembershipPlanPageState
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline, size: 16, color: Colors.red[700]),
+                      Icon(
+                        Icons.error_outline,
+                        size: 16,
+                        color: Colors.red[700],
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _clubsError!,
-                          style: TextStyle(fontSize: 12, color: Colors.red[700]),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red[700],
+                          ),
                         ),
                       ),
                       TextButton(
                         onPressed: _fetchClubs,
-                        child: const Text('Retry', style: TextStyle(fontSize: 12)),
+                        child: const Text(
+                          'Retry',
+                          style: TextStyle(fontSize: 12),
+                        ),
                       ),
                     ],
                   ),
@@ -775,9 +832,7 @@ class _MerchandiserMembershipPlanPageState
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: [
-                    ..._clubs.map((club) => _buildClubChip(club)),
-                  ],
+                  children: [..._clubs.map((club) => _buildClubChip(club))],
                 ),
             ],
             if (branchCount != null && isSelected) ...[
@@ -796,17 +851,27 @@ class _MerchandiserMembershipPlanPageState
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline, size: 16, color: Colors.red[700]),
+                      Icon(
+                        Icons.error_outline,
+                        size: 16,
+                        color: Colors.red[700],
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _branchesError!,
-                          style: TextStyle(fontSize: 12, color: Colors.red[700]),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red[700],
+                          ),
                         ),
                       ),
                       TextButton(
                         onPressed: _fetchBranches,
-                        child: const Text('Retry', style: TextStyle(fontSize: 12)),
+                        child: const Text(
+                          'Retry',
+                          style: TextStyle(fontSize: 12),
+                        ),
                       ),
                     ],
                   ),
@@ -905,26 +970,31 @@ class _MerchandiserMembershipPlanPageState
   Widget _getServiceIcon(String key) {
     IconData icon;
     Color color;
-    
+
     // Normalize key for comparison
     final normalizedKey = key.toLowerCase();
-    
-    if (normalizedKey.contains('access_clubs') || normalizedKey.contains('access clubs')) {
+
+    if (normalizedKey.contains('access_clubs') ||
+        normalizedKey.contains('access clubs')) {
       icon = Icons.sports_soccer;
       color = Colors.blue;
-    } else if (normalizedKey.contains('access_members') || normalizedKey.contains('access to members')) {
+    } else if (normalizedKey.contains('access_members') ||
+        normalizedKey.contains('access to members')) {
       icon = Icons.people;
       color = Colors.orange;
-    } else if (normalizedKey.contains('coach_ratings') || normalizedKey.contains('coach ratings')) {
+    } else if (normalizedKey.contains('coach_ratings') ||
+        normalizedKey.contains('coach ratings')) {
       icon = Icons.star;
       color = Colors.green;
-    } else if (normalizedKey.contains('events') || normalizedKey.contains('tournaments')) {
+    } else if (normalizedKey.contains('events') ||
+        normalizedKey.contains('tournaments')) {
       icon = Icons.emoji_events;
       color = Colors.amber;
     } else if (normalizedKey.contains('branches')) {
       icon = Icons.store;
       color = Colors.blue;
-    } else if (normalizedKey.contains('users') && !normalizedKey.contains('access to members')) {
+    } else if (normalizedKey.contains('users') &&
+        !normalizedKey.contains('access to members')) {
       icon = Icons.people_outline;
       color = Colors.blue;
     } else if (normalizedKey.contains('forum')) {
@@ -937,7 +1007,7 @@ class _MerchandiserMembershipPlanPageState
       icon = Icons.help;
       color = Colors.grey;
     }
-    
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -1109,29 +1179,72 @@ class _MerchandiserMembershipPlanPageState
           Expanded(
             child: ElevatedButton(
               onPressed: () async {
-                if (_isFreeMembership) {
-                  // Save role to storage if not already saved
-                  final roleStr = await _storageService.getString('user_role');
-                  if (roleStr == null || roleStr.isEmpty) {
-                    await _storageService.saveString('user_role', 'merchandiser');
-                  }
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Free membership activated'),
-                      backgroundColor: Colors.green,
+                setState(() => _isLoadingServices = true);
+                try {
+                  // 1. Choose Membership Type API Call
+                  await _authRepository.chooseMembershipType(
+                    ChooseMembershipTypeRequest(
+                      membershipType: _isFreeMembership ? 'Free' : 'Paid',
                     ),
                   );
-                  
-                  // Navigate to merchandiser dashboard
-                  final dashboard = RoleRouter.dashboardFor(UserRole.merchandiser);
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => dashboard),
-                    (route) => false, // Remove all previous routes
-                  );
-                } else {
-                  // Save optional paid services before navigating to payment
-                  await _saveOptionalPaidServices();
+
+                  if (!mounted) return;
+
+                  if (_isFreeMembership) {
+                    // Save role to storage if not already saved
+                    final roleStr = await _storageService.getString(
+                      'user_role',
+                    );
+                    if (roleStr == null || roleStr.isEmpty) {
+                      await _storageService.saveString(
+                        'user_role',
+                        'merchandiser',
+                      );
+                    }
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Free membership activated'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+
+                      setState(() => _isLoadingServices = false);
+
+                      // Navigate to merchandiser dashboard
+                      final dashboard = RoleRouter.dashboardFor(
+                        UserRole.merchandiser,
+                      );
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (_) => dashboard),
+                        (route) => false, // Remove all previous routes
+                      );
+                    }
+                  } else {
+                    // Save optional paid services before navigating to payment
+                    await _saveOptionalPaidServices();
+                  }
+                } on ApiException catch (e) {
+                  if (mounted) {
+                    setState(() => _isLoadingServices = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.message),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    setState(() => _isLoadingServices = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('An error occurred: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/providers/auth_provider.dart';
+
 import '../../core/models/api_models.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../../core/exceptions/api_exception.dart';
-import '../../core/utils/phone_parser.dart';
+import '../../core/utils/validators.dart';
 import '../../core/services/storage_service.dart';
 import '../widgets/sports_multi_select.dart';
+import '../widgets/city_search_field.dart';
+import '../widgets/phone_code_dropdown.dart';
+import '../widgets/rounded_text_field.dart';
 import 'merchandiser_membership_plan_page.dart';
 
 // Helper class for branch data
@@ -18,13 +21,16 @@ class BranchData {
 
   // Address Controllers (per branch)
   final TextEditingController address1Controller;
+  final TextEditingController address2Controller;
   final TextEditingController cityController;
   final TextEditingController stateController;
   final TextEditingController zipController;
   final TextEditingController countryController;
 
   // Contact Details Controllers (per branch)
+  final TextEditingController officePhoneCodeController;
   final TextEditingController officePhoneController;
+  final TextEditingController mobilePhoneCodeController;
   final TextEditingController mobilePhoneController;
   final TextEditingController websiteController;
 
@@ -37,11 +43,14 @@ class BranchData {
     this.addressSameAsSignup = true,
     this.contactSameAsSignup = true,
     required this.address1Controller,
+    required this.address2Controller,
     required this.cityController,
     required this.stateController,
     required this.zipController,
     required this.countryController,
+    required this.officePhoneCodeController,
     required this.officePhoneController,
+    required this.mobilePhoneCodeController,
     required this.mobilePhoneController,
     required this.websiteController,
     this.selectedSports = const [],
@@ -51,11 +60,14 @@ class BranchData {
     branchNameController.dispose();
     numberOfUsersController.dispose();
     address1Controller.dispose();
+    address2Controller.dispose();
     cityController.dispose();
     stateController.dispose();
     zipController.dispose();
     countryController.dispose();
+    officePhoneCodeController.dispose();
     officePhoneController.dispose();
+    mobilePhoneCodeController.dispose();
     mobilePhoneController.dispose();
     websiteController.dispose();
   }
@@ -148,11 +160,14 @@ class _MerchandiseRegistrationPageState
           addressSameAsSignup: true,
           contactSameAsSignup: true,
           address1Controller: TextEditingController(),
+          address2Controller: TextEditingController(),
           cityController: TextEditingController(),
           stateController: TextEditingController(),
           zipController: TextEditingController(),
           countryController: TextEditingController(),
+          officePhoneCodeController: TextEditingController(text: '+91'),
           officePhoneController: TextEditingController(),
+          mobilePhoneCodeController: TextEditingController(text: '+91'),
           mobilePhoneController: TextEditingController(),
           websiteController: TextEditingController(),
           selectedSports: [],
@@ -212,13 +227,28 @@ class _MerchandiseRegistrationPageState
       // Step 1: Submit first branch
       final firstBranchData = _branches[0];
 
-      // Parse phone numbers for first branch
-      final officePhone = PhoneParser.parsePhoneNumber(
-        firstBranchData.officePhoneController.text,
-      );
-      final mobilePhone = PhoneParser.parsePhoneNumber(
-        firstBranchData.mobilePhoneController.text,
-      );
+      // Process phone numbers for first branch
+      String? step1OfficeExt;
+      String? step1OfficePhone;
+      if (firstBranchData.officePhoneCodeController.text.isNotEmpty &&
+          firstBranchData.officePhoneController.text.isNotEmpty) {
+        final parts = firstBranchData.officePhoneCodeController.text.split('_');
+        step1OfficeExt = parts.length > 1
+            ? parts[1]
+            : parts[0].replaceAll('+', '');
+        step1OfficePhone = firstBranchData.officePhoneController.text.trim();
+      }
+
+      String? step1MobileExt;
+      String? step1MobilePhone;
+      if (firstBranchData.mobilePhoneCodeController.text.isNotEmpty &&
+          firstBranchData.mobilePhoneController.text.isNotEmpty) {
+        final parts = firstBranchData.mobilePhoneCodeController.text.split('_');
+        step1MobileExt = parts.length > 1
+            ? parts[1]
+            : parts[0].replaceAll('+', '');
+        step1MobilePhone = firstBranchData.mobilePhoneController.text.trim();
+      }
 
       final step1Request = MerchandizerSignupRequest(
         userRole: 'merchandizer',
@@ -231,7 +261,11 @@ class _MerchandiseRegistrationPageState
             : firstBranchData.address1Controller.text.trim().isNotEmpty
             ? firstBranchData.address1Controller.text.trim()
             : null,
-        addressLine2: null, // Not in API request
+        addressLine2: firstBranchData.addressSameAsSignup
+            ? null
+            : firstBranchData.address2Controller.text.trim().isNotEmpty
+            ? firstBranchData.address2Controller.text.trim()
+            : null,
         city: firstBranchData.addressSameAsSignup
             ? null
             : firstBranchData.cityController.text.trim().isNotEmpty
@@ -257,24 +291,16 @@ class _MerchandiseRegistrationPageState
         department: null, // Not in API request
         officePhoneExt: firstBranchData.contactSameAsSignup
             ? null
-            : officePhone['ext']?.isNotEmpty == true
-            ? officePhone['ext']
-            : null,
+            : step1OfficeExt,
         officePhone: firstBranchData.contactSameAsSignup
             ? null
-            : officePhone['number']?.isNotEmpty == true
-            ? officePhone['number']
-            : null,
+            : step1OfficePhone,
         mobilePhoneExt: firstBranchData.contactSameAsSignup
             ? null
-            : mobilePhone['ext']?.isNotEmpty == true
-            ? mobilePhone['ext']
-            : null,
+            : step1MobileExt,
         mobilePhone: firstBranchData.contactSameAsSignup
             ? null
-            : mobilePhone['number']?.isNotEmpty == true
-            ? mobilePhone['number']
-            : null,
+            : step1MobilePhone,
         companyWebsite: firstBranchData.contactSameAsSignup
             ? null
             : firstBranchData.websiteController.text.trim().isNotEmpty
@@ -297,12 +323,27 @@ class _MerchandiseRegistrationPageState
       if (_branches.length > 1) {
         final additionalBranches = _branches.sublist(1).map((branch) {
           // Parse phone numbers
-          final officePhone = PhoneParser.parsePhoneNumber(
-            branch.officePhoneController.text,
-          );
-          final mobilePhone = PhoneParser.parsePhoneNumber(
-            branch.mobilePhoneController.text,
-          );
+          String? officeExt;
+          String? officePhone;
+          if (branch.officePhoneCodeController.text.isNotEmpty &&
+              branch.officePhoneController.text.isNotEmpty) {
+            final parts = branch.officePhoneCodeController.text.split('_');
+            officeExt = parts.length > 1
+                ? parts[1]
+                : parts[0].replaceAll('+', '');
+            officePhone = branch.officePhoneController.text.trim();
+          }
+
+          String? mobileExt;
+          String? mobilePhone;
+          if (branch.mobilePhoneCodeController.text.isNotEmpty &&
+              branch.mobilePhoneController.text.isNotEmpty) {
+            final parts = branch.mobilePhoneCodeController.text.split('_');
+            mobileExt = parts.length > 1
+                ? parts[1]
+                : parts[0].replaceAll('+', '');
+            mobilePhone = branch.mobilePhoneController.text.trim();
+          }
 
           // Validate branch name
           if (branch.branchNameController.text.trim().isEmpty) {
@@ -325,6 +366,11 @@ class _MerchandiseRegistrationPageState
                 : branch.address1Controller.text.trim().isNotEmpty
                 ? branch.address1Controller.text.trim()
                 : null,
+            addressLine2: branch.addressSameAsSignup
+                ? null
+                : branch.address2Controller.text.trim().isNotEmpty
+                ? branch.address2Controller.text.trim()
+                : null,
             city: branch.addressSameAsSignup
                 ? null
                 : branch.cityController.text.trim().isNotEmpty
@@ -346,16 +392,10 @@ class _MerchandiseRegistrationPageState
                 ? branch.countryController.text.trim()
                 : null,
             isContactSameAsUser: branch.contactSameAsSignup ? 1 : 0,
-            officePhone: branch.contactSameAsSignup
-                ? null
-                : officePhone['number']?.isNotEmpty == true
-                ? officePhone['number']
-                : null,
-            mobilePhone: branch.contactSameAsSignup
-                ? null
-                : mobilePhone['number']?.isNotEmpty == true
-                ? mobilePhone['number']
-                : null,
+            officePhoneExt: branch.contactSameAsSignup ? null : officeExt,
+            officePhone: branch.contactSameAsSignup ? null : officePhone,
+            mobilePhoneExt: branch.contactSameAsSignup ? null : mobileExt,
+            mobilePhone: branch.contactSameAsSignup ? null : mobilePhone,
             companyWebsite: branch.contactSameAsSignup
                 ? null
                 : branch.websiteController.text.trim().isNotEmpty
@@ -798,84 +838,47 @@ class _MerchandiseRegistrationPageState
           hint: 'Enter address line 1',
         ),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildDropdownField(
-                label: 'City',
-                value: branchData.cityController.text.isNotEmpty
-                    ? branchData.cityController.text
-                    : null,
-                items: const [
-                  'Mumbai',
-                  'Delhi',
-                  'Bangalore',
-                  'Chennai',
-                  'Kolkata',
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      branchData.cityController.text = value;
-                    });
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildDropdownField(
-                label: 'State',
-                value: branchData.stateController.text.isNotEmpty
-                    ? branchData.stateController.text
-                    : null,
-                items: const [
-                  'Maharashtra',
-                  'Delhi',
-                  'Karnataka',
-                  'Tamil Nadu',
-                  'West Bengal',
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      branchData.stateController.text = value;
-                    });
-                  }
-                },
-              ),
-            ),
-          ],
+        _buildTextField(
+          controller: branchData.address2Controller,
+          label: 'Address 2',
+          hint: 'Enter address line 2',
+        ),
+        const SizedBox(height: 16),
+
+        const SizedBox(height: 16),
+        CitySearchField(
+          cityController: branchData.cityController,
+          stateController: branchData.stateController,
+          countryController: branchData.countryController,
         ),
         const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
-              child: _buildTextField(
+              child: RoundedTextField(
                 controller: branchData.zipController,
-                label: 'Zip Code',
+                // label: 'Zip Code',
                 hint: 'Enter zip code',
                 keyboardType: TextInputType.number,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildDropdownField(
-                label: 'Country',
-                value: branchData.countryController.text.isNotEmpty
-                    ? branchData.countryController.text
-                    : null,
-                items: const ['India', 'USA', 'UK', 'Canada', 'Australia'],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      branchData.countryController.text = value;
-                    });
-                  }
-                },
+              child: RoundedTextField(
+                controller: branchData.stateController,
+                hint: 'State',
+                enabled: true,
+                readOnly: true,
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 16),
+        RoundedTextField(
+          controller: branchData.countryController,
+          hint: 'Country',
+          enabled: true,
+          readOnly: true,
         ),
       ],
     );
@@ -900,24 +903,76 @@ class _MerchandiseRegistrationPageState
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
+        const Text(
+          'Office Number',
+          style: TextStyle(
+            fontSize: 14,
+            color: Color(0xFF64748B),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
-              child: _buildTextField(
-                controller: branchData.officePhoneController,
-                label: 'Office Number',
-                hint: 'Enter office number',
-                keyboardType: TextInputType.phone,
+              flex: 2,
+              child: PhoneCodeDropdown(
+                value: branchData.officePhoneCodeController.text.isNotEmpty
+                    ? branchData.officePhoneCodeController.text
+                    : null,
+                onChanged: (value) {
+                  setState(() {
+                    branchData.officePhoneCodeController.text = value ?? '';
+                  });
+                },
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildTextField(
-                controller: branchData.mobilePhoneController,
-                label: 'Mobile Number',
-                hint: 'Enter mobile number',
+              flex: 3,
+              child: RoundedTextField(
+                controller: branchData.officePhoneController,
+                hint: 'Office Number',
                 keyboardType: TextInputType.phone,
+                validator: Validators.phone,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Mobile Number',
+          style: TextStyle(
+            fontSize: 14,
+            color: Color(0xFF64748B),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: PhoneCodeDropdown(
+                value: branchData.mobilePhoneCodeController.text.isNotEmpty
+                    ? branchData.mobilePhoneCodeController.text
+                    : null,
+                onChanged: (value) {
+                  setState(() {
+                    branchData.mobilePhoneCodeController.text = value ?? '';
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 3,
+              child: RoundedTextField(
+                controller: branchData.mobilePhoneController,
+                hint: 'Mobile Number',
+                keyboardType: TextInputType.phone,
+                validator: Validators.phone,
               ),
             ),
           ],
@@ -1080,57 +1135,6 @@ class _MerchandiseRegistrationPageState
                 ),
               ],
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDropdownField({
-    required String label,
-    required String? value,
-    required List<String> items,
-    required Function(String?) onChanged,
-  }) {
-    // Ensure value is in items list, otherwise use null
-    final validValue =
-        value != null && value.isNotEmpty && items.contains(value)
-        ? value
-        : null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xFF64748B),
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: DropdownButtonFormField<String>(
-            value: validValue,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-              hintText: 'Select',
-            ),
-            hint: const Text('Select', style: TextStyle(color: Colors.grey)),
-            items: items.map((String item) {
-              return DropdownMenuItem<String>(value: item, child: Text(item));
-            }).toList(),
-            onChanged: onChanged,
           ),
         ),
       ],

@@ -59,7 +59,8 @@ class AuthRepository extends BaseRepository {
       ApiEndpoints.getSendOtpUrl(),
       body: request.toJson(),
       requiresAuth: false,
-      fromJson: (data) => SendOtpResponse.fromJson(data as Map<String, dynamic>),
+      fromJson: (data) =>
+          SendOtpResponse.fromJson(data as Map<String, dynamic>),
     );
 
     if (response.success && response.hasData) {
@@ -80,7 +81,8 @@ class AuthRepository extends BaseRepository {
       ApiEndpoints.getVerifyOtpUrl(),
       body: request.toJson(),
       requiresAuth: false,
-      fromJson: (data) => VerifyOtpResponse.fromJson(data as Map<String, dynamic>),
+      fromJson: (data) =>
+          VerifyOtpResponse.fromJson(data as Map<String, dynamic>),
     );
 
     if (response.success && response.hasData) {
@@ -95,13 +97,16 @@ class AuthRepository extends BaseRepository {
 
   /// Check if email is verified
   /// Returns CheckEmailVerificationResponse with verification status
-  Future<CheckEmailVerificationResponse> checkEmailVerification(String email) async {
+  Future<CheckEmailVerificationResponse> checkEmailVerification(
+    String email,
+  ) async {
     final request = CheckEmailVerificationRequest(email: email);
     final response = await networkClient.post<CheckEmailVerificationResponse>(
       ApiEndpoints.getCheckEmailVerificationUrl(),
       body: request.toJson(),
       requiresAuth: false,
-      fromJson: (data) => CheckEmailVerificationResponse.fromJson(data as Map<String, dynamic>),
+      fromJson: (data) =>
+          CheckEmailVerificationResponse.fromJson(data as Map<String, dynamic>),
     );
 
     if (response.success && response.hasData) {
@@ -122,7 +127,8 @@ class AuthRepository extends BaseRepository {
       ApiEndpoints.getForgotPasswordUrl(),
       body: request.toJson(),
       requiresAuth: false,
-      fromJson: (data) => ForgotPasswordResponse.fromJson(data as Map<String, dynamic>),
+      fromJson: (data) =>
+          ForgotPasswordResponse.fromJson(data as Map<String, dynamic>),
     );
 
     if (response.success && response.hasData) {
@@ -201,8 +207,7 @@ class AuthRepository extends BaseRepository {
     return await handleResponse(
       networkClient.get<UserProfile>(
         ApiEndpoints.getProfileUrl(userId),
-        fromJson: (data) =>
-            UserProfile.fromJson(data as Map<String, dynamic>),
+        fromJson: (data) => UserProfile.fromJson(data as Map<String, dynamic>),
       ),
     );
   }
@@ -234,28 +239,19 @@ class AuthRepository extends BaseRepository {
   }
 
   /// Corporate signup
-  /// Returns CorporateSignupResponse with corporate record
-  Future<CorporateSignupResponse> corporateSignup(CorporateSignupRequest request) async {
-    // API returns response with data array, so we handle it specially
-    // NetworkClient will extract responseData['data'] and pass it to fromJson
-    final response = await networkClient.post<List<dynamic>>(
+  /// Returns success response
+  Future<Map<String, dynamic>> corporateSignup(
+    CorporateSignupRequest request,
+  ) async {
+    final response = await networkClient.post<Map<String, dynamic>>(
       ApiEndpoints.getCorporateSignupUrl(),
       body: request.toJson(),
       requiresAuth: true,
-      fromJson: (data) => data as List<dynamic>,
+      fromJson: (data) => data as Map<String, dynamic>,
     );
 
-    if (response.success && response.hasData) {
-      // response.data is already the List from responseData['data']
-      final dataList = response.dataOrThrow;
-      if (dataList.isNotEmpty) {
-        return CorporateSignupResponse.fromJson(dataList.first as Map<String, dynamic>);
-      } else {
-        throw ApiException(
-          message: 'No data returned from corporate signup',
-          statusCode: response.statusCode ?? 0,
-        );
-      }
+    if (response.success) {
+      return response.dataOrThrow;
     }
 
     throw ApiException(
@@ -284,14 +280,84 @@ class AuthRepository extends BaseRepository {
     );
   }
 
+  /// Upload coach experience level
+  /// Returns success response
+  Future<Map<String, dynamic>> uploadCoachExperienceLevel({
+    required String expLevelName,
+    required File certificateFile,
+  }) async {
+    final fields = {'exp_level_name': expLevelName};
+    final files = {'certificate_filepath': certificateFile};
+
+    final response = await networkClient.postMultipart<Map<String, dynamic>>(
+      ApiEndpoints.getCoachExperienceLevelSignupUrl(),
+      fields: fields,
+      files: files,
+      requiresAuth: true,
+      fromJson: (data) => data as Map<String, dynamic>,
+    );
+
+    if (response.success) {
+      return response.dataOrThrow;
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Club signup (Step 1)
+  /// Returns response (Map with success, club_id, etc.)
+  Future<Map<String, dynamic>> clubSignup(ClubSignupRequest request) async {
+    final response = await networkClient.post<Map<String, dynamic>>(
+      ApiEndpoints.getClubSignupUrl(), // Step 1
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) => data as Map<String, dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      return response.dataOrThrow;
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Club Branch signup (Step 2)
+  /// Create additional branches
+  Future<List<dynamic>> clubBranchSignup(ClubSignupStep2Request request) async {
+    final response = await networkClient.post<List<dynamic>>(
+      ApiEndpoints.getClubSignupStep2Url(), // Step 2 (assuming this is the branch creation endpoint)
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) => data as List<dynamic>,
+    );
+
+    if (response.success && response.hasData) {
+      return response.dataOrThrow;
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
   /// Freelancer signup
   /// Returns FreelancerSignupResponse with freelancer_id
-  Future<FreelancerSignupResponse> freelancerSignup(FreelancerSignupRequest request) async {
+  Future<FreelancerSignupResponse> freelancerSignup(
+    FreelancerSignupRequest request,
+  ) async {
     final response = await networkClient.post<FreelancerSignupResponse>(
       ApiEndpoints.getFreelancerSignupUrl(),
       body: request.toJson(),
       requiresAuth: true,
-      fromJson: (data) => FreelancerSignupResponse.fromJson(data as Map<String, dynamic>),
+      fromJson: (data) =>
+          FreelancerSignupResponse.fromJson(data as Map<String, dynamic>),
     );
 
     if (response.success && response.hasData) {
@@ -306,12 +372,15 @@ class AuthRepository extends BaseRepository {
 
   /// Merchandizer signup (Step 1)
   /// Returns MerchandizerSignupResponse with merchandizer_id
-  Future<MerchandizerSignupResponse> merchandizerSignup(MerchandizerSignupRequest request) async {
+  Future<MerchandizerSignupResponse> merchandizerSignup(
+    MerchandizerSignupRequest request,
+  ) async {
     final response = await networkClient.post<MerchandizerSignupResponse>(
       ApiEndpoints.getMerchandizerSignupUrl(),
       body: request.toJson(),
       requiresAuth: true,
-      fromJson: (data) => MerchandizerSignupResponse.fromJson(data as Map<String, dynamic>),
+      fromJson: (data) =>
+          MerchandizerSignupResponse.fromJson(data as Map<String, dynamic>),
     );
 
     if (response.success && response.hasData) {
@@ -326,7 +395,9 @@ class AuthRepository extends BaseRepository {
 
   /// Merchandizer branch signup (Step 2)
   /// Returns MerchandizerBranchSignupResponse with branch data
-  Future<MerchandizerBranchSignupResponse> merchandizerBranchSignup(MerchandizerBranchSignupRequest request) async {
+  Future<MerchandizerBranchSignupResponse> merchandizerBranchSignup(
+    MerchandizerBranchSignupRequest request,
+  ) async {
     final response = await networkClient.post<List<dynamic>>(
       ApiEndpoints.getMerchandizerBranchSignupUrl(),
       body: request.toJson(),
@@ -337,8 +408,13 @@ class AuthRepository extends BaseRepository {
     if (response.success && response.hasData) {
       // API returns response with data array, so we handle it specially
       final dataList = response.dataOrThrow;
-      final branches = dataList.map((item) => MerchandizerBranchData.fromJson(item as Map<String, dynamic>)).toList();
-      
+      final branches = dataList
+          .map(
+            (item) =>
+                MerchandizerBranchData.fromJson(item as Map<String, dynamic>),
+          )
+          .toList();
+
       return MerchandizerBranchSignupResponse(
         success: true,
         message: response.message,
@@ -411,7 +487,9 @@ class AuthRepository extends BaseRepository {
 
   /// Get merchandizer branch list
   /// Returns MerchandizerBranchListResponse with list of branches
-  Future<MerchandizerBranchListResponse> getMerchandizerBranchList(int merchandizerId) async {
+  Future<MerchandizerBranchListResponse> getMerchandizerBranchList(
+    int merchandizerId,
+  ) async {
     final response = await networkClient.get<List<dynamic>>(
       ApiEndpoints.getMerchandizerBranchListUrl(merchandizerId),
       requiresAuth: true,
@@ -421,7 +499,11 @@ class AuthRepository extends BaseRepository {
     if (response.success && response.hasData) {
       final dataList = response.dataOrThrow;
       final branches = dataList
-          .map((item) => MerchandizerBranchListItem.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) => MerchandizerBranchListItem.fromJson(
+              item as Map<String, dynamic>,
+            ),
+          )
           .toList();
 
       return MerchandizerBranchListResponse(
@@ -694,7 +776,12 @@ class AuthRepository extends BaseRepository {
       fields: fields,
       files: files.isNotEmpty ? files : null,
       requiresAuth: true,
-      fromJson: (data) => data as Map<String, dynamic>,
+      fromJson: (data) {
+        if (data is Map<String, dynamic>) {
+          return data;
+        }
+        return <String, dynamic>{};
+      },
     );
 
     if (response.success) {
@@ -706,5 +793,116 @@ class AuthRepository extends BaseRepository {
       statusCode: response.statusCode ?? 0,
     );
   }
-}
 
+  /// Get membership age groups
+  /// Returns MstMembershipAgeGroupListResponse with paginated data
+  Future<MstMembershipAgeGroupListResponse> getMembershipAgeGroups({
+    int? perPage,
+    String? orderBy,
+    String? commonSearch,
+    String? name,
+    int? isActive,
+    int? page,
+  }) async {
+    final response = await networkClient.get<Map<String, dynamic>>(
+      ApiEndpoints.getMstMembershipAgeGroupUrl(
+        perPage: perPage,
+        orderBy: orderBy,
+        commonSearch: commonSearch,
+        name: name,
+        isActive: isActive,
+        page: page,
+      ),
+      requiresAuth: true,
+      fromJson: null,
+    );
+
+    if (response.success && response.hasData) {
+      final fullResponse = response.dataOrThrow as Map<String, dynamic>;
+      return MstMembershipAgeGroupListResponse.fromJson(fullResponse);
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Signup Member Role (Step 1)
+  /// Returns response (Map with success, message)
+  Future<Map<String, dynamic>> signupMemberRole(
+    MemberRoleSignupRequest request,
+  ) async {
+    final response = await networkClient.post<Map<String, dynamic>>(
+      ApiEndpoints.getSignupMemberRoleUrl(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) {
+        if (data == null) return <String, dynamic>{};
+        if (data is Map) return Map<String, dynamic>.from(data);
+        return <String, dynamic>{};
+      },
+    );
+
+    if (response.success) {
+      return response.data ?? {};
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Signup Family Member (Step 2)
+  /// Returns response (Map with success, message, data of family members)
+  Future<Map<String, dynamic>> signupFamilyMember(
+    FamilyMemberSignupRequest request,
+  ) async {
+    final response = await networkClient.post<Map<String, dynamic>>(
+      ApiEndpoints.getSignupFamilyMemberUrl(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) {
+        if (data == null) return <String, dynamic>{};
+        if (data is Map) return Map<String, dynamic>.from(data);
+        return <String, dynamic>{};
+      },
+    );
+
+    if (response.success) {
+      return response.data ?? {};
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+
+  /// Choose Membership Type (Step 3) - Free or Paid
+  /// Returns response
+  Future<Map<String, dynamic>> chooseMembershipType(
+    ChooseMembershipTypeRequest request,
+  ) async {
+    final response = await networkClient.post<Map<String, dynamic>>(
+      ApiEndpoints.getSignupChooseMembershipTypeUrl(),
+      body: request.toJson(),
+      requiresAuth: true,
+      fromJson: (data) {
+        if (data == null) return <String, dynamic>{};
+        if (data is Map) return Map<String, dynamic>.from(data);
+        return <String, dynamic>{};
+      },
+    );
+
+    if (response.success) {
+      return response.data ?? {};
+    }
+
+    throw ApiException(
+      message: response.message,
+      statusCode: response.statusCode ?? 0,
+    );
+  }
+}

@@ -18,8 +18,8 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # of the product and file versions while build-number is used as the build suffix.
 # version: 1.0.0+1
 # version: 1.0.0+3
-version: 1.0.0+7
-#6
+version: 1.0.0+11
+#8
 #odd - ui : 4
 #even - api : 5
 

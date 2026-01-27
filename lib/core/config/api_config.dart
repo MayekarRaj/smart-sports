@@ -40,22 +40,5 @@ class ApiConfig {
   static const bool enableLogging = true;
   static const bool enableRequestLogging = true;
 
-  // ==================== Stripe Configuration ====================
-  // Stripe Publishable Keys for different environments
-  // Get these from: https://dashboard.stripe.com/apikeys
-  static const Map<String, String> stripePublishableKeys = {
-    'development': 'pk_test_51SSWqnCk1NPTVAi6Sb0FwpjdMcOqYXhv7PpHgVaBpH5QLOy0v2xm1CMmNS2u9by4NxkYGB36b1Niu9jL5MjNoMYE00hh5IBlkn',
-    'staging': 'pk_test_51SSWqnCk1NPTVAi6Sb0FwpjdMcOqYXhv7PpHgVaBpH5QLOy0v2xm1CMmNS2u9by4NxkYGB36b1Niu9jL5MjNoMYE00hh5IBlkn',
-    'production': 'pk_live_...', // Replace with your live key when ready for production
-  };
-
-  // Get current Stripe publishable key
-  static String? get stripePublishableKey {
-    final key = stripePublishableKeys[environment];
-    // Return null if key is placeholder to prevent accidental usage
-    if (key == null || key.contains('...')) {
-      return null;
-    }
-    return key;
-  }
+  // Stripe Configuration is now handled dynamically via PaymentSettingsService
 }

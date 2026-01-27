@@ -7,6 +7,8 @@ import '../widgets/rounded_text_field.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../../core/exceptions/api_exception.dart';
 import '../../core/models/api_models.dart';
+import '../../core/services/storage_service.dart';
+import '../../core/constants/registration_constants.dart';
 
 class ClubRegistrationPage extends StatefulWidget {
   const ClubRegistrationPage({super.key});
@@ -22,6 +24,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
   // Club Details Controllers
   final _branchesController = TextEditingController(text: '1');
   bool _allSportsSameForBranches = false;
+  bool _isLoading = false;
 
   // Branch Data - Dynamic list to store all branches
   List<Map<String, dynamic>> _branches = [];
@@ -66,7 +69,8 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
   /// Migrate existing branches to include new phone code controllers
   void _migrateBranchesToNewStructure() {
     for (var branch in _branches) {
-      final contactControllers = branch['contactControllers'] as Map<String, TextEditingController>?;
+      final contactControllers =
+          branch['contactControllers'] as Map<String, TextEditingController>?;
       if (contactControllers != null) {
         // Add phone code controllers if they don't exist
         if (!contactControllers.containsKey('officePhoneCode')) {
@@ -78,22 +82,30 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         // Update existing phone number controllers if they have old format
         if (contactControllers.containsKey('officeNumber')) {
           final officeNumber = contactControllers['officeNumber']!;
-          if (officeNumber.text.contains('+') && officeNumber.text.contains('-')) {
+          if (officeNumber.text.contains('+') &&
+              officeNumber.text.contains('-')) {
             // Extract phone code from old format like "+91 - 9876543210"
             final parts = officeNumber.text.split(' - ');
             if (parts.length == 2) {
-              contactControllers['officePhoneCode']!.text = parts[0].replaceAll('+', '');
+              contactControllers['officePhoneCode']!.text = parts[0].replaceAll(
+                '+',
+                '',
+              );
               officeNumber.text = parts[1];
             }
           }
         }
         if (contactControllers.containsKey('mobileNumber')) {
           final mobileNumber = contactControllers['mobileNumber']!;
-          if (mobileNumber.text.contains('+') && mobileNumber.text.contains('-')) {
+          if (mobileNumber.text.contains('+') &&
+              mobileNumber.text.contains('-')) {
             // Extract phone code from old format like "+91 - 9876543210"
             final parts = mobileNumber.text.split(' - ');
             if (parts.length == 2) {
-              contactControllers['mobilePhoneCode']!.text = parts[0].replaceAll('+', '');
+              contactControllers['mobilePhoneCode']!.text = parts[0].replaceAll(
+                '+',
+                '',
+              );
               mobileNumber.text = parts[1];
             }
           }
@@ -108,7 +120,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
 
   Future<void> _loadClubDays() async {
     if (!mounted) return;
-    
+
     setState(() {
       _isLoadingClubDays = true;
     });
@@ -127,11 +139,14 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           _isLoadingClubDays = false;
           // Update default days in existing branches if they're still using hardcoded values
           for (var branch in _branches) {
-            final operationalTimes = branch['operationalTimes'] as List<Map<String, dynamic>>;
+            final operationalTimes =
+                branch['operationalTimes'] as List<Map<String, dynamic>>;
             for (var timeSlot in operationalTimes) {
               if (timeSlot['day'] is String) {
                 final dayStr = timeSlot['day'] as String;
-                if (dayStr == 'Weekdays' || dayStr == 'Weekend' || dayStr == 'Monday') {
+                if (dayStr == 'Weekdays' ||
+                    dayStr == 'Weekend' ||
+                    dayStr == 'Monday') {
                   if (_clubDays.isNotEmpty) {
                     timeSlot['day'] = _clubDays.first.name;
                   }
@@ -183,7 +198,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
 
   Future<void> _loadSports() async {
     if (!mounted) return;
-    
+
     setState(() {
       _isLoadingSports = true;
     });
@@ -284,7 +299,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         'mobileNumber': TextEditingController(),
         'website': TextEditingController(),
       },
-      'operationalTimes': [
+      'operationalTimes': <Map<String, dynamic>>[
         {
           'day': _clubDays.isNotEmpty ? _clubDays.first.name : 'Monday',
           'startTime': const TimeOfDay(hour: 9, minute: 0),
@@ -333,14 +348,220 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     }
   }
 
-  void _submitClubRegistration() {
+  Future<void> _submitClubRegistration() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Navigate directly to membership plan page
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const MembershipPlanPage()),
-    );
+    // Validate Main Branch Sports
+    final mainBranch = _branches[0];
+    final mainSports = (mainBranch['sports'] as List<String>?) ?? [];
+
+    if (mainSports.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one sport for the main club'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // 1. Prepare Main Club Data (from Branch 1)
+      final addressControllers =
+          mainBranch['addressControllers']
+              as Map<String, TextEditingController>;
+      final contactControllers =
+          mainBranch['contactControllers']
+              as Map<String, TextEditingController>;
+
+      // Parse operational times
+      final opTimesRaw =
+          mainBranch['operationalTimes'] as List<Map<String, dynamic>>;
+      final operationalDetails = _buildOperationalDetails(opTimesRaw);
+
+      final clubRequest = ClubSignupRequest(
+        clubName: mainBranch['name'],
+        noOfUsers: int.tryParse(mainBranch['users'].toString()) ?? 1,
+        isAddressSameAsUser: mainBranch['addressSameAsSignup'] ? 1 : 0,
+        addressLine1: addressControllers['address1']?.text,
+        addressLine2: addressControllers['address2']?.text,
+        city: addressControllers['city']?.text,
+        state: addressControllers['state']?.text,
+        zipcode: addressControllers['zip']?.text,
+        country: addressControllers['country']?.text,
+        isContactDetailsSameAsUser: mainBranch['contactSameAsSignup'] ? 1 : 0,
+        designation: contactControllers['designation']?.text,
+        department: contactControllers['department']?.text,
+        officePhoneExt: contactControllers['officePhoneCode']?.text,
+        officePhone: contactControllers['officeNumber']?.text,
+        mobilePhoneExt: contactControllers['mobilePhoneCode']?.text,
+        mobilePhone: contactControllers['mobileNumber']?.text,
+        companyWebsite: contactControllers['website']?.text,
+        sportsIsSameAsUser: 0,
+        sportsNames: mainSports,
+        operationalDetails: operationalDetails,
+        noOfBranches: _branchesController.text,
+      );
+
+      // Submit Step 1
+      final clubResponse = await _authRepository.clubSignup(clubRequest);
+
+      final clubId =
+          clubResponse['id'] ??
+          clubResponse['club_id'] ??
+          clubResponse['user_id'];
+
+      final realClubId = clubResponse['club_id'];
+
+      // 2. Submit Additional Branches (if any)
+      if (_branches.length > 1 && realClubId != null) {
+        final List<ClubBranch> branches = [];
+
+        // Extract user ID from response
+        dynamic userIdFromResponse = clubResponse['user_id'];
+        if (userIdFromResponse == null &&
+            clubResponse['user'] != null &&
+            clubResponse['user'] is Map) {
+          userIdFromResponse = clubResponse['user']['id'];
+        }
+        // Fallback to finding it elsewhere if needed or assume it's valid
+
+        for (int i = 1; i < _branches.length; i++) {
+          final branch = _branches[i];
+          final bAddressControllers =
+              branch['addressControllers']
+                  as Map<String, TextEditingController>;
+          final bContactControllers =
+              branch['contactControllers']
+                  as Map<String, TextEditingController>;
+          final bOpTimesRaw =
+              branch['operationalTimes'] as List<Map<String, dynamic>>;
+
+          // Get branch sports or default to main if empty & "all same" checked?
+          final branchSports = (branch['sports'] as List<String>?) ?? [];
+          // ignore: unused_local_variable
+          final effectiveSports = _allSportsSameForBranches
+              ? mainSports
+              : (branchSports.isNotEmpty ? branchSports : mainSports);
+
+          branches.add(
+            ClubBranch(
+              clubName: branch['name'],
+              numberOfUsers: int.tryParse(branch['users'].toString()) ?? 1,
+              isAddressSameAsUser: branch['addressSameAsSignup'] ? 1 : 0,
+              addressLine1: bAddressControllers['address1']?.text,
+              addressLine2: bAddressControllers['address2']?.text,
+              city: bAddressControllers['city']?.text,
+              state: bAddressControllers['state']?.text,
+              zipCode: bAddressControllers['zip']?.text,
+              country: bAddressControllers['country']?.text,
+              isContactSameAsUser: branch['contactSameAsSignup'] ? 1 : 0,
+              officePhoneExt: bContactControllers['officePhoneCode']?.text,
+              officePhone: bContactControllers['officeNumber']?.text,
+              mobilePhoneExt: bContactControllers['mobilePhoneCode']?.text,
+              mobilePhone: bContactControllers['mobileNumber']?.text,
+              companyWebsite: bContactControllers['website']?.text,
+              operationalDetails: _buildOperationalDetails(bOpTimesRaw)
+                  .map(
+                    (e) => OperationalDetail(
+                      openDays: e.openDays,
+                      clubStartTime: e.clubStartTime,
+                      clubEndTime: e.clubEndTime,
+                    ),
+                  )
+                  .toList(),
+              sportsNames: effectiveSports,
+            ),
+          );
+        }
+
+        if (branches.isNotEmpty) {
+          final branchRequest = ClubSignupStep2Request(
+            userId: userIdFromResponse is int
+                ? userIdFromResponse
+                : int.parse(userIdFromResponse.toString()),
+            clubId: realClubId is int
+                ? realClubId
+                : int.parse(realClubId.toString()),
+            branches: branches,
+          );
+
+          await _authRepository.clubBranchSignup(branchRequest);
+        }
+      }
+
+      if (mounted) {
+        StorageService().remove(RegistrationConstants.KEY_REGISTRATION_STEP);
+        StorageService().remove(RegistrationConstants.KEY_TEMP_ROLE);
+        await StorageService().saveString('user_role', 'club');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Club registration successful!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MembershipPlanPage()),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e, stack) {
+      debugPrint('Error submit club: $e $stack');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Registration failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  /// Helper to convert UI operational times to API model
+  List<ClubOperationalDetail> _buildOperationalDetails(
+    List<Map<String, dynamic>> times,
+  ) {
+    // The UI likely has individual days. API expects "open_days".
+    // If the UI allows configuring each day differently, we should map each active day.
+    // However, the sample payload shows grouped "open_days": "Weekdays".
+    // My UI code in _createBranchData initializes all days 'Monday'...'Sunday'.
+    // I should iterate and create an entry for each day with times.
+
+    final List<ClubOperationalDetail> details = [];
+
+    for (var time in times) {
+      final day = time['day'] as String;
+      final start = time['startTime'] as TimeOfDay?;
+      final end = time['endTime'] as TimeOfDay?;
+
+      if (start != null && end != null) {
+        details.add(
+          ClubOperationalDetail(
+            openDays: day,
+            clubStartTime:
+                '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}',
+            clubEndTime:
+                '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}',
+          ),
+        );
+      }
+    }
+    return details;
   }
 
   @override
@@ -643,29 +864,29 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
             const SizedBox(height: 16),
             _buildContactDetailsSubSection(contactControllers),
           ] else ...[
-          _buildCheckboxOption(
-            'Address Is Same As Sign Up Address?',
-            branchData['addressSameAsSignup'] as bool,
-            (value) => setState(() {
-              branchData['addressSameAsSignup'] = value!;
-            }),
-          ),
-          if (!(branchData['addressSameAsSignup'] as bool)) ...[
+            _buildCheckboxOption(
+              'Address Is Same As Sign Up Address?',
+              branchData['addressSameAsSignup'] as bool,
+              (value) => setState(() {
+                branchData['addressSameAsSignup'] = value!;
+              }),
+            ),
+            if (!(branchData['addressSameAsSignup'] as bool)) ...[
+              const SizedBox(height: 16),
+              _buildAddressSubSection(addressControllers),
+            ],
             const SizedBox(height: 16),
-            _buildAddressSubSection(addressControllers),
-          ],
-          const SizedBox(height: 16),
-          _buildCheckboxOption(
-            'Contact Details Is Same As Sign Up Contact Details?',
-            branchData['contactSameAsSignup'] as bool,
-            (value) => setState(() {
-              branchData['contactSameAsSignup'] = value!;
-            }),
-          ),
-          if (!(branchData['contactSameAsSignup'] as bool)) ...[
-            const SizedBox(height: 16),
-            _buildContactDetailsSubSection(contactControllers),
-          ],
+            _buildCheckboxOption(
+              'Contact Details Is Same As Sign Up Contact Details?',
+              branchData['contactSameAsSignup'] as bool,
+              (value) => setState(() {
+                branchData['contactSameAsSignup'] = value!;
+              }),
+            ),
+            if (!(branchData['contactSameAsSignup'] as bool)) ...[
+              const SizedBox(height: 16),
+              _buildContactDetailsSubSection(contactControllers),
+            ],
           ],
           const SizedBox(height: 16),
           _buildClubOperationalDetailsSubSection(branchData),
@@ -719,9 +940,9 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         Row(
           children: [
             Expanded(
-              child: _buildTextField(
+              child: RoundedTextField(
                 controller: controllers['zip']!,
-                label: 'Zip Code',
+                // label: 'Zip Code',
                 hint: 'Enter zip code',
                 keyboardType: TextInputType.number,
               ),
@@ -790,75 +1011,83 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           ],
         ),
         const SizedBox(height: 16),
+        Text(
+          'Office Number',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Office Number',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF64748B),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Builder(
-                    builder: (context) {
-                      final controller = controllers['officePhoneCode'] as TextEditingController?;
-                      return PhoneCodeDropdown(
-                        value: controller?.text.isNotEmpty == true ? controller!.text : null,
-                        onChanged: (value) {
-                          controller?.text = value ?? '';
-                        },
-                      );
+              flex: 2,
+              child: Builder(
+                builder: (context) {
+                  final controller =
+                      controllers['officePhoneCode'] as TextEditingController?;
+                  return PhoneCodeDropdown(
+                    value: controller?.text.isNotEmpty == true
+                        ? controller!.text
+                        : null,
+                    onChanged: (value) {
+                      controller?.text = value ?? '';
                     },
-                  ),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: controllers['officeNumber']!,
-                    label: '',
-                    hint: 'Enter office number',
-                    keyboardType: TextInputType.phone,
-                  ),
-                ],
+                  );
+                },
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Mobile Number',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF64748B),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Builder(
-                    builder: (context) {
-                      final controller = controllers['mobilePhoneCode'] as TextEditingController?;
-                      return PhoneCodeDropdown(
-                        value: controller?.text.isNotEmpty == true ? controller!.text : null,
-                        onChanged: (value) {
-                          controller?.text = value ?? '';
-                        },
-                      );
+              flex: 3,
+              child: RoundedTextField(
+                controller: controllers['officeNumber']!,
+                // label: '',
+                hint: 'Enter office number',
+                keyboardType: TextInputType.phone,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Mobile Number',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: Builder(
+                builder: (context) {
+                  final controller =
+                      controllers['mobilePhoneCode'] as TextEditingController?;
+                  return PhoneCodeDropdown(
+                    value: controller?.text.isNotEmpty == true
+                        ? controller!.text
+                        : null,
+                    onChanged: (value) {
+                      controller?.text = value ?? '';
                     },
-                  ),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: controllers['mobileNumber']!,
-                    label: '',
-                    hint: 'Enter mobile number',
-                    keyboardType: TextInputType.phone,
-                  ),
-                ],
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 3,
+              child: RoundedTextField(
+                controller: controllers['mobileNumber']!,
+                // label: '',
+                hint: 'Enter mobile number',
+                keyboardType: TextInputType.phone,
               ),
             ),
           ],
@@ -903,8 +1132,10 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
               InkWell(
                 onTap: () {
                   setState(() {
-                    operationalTimes.add({
-                      'day': _clubDays.isNotEmpty ? _clubDays.first.name : 'Monday',
+                    operationalTimes.add(<String, Object>{
+                      'day': _clubDays.isNotEmpty
+                          ? _clubDays.first.name
+                          : 'Monday',
                       'startTime': const TimeOfDay(hour: 9, minute: 0),
                       'endTime': const TimeOfDay(hour: 17, minute: 0),
                     });
@@ -944,11 +1175,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         ...operationalTimes.asMap().entries.map((entry) {
           final index = entry.key;
           final timeSlot = entry.value;
-          return _buildServiceDayTimeRow(
-            timeSlot,
-            branchData,
-            index,
-          );
+          return _buildServiceDayTimeRow(timeSlot, branchData, index);
         }).toList(),
       ],
     );
@@ -959,8 +1186,9 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     Map<String, dynamic> branchData,
     int dayIndex,
   ) {
-    final operationalTimes = branchData['operationalTimes'] as List<Map<String, dynamic>>;
-    
+    final operationalTimes =
+        branchData['operationalTimes'] as List<Map<String, dynamic>>;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -1011,62 +1239,67 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                                 SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
                                 SizedBox(width: 12),
-                                Text('Loading...', style: TextStyle(color: Colors.grey)),
+                                Text(
+                                  'Loading...',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
                               ],
                             ),
                           ),
                         ],
                       )
                     : _clubDays.isEmpty
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Service Day',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF64748B),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[50],
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey[200]!),
-                                ),
-                                child: const Text(
-                                  'No days available',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                            ],
-                          )
-                        : _buildDropdownField(
-                            label: 'Service Day',
-                            value: () {
-                              final day = timeSlot['day'] as String?;
-                              return _clubDays.any((d) => d.name == day)
-                                  ? day
-                                  : _clubDays.isNotEmpty
-                                      ? _clubDays.first.name
-                                      : 'Monday';
-                            }(),
-                            items: _clubDays.map((day) => day.name).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                timeSlot['day'] = value!;
-                              });
-                            },
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Service Day',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: const Text(
+                              'No days available',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        ],
+                      )
+                    : _buildDropdownField(
+                        label: 'Service Day',
+                        value: () {
+                          final day = timeSlot['day'] as String?;
+                          return _clubDays.any((d) => d.name == day)
+                              ? day
+                              : _clubDays.isNotEmpty
+                              ? _clubDays.first.name
+                              : 'Monday';
+                        }(),
+                        items: _clubDays.map((day) => day.name).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            timeSlot['day'] = value!;
+                          });
+                        },
+                      ),
               ),
               const SizedBox(width: 12),
               // Remove button (only show if more than one day)
@@ -1178,11 +1411,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                Icon(
-                  Icons.access_time,
-                  color: Colors.grey[600],
-                  size: 18,
-                ),
+                Icon(Icons.access_time, color: Colors.grey[600], size: 18),
               ],
             ),
           ),
@@ -1192,7 +1421,15 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
   }
 
   Widget _buildSportsSubSection(Map<String, dynamic> branchData) {
-    final sports = branchData['sports'] as List<String>;
+    final branchNumber = branchData['branchNumber'] as int;
+    final isReadOnly = _allSportsSameForBranches && branchNumber > 1;
+
+    // If read-only, show sports from Branch 1. Otherwise, show this branch's sports.
+    final displaySports = isReadOnly
+        ? (_branches.isNotEmpty
+              ? (_branches[0]['sports'] as List<String>)
+              : <String>[])
+        : (branchData['sports'] as List<String>);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1207,13 +1444,15 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
         ),
         const SizedBox(height: 12),
         InkWell(
-          onTap: _isLoadingSports
+          onTap: (_isLoadingSports || isReadOnly)
               ? null
               : () async {
                   if (_allSports.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('No sports available. Please try again later.'),
+                        content: Text(
+                          'No sports available. Please try again later.',
+                        ),
                         backgroundColor: Colors.orange,
                       ),
                     );
@@ -1223,7 +1462,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                     context: context,
                     builder: (ctx) => SportsMultiSelect(
                       allSports: _allSports,
-                      initialSelected: sports,
+                      initialSelected: displaySports,
                     ),
                   );
                   if (result != null && mounted) {
@@ -1235,7 +1474,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isReadOnly ? Colors.grey[100] : Colors.white,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
@@ -1250,33 +1489,51 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                               SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                               SizedBox(width: 8),
-                              Text('Loading sports...', style: TextStyle(color: Colors.grey)),
+                              Text(
+                                'Loading sports...',
+                                style: TextStyle(color: Colors.grey),
+                              ),
                             ],
                           ),
                         )
                       : Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: sports.isEmpty
+                          children: displaySports.isEmpty
                               ? [
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                    child: Text('Select sports', style: TextStyle(color: Colors.grey)),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
+                                    child: Text(
+                                      isReadOnly
+                                          ? 'Same as main club'
+                                          : 'Select sports',
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
                                   ),
                                 ]
-                              : sports.map((sport) {
+                              : displaySports.map((sport) {
                                   return Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 12,
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF667EEA).withOpacity(0.1),
+                                      color: const Color(
+                                        0xFF667EEA,
+                                      ).withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(color: const Color(0xFF667EEA)),
+                                      border: Border.all(
+                                        color: const Color(0xFF667EEA),
+                                      ),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -1289,37 +1546,40 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
                                             fontSize: 12,
                                           ),
                                         ),
-                                        const SizedBox(width: 4),
-                                        GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              sports.remove(sport);
-                                            });
-                                          },
-                                          child: Container(
-                                            padding: const EdgeInsets.all(2),
-                                            decoration: const BoxDecoration(
-                                              color: Colors.red,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: const Icon(
-                                              Icons.close,
-                                              size: 10,
-                                              color: Colors.white,
+                                        if (!isReadOnly) ...[
+                                          const SizedBox(width: 4),
+                                          GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                displaySports.remove(sport);
+                                              });
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(2),
+                                              decoration: const BoxDecoration(
+                                                color: Colors.red,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.close,
+                                                size: 10,
+                                                color: Colors.white,
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                        ],
                                       ],
                                     ),
                                   );
                                 }).toList(),
                         ),
                 ),
-                const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: Color(0xFF64748B),
-                  size: 20,
-                ),
+                if (!isReadOnly)
+                  const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Color(0xFF64748B),
+                    size: 20,
+                  ),
               ],
             ),
           ),
@@ -1335,8 +1595,11 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
     required Function(String?) onChanged,
   }) {
     // Ensure value is in items list, otherwise use null
-    final validValue = value != null && value.isNotEmpty && items.contains(value) ? value : null;
-    
+    final validValue =
+        value != null && value.isNotEmpty && items.contains(value)
+        ? value
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1365,10 +1628,7 @@ class _ClubRegistrationPageState extends State<ClubRegistrationPage> {
               ),
               hintText: 'Select',
             ),
-            hint: Text(
-              'Select',
-              style: TextStyle(color: Colors.grey[400]),
-            ),
+            hint: Text('Select', style: TextStyle(color: Colors.grey[400])),
             items: items.map((String item) {
               return DropdownMenuItem<String>(value: item, child: Text(item));
             }).toList(),

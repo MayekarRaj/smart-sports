@@ -20,14 +20,10 @@ class _CorporateMembershipPlanPageState
   final StorageService _storageService = StorageService();
   bool _isLoadingServices = false;
   List<PaidService> _paidServices = [];
+  String? _errorMessage;
 
   // Paid services selection (privilege membership)
-  final Map<String, bool> _selectedServices = {
-    'coach_ratings': false,
-    'events_tournaments': false,
-    'forum': false,
-    'slack': false,
-  };
+  final Map<String, bool> _selectedServices = {};
 
   @override
   void initState() {
@@ -36,63 +32,84 @@ class _CorporateMembershipPlanPageState
     _fetchPaidServices();
   }
 
-  /// Fetch paid services from API to get service IDs
+  /// Map service name to key for selectedServices map
+  String _getServiceKey(String serviceName) {
+    // Normalize service name to key format
+    final normalized = serviceName
+        .toLowerCase()
+        .replaceAll(' ', '_')
+        .replaceAll('&', '')
+        .replaceAll('(', '')
+        .replaceAll(')', '');
+
+    if (normalized.contains('coach_ratings') ||
+        normalized.contains('coach ratings')) {
+      return 'coach_ratings';
+    } else if (normalized.contains('events') ||
+        normalized.contains('tournaments')) {
+      return 'events_tournaments';
+    } else if (normalized.contains('forum')) {
+      return 'forum';
+    } else if (normalized.contains('slack')) {
+      return 'slack';
+    }
+
+    return normalized;
+  }
+
+  /// Fetch paid services from API
   Future<void> _fetchPaidServices() async {
     if (_isLoadingServices) return;
 
     setState(() {
       _isLoadingServices = true;
+      _errorMessage = null;
     });
 
     try {
       final response = await _authRepository.getPaidServicesList('corporate');
-      
+
       if (mounted) {
         setState(() {
-          _paidServices = response.data.where((service) => service.isDeleted == 0).toList();
+          _paidServices = response.data
+              .where((service) => service.isDeleted == 0)
+              .toList();
+
+          // Initialize selectedServices map
+          for (var service in _paidServices) {
+            final key = _getServiceKey(service.name);
+            if (!_selectedServices.containsKey(key)) {
+              _selectedServices[key] = false;
+            }
+          }
+          _isLoadingServices = false;
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.message;
           _isLoadingServices = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
+          _errorMessage = 'Failed to load services: ${e.toString()}';
           _isLoadingServices = false;
         });
-        // Silently fail - we'll use hardcoded mapping if API fails
       }
     }
-  }
-
-  /// Map service key to service ID
-  int? _getServiceId(String serviceKey) {
-    final serviceNameMap = {
-      'coach_ratings': 'Coach Ratings',
-      'events_tournaments': 'Events & Tournaments',
-      'forum': 'Forum',
-      'slack': 'Slack',
-    };
-
-    final serviceName = serviceNameMap[serviceKey];
-    if (serviceName != null) {
-      final service = _paidServices.firstWhere(
-        (s) => s.name.toLowerCase().contains(serviceName.toLowerCase()),
-        orElse: () => _paidServices.first,
-      );
-      return service.id;
-    }
-    return null;
   }
 
   /// Save optional paid services
   Future<void> _saveOptionalPaidServices() async {
     // Get selected service IDs
     final selectedServiceIds = <int>[];
-    for (var key in _selectedServices.keys) {
+    for (var service in _paidServices) {
+      final key = _getServiceKey(service.name);
       if (_selectedServices[key] == true) {
-        final serviceId = _getServiceId(key);
-        if (serviceId != null) {
-          selectedServiceIds.add(serviceId);
-        }
+        selectedServiceIds.add(service.id);
       }
     }
 
@@ -118,16 +135,16 @@ class _CorporateMembershipPlanPageState
 
       if (mounted) {
         setState(() => _isLoadingServices = false);
-        
+
         // Save role to storage if not already saved
         final roleStr = await _storageService.getString('user_role');
         if (roleStr == null || roleStr.isEmpty) {
           await _storageService.saveString('user_role', 'corporate');
         }
-        
+
         // Extract subscription_id from response (if present)
         final subscriptionId = response.data?['subscription_id']?.toString();
-        
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -163,10 +180,12 @@ class _CorporateMembershipPlanPageState
 
   double get _totalAmount {
     double total = 0;
-    if (_selectedServices['coach_ratings'] == true) total += 100;
-    if (_selectedServices['events_tournaments'] == true) total += 200;
-    if (_selectedServices['forum'] == true) total += 100;
-    if (_selectedServices['slack'] == true) total += 100;
+    for (var service in _paidServices) {
+      final key = _getServiceKey(service.name);
+      if (_selectedServices[key] == true) {
+        total += service.amountValue;
+      }
+    }
     return total;
   }
 
@@ -175,6 +194,7 @@ class _CorporateMembershipPlanPageState
   double get _grandTotal => _totalAmount - _discountAmount - _referralDiscount;
   double get _taxAmount => (_grandTotal > 0 ? _grandTotal : 0) * 0.10;
   double get _finalAmount => (_grandTotal > 0 ? _grandTotal : 0) + _taxAmount;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -285,6 +305,10 @@ class _CorporateMembershipPlanPageState
                     setState(() {
                       _isFreeMembership = false;
                     });
+                    // Fetch paid services when privilege membership is selected
+                    if (_paidServices.isEmpty && !_isLoadingServices) {
+                      _fetchPaidServices();
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -330,6 +354,7 @@ class _CorporateMembershipPlanPageState
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -431,33 +456,62 @@ class _CorporateMembershipPlanPageState
           ),
           const SizedBox(height: 20),
 
-          _buildServiceOption(
-            'coach_ratings',
-            'Coach Ratings',
-            'You Will Be Able To Unlock Coach Ratings To Select Your Coach',
-            100,
-          ),
-          _buildServiceOption(
-            'events_tournaments',
-            'Events & Tournaments',
-            'You will be allowed to schedule multiple events and tournaments',
-            200,
-          ),
-          _buildServiceOption(
-            'forum',
-            'Forum',
-            'You Will Have Access To All Forum Discussions And Able To Save Stories With Photos.',
-            100,
-          ),
-          _buildServiceOption(
-            'slack',
-            'Slack',
-            'Automatic Mobile Notifications Per Month. You Will Get Email And Mobile Notification Of Our Various Services',
-            100,
-          ),
+          if (_isLoadingServices)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (_errorMessage != null)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red[300]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red[700]),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _errorMessage!,
+                      style: TextStyle(color: Colors.red[700]),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _fetchPaidServices,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            )
+          else if (_paidServices.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Text('No paid services available'),
+              ),
+            )
+          else ...[
+            // Build service options dynamically from API
+            ..._paidServices.map((service) {
+              final serviceKey = _getServiceKey(service.name);
+              return _buildServiceOption(
+                serviceKey,
+                service.name,
+                (service.description2?.isNotEmpty ?? false)
+                    ? service.description2!
+                    : (service.description1 ?? ''),
+                service.amountValue,
+              );
+            }),
 
-          const SizedBox(height: 16),
-          _buildPricingSummary(),
+            const SizedBox(height: 16),
+            _buildPricingSummary(),
+          ],
         ],
       ),
     );
@@ -469,64 +523,85 @@ class _CorporateMembershipPlanPageState
     String description,
     double price,
   ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Checkbox(
-            value: _selectedServices[key],
-            onChanged: (value) {
-              setState(() {
-                _selectedServices[key] = value ?? false;
-              });
-            },
-            activeColor: const Color(0xFF8BB6D9),
+    final isSelected = _selectedServices[key] ?? false;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedServices[key] = !isSelected;
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? const Color(0xFF8BB6D9) : Colors.grey[300]!,
+            width: isSelected ? 2 : 1,
           ),
-          const SizedBox(width: 4),
-          _getServiceIcon(key),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          borderRadius: BorderRadius.circular(12),
+          color: isSelected
+              ? const Color(0xFF8BB6D9).withOpacity(0.05)
+              : Colors.white,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon
+            _getServiceIcon(key),
+            const SizedBox(width: 12),
+            // Title and Description
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Price Section
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                const Text(
+                  'Monthly Fee',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  description,
-                  style: TextStyle(fontSize: 12, color: Colors.red[400]),
+                  'USD ${price.toInt()}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B),
+                  ),
                 ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const Text(
-                'Monthly Fee',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              Text(
-                'USD ${price.toInt()}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -534,27 +609,28 @@ class _CorporateMembershipPlanPageState
   Widget _getServiceIcon(String key) {
     IconData icon;
     Color color;
-    switch (key) {
-      case 'coach_ratings':
-        icon = Icons.star;
-        color = Colors.orange;
-        break;
-      case 'events_tournaments':
-        icon = Icons.emoji_events;
-        color = Colors.amber;
-        break;
-      case 'forum':
-        icon = Icons.forum;
-        color = Colors.blue;
-        break;
-      case 'slack':
-        icon = Icons.notifications;
-        color = Colors.purple;
-        break;
-      default:
-        icon = Icons.help;
-        color = Colors.grey;
+
+    final normalizedKey = key.toLowerCase();
+
+    if (normalizedKey.contains('coach_ratings') ||
+        normalizedKey.contains('coach ratings')) {
+      icon = Icons.star;
+      color = Colors.orange;
+    } else if (normalizedKey.contains('events') ||
+        normalizedKey.contains('tournaments')) {
+      icon = Icons.emoji_events;
+      color = Colors.amber;
+    } else if (normalizedKey.contains('forum')) {
+      icon = Icons.forum;
+      color = Colors.blue;
+    } else if (normalizedKey.contains('slack')) {
+      icon = Icons.notifications;
+      color = Colors.purple;
+    } else {
+      icon = Icons.help;
+      color = Colors.grey;
     }
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -715,29 +791,72 @@ class _CorporateMembershipPlanPageState
           Expanded(
             child: ElevatedButton(
               onPressed: () async {
-                if (_isFreeMembership) {
-                  // Save role to storage if not already saved
-                  final roleStr = await _storageService.getString('user_role');
-                  if (roleStr == null || roleStr.isEmpty) {
-                    await _storageService.saveString('user_role', 'corporate');
-                  }
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Free membership activated'),
-                      backgroundColor: Colors.green,
+                setState(() => _isLoadingServices = true);
+                try {
+                  // 1. Choose Membership Type API Call
+                  await _authRepository.chooseMembershipType(
+                    ChooseMembershipTypeRequest(
+                      membershipType: _isFreeMembership ? 'Free' : 'Paid',
                     ),
                   );
-                  
-                  // Navigate to corporate dashboard
-                  final dashboard = RoleRouter.dashboardFor(UserRole.corporate);
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => dashboard),
-                    (route) => false, // Remove all previous routes
-                  );
-                } else {
-                  // Save optional paid services before navigating to payment
-                  await _saveOptionalPaidServices();
+
+                  if (!mounted) return;
+
+                  if (_isFreeMembership) {
+                    // Save role to storage if not already saved
+                    final roleStr = await _storageService.getString(
+                      'user_role',
+                    );
+                    if (roleStr == null || roleStr.isEmpty) {
+                      await _storageService.saveString(
+                        'user_role',
+                        'corporate',
+                      );
+                    }
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Free membership activated'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+
+                      setState(() => _isLoadingServices = false);
+
+                      // Navigate to corporate dashboard
+                      final dashboard = RoleRouter.dashboardFor(
+                        UserRole.corporate,
+                      );
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (_) => dashboard),
+                        (route) => false, // Remove all previous routes
+                      );
+                    }
+                  } else {
+                    // Save optional paid services before navigating to payment
+                    await _saveOptionalPaidServices();
+                  }
+                } on ApiException catch (e) {
+                  if (mounted) {
+                    setState(() => _isLoadingServices = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.message),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    setState(() => _isLoadingServices = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('An error occurred: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(

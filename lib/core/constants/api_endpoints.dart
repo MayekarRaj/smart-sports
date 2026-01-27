@@ -25,6 +25,8 @@ class ApiEndpoints {
 
   // ==================== Coach Registration ====================
   static const String coachSignup = '/signup-coach';
+  static const String coachExperienceLevelSignup =
+      '/signup-coach-experience-levels';
 
   // ==================== Freelancer Registration ====================
   static const String freelancerSignup = '/signup-freelancer';
@@ -32,6 +34,13 @@ class ApiEndpoints {
   // ==================== Merchandizer Registration ====================
   static const String merchandizerSignup = '/signup-merchandizer';
   static const String merchandizerBranchSignup = '/signup-merchandizer-branch';
+
+  // ==================== Member Registration ====================
+  // Ensure these match the backend exactly
+  static const String signupMemberRole = '/signup-member-role';
+  static const String signupFamilyMember = '/signup-family-member';
+  static const String signupChooseMembershipType =
+      '/signup-chooseMembershipType';
 
   // ==================== Paid Services ====================
   static const String paidServicesList = '/paid-services-list';
@@ -44,7 +53,8 @@ class ApiEndpoints {
 
   // ==================== Club and Branch Lists ====================
   static const String getAllClubList = '/signup-getAllClubList';
-  static const String getMerchandizerBranchList = '/signup-getMerchandizerBranchList';
+  static const String getMerchandizerBranchList =
+      '/signup-getMerchandizerBranchList';
 
   // ==================== Sports ====================
   static const String sportsList = '/sports-list';
@@ -54,6 +64,9 @@ class ApiEndpoints {
 
   // ==================== Club Days ====================
   static const String mstClubDays = '/mst-club-days';
+
+  // ==================== Membership Age Groups ====================
+  static const String mstMembershipAgeGroup = '/mst-membership-age-group';
 
   // ==================== City and Location ====================
   static const String getCity = '/get-city';
@@ -92,11 +105,13 @@ class ApiEndpoints {
   static const String createCourt = '/courts';
   static const String updateCourt = '/courts'; // /courts/{id}
   static const String deleteCourt = '/courts'; // /courts/{id}
-  static const String courtAvailability = '/courts'; // /courts/{id}/availability
+  static const String courtAvailability =
+      '/courts'; // /courts/{id}/availability
 
   // ==================== Transactions ====================
   static const String transactions = '/transactions';
-  static const String transactionDetails = '/transactions'; // /transactions/{id}
+  static const String transactionDetails =
+      '/transactions'; // /transactions/{id}
 
   // ==================== Referrals ====================
   static const String referrals = '/referrals';
@@ -106,39 +121,63 @@ class ApiEndpoints {
   // ==================== Customer Support ====================
   static const String supportTickets = '/support/tickets';
   static const String createTicket = '/support/tickets';
-  static const String ticketDetails = '/support/tickets'; // /support/tickets/{id}
+  static const String ticketDetails =
+      '/support/tickets'; // /support/tickets/{id}
+
+  // ==================== Site Settings ====================
+  static const String siteSettings = '/site-setting';
 
   // ==================== Helper Methods ====================
-  
+
   // Authentication
   static String getSignInUrl() => '${ApiConfig.apiBaseUrl}$signIn';
   static String getSignUpUrl() => '${ApiConfig.apiBaseUrl}$signUp';
   static String getLogoutUrl() => '${ApiConfig.apiBaseUrl}$logout';
   static String getRefreshTokenUrl() => '${ApiConfig.apiBaseUrl}$refreshToken';
-  static String getProfileUrl(int userId) => '${ApiConfig.apiBaseUrl}$profile/$userId';
+  static String getProfileUrl(int userId) =>
+      '${ApiConfig.apiBaseUrl}$profile/$userId';
   static String getSendOtpUrl() => '${ApiConfig.apiBaseUrl}$sendOtp';
   static String getVerifyOtpUrl() => '${ApiConfig.apiBaseUrl}$verifyOtp';
-  static String getCheckEmailVerificationUrl() => '${ApiConfig.apiBaseUrl}$checkEmailVerification';
-  static String getForgotPasswordUrl() => '${ApiConfig.apiBaseUrl}$forgotPassword';
-  static String getResetPasswordUrl() => '${ApiConfig.apiBaseUrl}$resetPassword';
-  static String getChangePasswordUrl() => '${ApiConfig.apiBaseUrl}$changePassword';
+  static String getCheckEmailVerificationUrl() =>
+      '${ApiConfig.apiBaseUrl}$checkEmailVerification';
+  static String getForgotPasswordUrl() =>
+      '${ApiConfig.apiBaseUrl}$forgotPassword';
+  static String getResetPasswordUrl() =>
+      '${ApiConfig.apiBaseUrl}$resetPassword';
+  static String getChangePasswordUrl() =>
+      '${ApiConfig.apiBaseUrl}$changePassword';
 
   // Club Registration
-  static String getClubSignupStep1Url() => '${ApiConfig.apiBaseUrl}$clubSignupStep1';
-  static String getClubSignupStep2Url() => '${ApiConfig.apiBaseUrl}$clubSignupStep2';
+  static String getClubSignupUrl() => '${ApiConfig.apiBaseUrl}$clubSignupStep1';
+  static String getClubSignupStep2Url() =>
+      '${ApiConfig.apiBaseUrl}$clubSignupStep2';
 
   // Corporate Registration
-  static String getCorporateSignupUrl() => '${ApiConfig.apiBaseUrl}$corporateSignup';
+  static String getCorporateSignupUrl() =>
+      '${ApiConfig.apiBaseUrl}$corporateSignup';
 
   // Coach Registration
   static String getCoachSignupUrl() => '${ApiConfig.apiBaseUrl}$coachSignup';
+  static String getCoachExperienceLevelSignupUrl() =>
+      '${ApiConfig.apiBaseUrl}$coachExperienceLevelSignup';
 
   // Freelancer Registration
-  static String getFreelancerSignupUrl() => '${ApiConfig.apiBaseUrl}$freelancerSignup';
+  static String getFreelancerSignupUrl() =>
+      '${ApiConfig.apiBaseUrl}$freelancerSignup';
 
   // Merchandizer Registration
-  static String getMerchandizerSignupUrl() => '${ApiConfig.apiBaseUrl}$merchandizerSignup';
-  static String getMerchandizerBranchSignupUrl() => '${ApiConfig.apiBaseUrl}$merchandizerBranchSignup';
+  static String getMerchandizerSignupUrl() =>
+      '${ApiConfig.apiBaseUrl}$merchandizerSignup';
+  static String getMerchandizerBranchSignupUrl() =>
+      '${ApiConfig.apiBaseUrl}$merchandizerBranchSignup';
+
+  // Member Registration
+  static String getSignupMemberRoleUrl() =>
+      '${ApiConfig.apiBaseUrl}$signupMemberRole';
+  static String getSignupFamilyMemberUrl() =>
+      '${ApiConfig.apiBaseUrl}$signupFamilyMember';
+  static String getSignupChooseMembershipTypeUrl() =>
+      '${ApiConfig.apiBaseUrl}$signupChooseMembershipType';
 
   // Paid Services
   static String getPaidServicesListUrl({String? userRole}) {
@@ -148,17 +187,21 @@ class ApiEndpoints {
     }
     return baseUrl;
   }
-  
-  static String getSaveOptionalPaidServicesUrl() => '${ApiConfig.apiBaseUrl}$saveOptionalPaidServices';
+
+  static String getSaveOptionalPaidServicesUrl() =>
+      '${ApiConfig.apiBaseUrl}$saveOptionalPaidServices';
 
   // Stripe Payment
-  static String getStripeCreateSetupIntentUrl() => '${ApiConfig.apiBaseUrl}$stripeCreateSetupIntent';
-  static String getStripeCreateSubscriptionUrl() => '${ApiConfig.apiBaseUrl}$stripeCreateSubscription';
-  static String getSavePaymentInformationUrl() => '${ApiConfig.apiBaseUrl}$savePaymentInformation';
+  static String getStripeCreateSetupIntentUrl() =>
+      '${ApiConfig.apiBaseUrl}$stripeCreateSetupIntent';
+  static String getStripeCreateSubscriptionUrl() =>
+      '${ApiConfig.apiBaseUrl}$stripeCreateSubscription';
+  static String getSavePaymentInformationUrl() =>
+      '${ApiConfig.apiBaseUrl}$savePaymentInformation';
 
   // Club and Branch Lists
   static String getAllClubListUrl() => '${ApiConfig.apiBaseUrl}$getAllClubList';
-  static String getMerchandizerBranchListUrl(int merchandizerId) => 
+  static String getMerchandizerBranchListUrl(int merchandizerId) =>
       '${ApiConfig.apiBaseUrl}$getMerchandizerBranchList/$merchandizerId';
 
   // Sports
@@ -169,15 +212,19 @@ class ApiEndpoints {
   }) {
     final baseUrl = '${ApiConfig.apiBaseUrl}$sportsList';
     final params = <String, String>{};
-    
+
     if (orderBy != null) params['orderBy'] = orderBy;
-    if (sportsName != null && sportsName.isNotEmpty) params['sports_name'] = sportsName;
+    if (sportsName != null && sportsName.isNotEmpty)
+      params['sports_name'] = sportsName;
     if (isActive != null) params['is_active'] = isActive.toString();
-    
+
     if (params.isEmpty) return baseUrl;
-    
+
     final queryString = params.entries
-        .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .map(
+          (e) =>
+              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+        )
         .join('&');
     return '$baseUrl?$queryString';
   }
@@ -193,18 +240,22 @@ class ApiEndpoints {
   }) {
     final baseUrl = '${ApiConfig.apiBaseUrl}$mstCoachExperienceLevel';
     final params = <String, String>{};
-    
+
     if (perPage != null) params['perPage'] = perPage.toString();
     if (orderBy != null) params['orderBy'] = orderBy;
-    if (commonSearch != null && commonSearch.isNotEmpty) params['common_search'] = commonSearch;
+    if (commonSearch != null && commonSearch.isNotEmpty)
+      params['common_search'] = commonSearch;
     if (name != null && name.isNotEmpty) params['name'] = name;
     if (isActive != null) params['is_active'] = isActive.toString();
     if (page != null) params['page'] = page.toString();
-    
+
     if (params.isEmpty) return baseUrl;
-    
+
     final queryString = params.entries
-        .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .map(
+          (e) =>
+              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+        )
         .join('&');
     return '$baseUrl?$queryString';
   }
@@ -220,26 +271,61 @@ class ApiEndpoints {
   }) {
     final baseUrl = '${ApiConfig.apiBaseUrl}$mstClubDays';
     final params = <String, String>{};
-    
+
     if (perPage != null) params['perPage'] = perPage.toString();
     if (orderBy != null) params['orderBy'] = orderBy;
-    if (commonSearch != null && commonSearch.isNotEmpty) params['common_search'] = commonSearch;
+    if (commonSearch != null && commonSearch.isNotEmpty)
+      params['common_search'] = commonSearch;
     if (name != null && name.isNotEmpty) params['name'] = name;
     if (isActive != null) params['is_active'] = isActive.toString();
     if (page != null) params['page'] = page.toString();
-    
+
     if (params.isEmpty) return baseUrl;
-    
+
     final queryString = params.entries
-        .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .map(
+          (e) =>
+              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+        )
+        .join('&');
+    return '$baseUrl?$queryString';
+  }
+
+  // Membership Age Groups
+  static String getMstMembershipAgeGroupUrl({
+    int? perPage,
+    String? orderBy,
+    String? commonSearch,
+    String? name,
+    int? isActive,
+    int? page,
+  }) {
+    final baseUrl = '${ApiConfig.apiBaseUrl}$mstMembershipAgeGroup';
+    final params = <String, String>{};
+
+    if (perPage != null) params['perPage'] = perPage.toString();
+    if (orderBy != null) params['orderBy'] = orderBy;
+    if (commonSearch != null && commonSearch.isNotEmpty)
+      params['common_search'] = commonSearch;
+    if (name != null && name.isNotEmpty) params['name'] = name;
+    if (isActive != null) params['is_active'] = isActive.toString();
+    if (page != null) params['page'] = page.toString();
+
+    if (params.isEmpty) return baseUrl;
+
+    final queryString = params.entries
+        .map(
+          (e) =>
+              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+        )
         .join('&');
     return '$baseUrl?$queryString';
   }
 
   // City and Location
-  static String getCitySearchUrl(String search) => 
+  static String getCitySearchUrl(String search) =>
       '${ApiConfig.apiBaseUrl}$getCity/$search';
-  static String getCountryStateByCityUrl(int cityId) => 
+  static String getCountryStateByCityUrl(int cityId) =>
       '${ApiConfig.apiBaseUrl}$getCountryStateByCity/$cityId';
 
   // Phone Codes
@@ -247,47 +333,79 @@ class ApiEndpoints {
 
   // Bookings
   static String getBookingsUrl() => '${ApiConfig.apiBaseUrl}$bookings';
-  static String getBookingDetailsUrl(String id) => '${ApiConfig.apiBaseUrl}$bookingDetails/$id';
-  static String getCreateBookingUrl() => '${ApiConfig.apiBaseUrl}$createBooking';
-  static String getUpdateBookingUrl(String id) => '${ApiConfig.apiBaseUrl}$updateBooking/$id';
-  static String getCancelBookingUrl(String id) => '${ApiConfig.apiBaseUrl}$cancelBooking/$id/cancel';
-  static String getBookingHistoryUrl() => '${ApiConfig.apiBaseUrl}$bookingHistory';
+  static String getBookingDetailsUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$bookingDetails/$id';
+  static String getCreateBookingUrl() =>
+      '${ApiConfig.apiBaseUrl}$createBooking';
+  static String getUpdateBookingUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$updateBooking/$id';
+  static String getCancelBookingUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$cancelBooking/$id/cancel';
+  static String getBookingHistoryUrl() =>
+      '${ApiConfig.apiBaseUrl}$bookingHistory';
 
   // Events
   static String getEventsUrl() => '${ApiConfig.apiBaseUrl}$events';
-  static String getEventDetailsUrl(String id) => '${ApiConfig.apiBaseUrl}$eventDetails/$id';
+  static String getEventDetailsUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$eventDetails/$id';
   static String getCreateEventUrl() => '${ApiConfig.apiBaseUrl}$createEvent';
-  static String getUpdateEventUrl(String id) => '${ApiConfig.apiBaseUrl}$updateEvent/$id';
-  static String getDeleteEventUrl(String id) => '${ApiConfig.apiBaseUrl}$deleteEvent/$id';
-  static String getSubscribeToEventUrl(String id) => '${ApiConfig.apiBaseUrl}$subscribeToEvent/$id/subscribe';
+  static String getUpdateEventUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$updateEvent/$id';
+  static String getDeleteEventUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$deleteEvent/$id';
+  static String getSubscribeToEventUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$subscribeToEvent/$id/subscribe';
 
   // Users
   static String getUsersUrl() => '${ApiConfig.apiBaseUrl}$users';
-  static String getUserDetailsUrl(String id) => '${ApiConfig.apiBaseUrl}$userDetails/$id';
+  static String getUserDetailsUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$userDetails/$id';
   static String getCreateUserUrl() => '${ApiConfig.apiBaseUrl}$createUser';
-  static String getUpdateUserUrl(String id) => '${ApiConfig.apiBaseUrl}$updateUser/$id';
-  static String getDeleteUserUrl(String id) => '${ApiConfig.apiBaseUrl}$deleteUser/$id';
-  static String getUserStatusUrl(String id) => '${ApiConfig.apiBaseUrl}$userStatus/$id/status';
+  static String getUpdateUserUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$updateUser/$id';
+  static String getDeleteUserUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$deleteUser/$id';
+  static String getUserStatusUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$userStatus/$id/status';
 
   // Courts
   static String getCourtsUrl() => '${ApiConfig.apiBaseUrl}$courts';
-  static String getCourtDetailsUrl(String id) => '${ApiConfig.apiBaseUrl}$courtDetails/$id';
+  static String getCourtDetailsUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$courtDetails/$id';
   static String getCreateCourtUrl() => '${ApiConfig.apiBaseUrl}$createCourt';
-  static String getUpdateCourtUrl(String id) => '${ApiConfig.apiBaseUrl}$updateCourt/$id';
-  static String getDeleteCourtUrl(String id) => '${ApiConfig.apiBaseUrl}$deleteCourt/$id';
-  static String getCourtAvailabilityUrl(String id) => '${ApiConfig.apiBaseUrl}$courtAvailability/$id/availability';
+  static String getUpdateCourtUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$updateCourt/$id';
+  static String getDeleteCourtUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$deleteCourt/$id';
+  static String getCourtAvailabilityUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$courtAvailability/$id/availability';
 
   // Transactions
   static String getTransactionsUrl() => '${ApiConfig.apiBaseUrl}$transactions';
-  static String getTransactionDetailsUrl(String id) => '${ApiConfig.apiBaseUrl}$transactionDetails/$id';
+  static String getTransactionDetailsUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$transactionDetails/$id';
 
   // Referrals
   static String getReferralsUrl() => '${ApiConfig.apiBaseUrl}$referrals';
-  static String getInviteReferralUrl() => '${ApiConfig.apiBaseUrl}$inviteReferral';
-  static String getReferralStatsUrl() => '${ApiConfig.apiBaseUrl}$referralStats';
+  static String getInviteReferralUrl() =>
+      '${ApiConfig.apiBaseUrl}$inviteReferral';
+  static String getReferralStatsUrl() =>
+      '${ApiConfig.apiBaseUrl}$referralStats';
 
   // Customer Support
-  static String getSupportTicketsUrl() => '${ApiConfig.apiBaseUrl}$supportTickets';
+  static String getSupportTicketsUrl() =>
+      '${ApiConfig.apiBaseUrl}$supportTickets';
   static String getCreateTicketUrl() => '${ApiConfig.apiBaseUrl}$createTicket';
-  static String getTicketDetailsUrl(String id) => '${ApiConfig.apiBaseUrl}$ticketDetails/$id';
+  static String getTicketDetailsUrl(String id) =>
+      '${ApiConfig.apiBaseUrl}$ticketDetails/$id';
+
+  // Site Settings
+  static String getSiteSettingsUrl({
+    int edit = 0,
+    int paypalEdit = 1,
+    int stripeEdit = 1,
+    int editMail = 0,
+  }) {
+    return '${ApiConfig.apiBaseUrl}$siteSettings?edit=$edit&paypalEdit=$paypalEdit&stripeEdit=$stripeEdit&editMail=$editMail';
+  }
 }

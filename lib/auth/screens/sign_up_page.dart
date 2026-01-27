@@ -40,6 +40,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   final mobilePhone = TextEditingController();
   final companyWebsite = TextEditingController();
 
+  final FocusNode _officePhoneFocus = FocusNode();
+  final FocusNode _mobilePhoneFocus = FocusNode();
+
   final List<String> _selectedSports = [];
   List<Sport> _allSports = [];
   bool _isLoadingSports = false;
@@ -115,6 +118,8 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     ]) {
       c.dispose();
     }
+    _officePhoneFocus.dispose();
+    _mobilePhoneFocus.dispose();
     super.dispose();
   }
 
@@ -322,7 +327,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
               hint: 'Email Address',
               keyboardType: TextInputType.emailAddress,
               validator: Validators.email,
-              enabled: !_isCheckingEmail,
+              // enabled: !_isCheckingEmail, // Commented out to prevent focus loss
               // show a green check when verified, loading indicator when checking
               suffix: _isCheckingEmail
                   ? const SizedBox(
@@ -472,6 +477,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                         : null,
                     onChanged: (value) {
                       officePhoneCode.text = value ?? '';
+                      _officePhoneFocus.requestFocus();
                     },
                   ),
                 ),
@@ -480,8 +486,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                   flex: 3,
                   child: RoundedTextField(
                     controller: officePhone,
+                    focusNode: _officePhoneFocus,
                     hint: 'Office Number',
                     keyboardType: TextInputType.phone,
+                    validator: Validators.phone,
                   ),
                 ),
               ],
@@ -497,6 +505,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                         : null,
                     onChanged: (value) {
                       mobilePhoneCode.text = value ?? '';
+                      _mobilePhoneFocus.requestFocus();
                     },
                   ),
                 ),
@@ -505,8 +514,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                   flex: 3,
                   child: RoundedTextField(
                     controller: mobilePhone,
+                    focusNode: _mobilePhoneFocus,
                     hint: 'Mobile Number',
                     keyboardType: TextInputType.phone,
+                    validator: Validators.phone,
                   ),
                 ),
               ],

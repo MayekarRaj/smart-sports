@@ -27,7 +27,7 @@ class _FreelancerMembershipPlanPageState
 
   // Selected clubs
   final Set<int> _selectedClubIds = {};
-  
+
   // Fetched data
   List<Club> _clubs = [];
   bool _isLoadingClubs = false;
@@ -46,19 +46,24 @@ class _FreelancerMembershipPlanPageState
 
   /// Map service name to key for selectedServices map
   String _getServiceKey(String serviceName) {
-    final normalized = serviceName.toLowerCase()
+    final normalized = serviceName
+        .toLowerCase()
         .replaceAll(' ', '_')
         .replaceAll('&', '')
         .replaceAll('(', '')
         .replaceAll(')', '');
-    
-    if (normalized.contains('access_clubs') || normalized.contains('access clubs')) {
+
+    if (normalized.contains('access_clubs') ||
+        normalized.contains('access clubs')) {
       return 'access_clubs';
-    } else if (normalized.contains('access_members') || normalized.contains('access to members')) {
+    } else if (normalized.contains('access_members') ||
+        normalized.contains('access to members')) {
       return 'access_members';
-    } else if (normalized.contains('coach_ratings') || normalized.contains('coach ratings')) {
+    } else if (normalized.contains('coach_ratings') ||
+        normalized.contains('coach ratings')) {
       return 'coach_ratings';
-    } else if (normalized.contains('events') || normalized.contains('tournaments')) {
+    } else if (normalized.contains('events') ||
+        normalized.contains('tournaments')) {
       return 'events_tournaments';
     } else if (normalized.contains('branches')) {
       return 'branches';
@@ -69,7 +74,7 @@ class _FreelancerMembershipPlanPageState
     } else if (normalized.contains('slack')) {
       return 'slack';
     }
-    
+
     return normalized;
   }
 
@@ -84,12 +89,14 @@ class _FreelancerMembershipPlanPageState
 
     try {
       final response = await _authRepository.getPaidServicesList('freelancer');
-      
+
       if (mounted) {
         setState(() {
           // need to update this later to show only active services
           // _paidServices = response.data.where((service) => service.isServiceActive).toList();
-          _paidServices = response.data.where((service) => service.isDeleted == 0).toList();
+          _paidServices = response.data
+              .where((service) => service.isDeleted == 0)
+              .toList();
           for (var service in _paidServices) {
             final key = _getServiceKey(service.name);
             if (!_selectedServices.containsKey(key)) {
@@ -127,7 +134,7 @@ class _FreelancerMembershipPlanPageState
 
     try {
       final response = await _authRepository.getAllClubList();
-      
+
       if (mounted) {
         setState(() {
           _clubs = response.data;
@@ -194,23 +201,23 @@ class _FreelancerMembershipPlanPageState
         userRole: 'freelancer',
         optionalServicesIds: selectedServiceIds,
         freelancerUsersCount: _getFreelancerUsersCount(),
-        freelancerClubIds: _selectedClubIds.isNotEmpty ? _selectedClubIds.toList() : null,
+        freelancerClubIds: _selectedClubIds.toList(),
       );
 
       final response = await _authRepository.saveOptionalPaidServices(request);
 
       if (mounted) {
         setState(() => _isLoadingServices = false);
-        
+
         // Save role to storage if not already saved
         final roleStr = await _storageService.getString('user_role');
         if (roleStr == null || roleStr.isEmpty) {
           await _storageService.saveString('user_role', 'freelancer');
         }
-        
+
         // Extract subscription_id from response (if present)
         final subscriptionId = response.data?['subscription_id']?.toString();
-        
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -425,7 +432,10 @@ class _FreelancerMembershipPlanPageState
               children: const [
                 _BenefitRow(text: 'Access To One Club Of Your Choice'),
                 _BenefitRow(text: 'Check Club Ratings And Reviews'),
-                _BenefitRow(text: 'Members Can See Your Listing For Utilities And Accessories'),
+                _BenefitRow(
+                  text:
+                      'Members Can See Your Listing For Utilities And Accessories',
+                ),
                 _BenefitRow(text: 'Track Revenue Records'),
                 _BenefitRow(text: 'Readable Access To The Forum Discussion'),
               ],
@@ -527,14 +537,19 @@ class _FreelancerMembershipPlanPageState
             // Build service options dynamically from API
             ..._paidServices.map((service) {
               final serviceKey = _getServiceKey(service.name);
-              final hasClubTypes = service.name.toLowerCase().contains('access clubs');
-              final isUsers = service.name.toLowerCase().contains('users') && 
-                             !service.name.toLowerCase().contains('access to members');
-              
+              final hasClubTypes = service.name.toLowerCase().contains(
+                'access clubs',
+              );
+              final isUsers =
+                  service.name.toLowerCase().contains('users') &&
+                  !service.name.toLowerCase().contains('access to members');
+
               return _buildServiceOption(
                 serviceKey,
                 service.name,
-                (service.description2?.isNotEmpty ?? false) ? service.description2! : (service.description1 ?? ''),
+                (service.description2?.isNotEmpty ?? false)
+                    ? service.description2!
+                    : (service.description1 ?? ''),
                 service.amountValue,
                 hasClubTypes: hasClubTypes,
                 userCount: isUsers ? 4 : null,
@@ -558,13 +573,13 @@ class _FreelancerMembershipPlanPageState
     int? userCount,
   }) {
     final isSelected = _selectedServices[key] ?? false;
-    
+
     return InkWell(
       onTap: () {
         setState(() {
           _selectedServices[key] = !isSelected;
         });
-        
+
         // Fetch clubs when Access Clubs is selected
         if (!isSelected && hasClubTypes) {
           if (_clubs.isEmpty && !_isLoadingClubs) {
@@ -582,7 +597,9 @@ class _FreelancerMembershipPlanPageState
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: isSelected ? const Color(0xFF8BB6D9).withOpacity(0.05) : Colors.white,
+          color: isSelected
+              ? const Color(0xFF8BB6D9).withOpacity(0.05)
+              : Colors.white,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -675,17 +692,27 @@ class _FreelancerMembershipPlanPageState
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline, size: 16, color: Colors.red[700]),
+                      Icon(
+                        Icons.error_outline,
+                        size: 16,
+                        color: Colors.red[700],
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _clubsError!,
-                          style: TextStyle(fontSize: 12, color: Colors.red[700]),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red[700],
+                          ),
                         ),
                       ),
                       TextButton(
                         onPressed: _fetchClubs,
-                        child: const Text('Retry', style: TextStyle(fontSize: 12)),
+                        child: const Text(
+                          'Retry',
+                          style: TextStyle(fontSize: 12),
+                        ),
                       ),
                     ],
                   ),
@@ -702,9 +729,7 @@ class _FreelancerMembershipPlanPageState
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: [
-                    ..._clubs.map((club) => _buildClubChip(club)),
-                  ],
+                  children: [..._clubs.map((club) => _buildClubChip(club))],
                 ),
             ],
           ],
@@ -750,25 +775,30 @@ class _FreelancerMembershipPlanPageState
   Widget _getServiceIcon(String key) {
     IconData icon;
     Color color;
-    
+
     final normalizedKey = key.toLowerCase();
-    
-    if (normalizedKey.contains('access_clubs') || normalizedKey.contains('access clubs')) {
+
+    if (normalizedKey.contains('access_clubs') ||
+        normalizedKey.contains('access clubs')) {
       icon = Icons.sports_soccer;
       color = Colors.blue;
-    } else if (normalizedKey.contains('access_members') || normalizedKey.contains('access to members')) {
+    } else if (normalizedKey.contains('access_members') ||
+        normalizedKey.contains('access to members')) {
       icon = Icons.people;
       color = Colors.orange;
-    } else if (normalizedKey.contains('coach_ratings') || normalizedKey.contains('coach ratings')) {
+    } else if (normalizedKey.contains('coach_ratings') ||
+        normalizedKey.contains('coach ratings')) {
       icon = Icons.star;
       color = Colors.green;
-    } else if (normalizedKey.contains('events') || normalizedKey.contains('tournaments')) {
+    } else if (normalizedKey.contains('events') ||
+        normalizedKey.contains('tournaments')) {
       icon = Icons.emoji_events;
       color = Colors.amber;
     } else if (normalizedKey.contains('branches')) {
       icon = Icons.store;
       color = Colors.blue;
-    } else if (normalizedKey.contains('users') && !normalizedKey.contains('access to members')) {
+    } else if (normalizedKey.contains('users') &&
+        !normalizedKey.contains('access to members')) {
       icon = Icons.people_outline;
       color = Colors.blue;
     } else if (normalizedKey.contains('forum')) {
@@ -781,7 +811,7 @@ class _FreelancerMembershipPlanPageState
       icon = Icons.help;
       color = Colors.grey;
     }
-    
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -857,7 +887,7 @@ class _FreelancerMembershipPlanPageState
     final Color textColor = isGreen
         ? Colors.green
         : (isRed ? Colors.red : Colors.grey[800]!);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
@@ -953,29 +983,72 @@ class _FreelancerMembershipPlanPageState
           Expanded(
             child: ElevatedButton(
               onPressed: () async {
-                if (_isFreeMembership) {
-                  // Save role to storage if not already saved
-                  final roleStr = await _storageService.getString('user_role');
-                  if (roleStr == null || roleStr.isEmpty) {
-                    await _storageService.saveString('user_role', 'freelancer');
-                  }
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Free membership activated'),
-                      backgroundColor: Colors.green,
+                setState(() => _isLoadingServices = true);
+                try {
+                  // 1. Choose Membership Type API Call
+                  await _authRepository.chooseMembershipType(
+                    ChooseMembershipTypeRequest(
+                      membershipType: _isFreeMembership ? 'Free' : 'Paid',
                     ),
                   );
-                  
-                  // Navigate to freelancer dashboard
-                  final dashboard = RoleRouter.dashboardFor(UserRole.freelancer);
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => dashboard),
-                    (route) => false, // Remove all previous routes
-                  );
-                } else {
-                  // Save optional paid services before navigating to payment
-                  await _saveOptionalPaidServices();
+
+                  if (!mounted) return;
+
+                  if (_isFreeMembership) {
+                    // Save role to storage if not already saved
+                    final roleStr = await _storageService.getString(
+                      'user_role',
+                    );
+                    if (roleStr == null || roleStr.isEmpty) {
+                      await _storageService.saveString(
+                        'user_role',
+                        'freelancer',
+                      );
+                    }
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Free membership activated'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+
+                      setState(() => _isLoadingServices = false);
+
+                      // Navigate to freelancer dashboard
+                      final dashboard = RoleRouter.dashboardFor(
+                        UserRole.freelancer,
+                      );
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (_) => dashboard),
+                        (route) => false, // Remove all previous routes
+                      );
+                    }
+                  } else {
+                    // Save optional paid services before navigating to payment
+                    await _saveOptionalPaidServices();
+                  }
+                } on ApiException catch (e) {
+                  if (mounted) {
+                    setState(() => _isLoadingServices = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.message),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    setState(() => _isLoadingServices = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('An error occurred: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -1117,11 +1190,7 @@ class FreelancerMobileMissingServicesList extends StatelessWidget {
                       color: item.iconColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      item.icon,
-                      color: item.iconColor,
-                      size: 20,
-                    ),
+                    child: Icon(item.icon, color: item.iconColor, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

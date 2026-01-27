@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../models/api_models.dart';
+import '../network/network_client.dart';
 import '../services/auth_service.dart';
 import '../repositories/auth_repository.dart';
+import '../exceptions/api_exception.dart';
 
 // ==================== Service Providers ====================
 
@@ -28,8 +31,26 @@ final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthService _authService;
 
+  StreamSubscription? _authStatusSubscription;
+
   AuthNotifier(this._authService) : super(AuthState.initial()) {
     _checkAuthStatus();
+
+    // Listen for force logout events from NetworkClient (e.g. failed refresh)
+    _authStatusSubscription = NetworkClient().authStatusStream.listen((
+      isAuthenticated,
+    ) {
+      if (!isAuthenticated) {
+        // Force logout
+        state = AuthState.unauthenticated();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authStatusSubscription?.cancel();
+    super.dispose();
   }
 
   /// Check if user is already authenticated on app start
@@ -42,8 +63,42 @@ class AuthNotifier extends StateNotifier<AuthState> {
           try {
             final user = await _authService.getProfile(userId);
             state = AuthState.authenticated(user);
+          } on ApiException catch (e) {
+            // If profile fetch fails with 404, it means user exists but has no role data
+            if (e.statusCode == 404) {
+              final email = await _authService.getStoredEmail();
+              final tempUser = UserProfile(
+                id: userId,
+                name: 'User', // Temp name
+                email: email ?? '',
+                role: null, // Explicitly null to trigger role selection
+              );
+              state = AuthState.authenticated(tempUser);
+              return;
+            }
+
+            // For other errors, check if we are in the middle of registration
+            if (_authService.isAuthenticatedNoWait()) {
+              final registrationStep = await _authService.getRegistrationStep();
+              if (registrationStep != null) {
+                // We are in registration flow, keep user authenticated with temp profile
+                final email = await _authService.getStoredEmail();
+
+                if (email != null) {
+                  final tempUser = UserProfile(
+                    id: userId,
+                    name: 'User', // Temp name
+                    email: email,
+                  );
+                  state = AuthState.authenticated(tempUser);
+                  return;
+                }
+              }
+            }
+            // If profile fetch fails and not in registration, invalidate session
+            state = AuthState.unauthenticated();
           } catch (e) {
-            // If profile fetch fails, user might not be valid anymore
+            // General exception fallback
             state = AuthState.unauthenticated();
           }
         } else {
@@ -73,9 +128,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Convert SignInUser to UserProfile for consistency
       state = AuthState.authenticated(response.user.toUserProfile());
     } catch (e) {
-      state = AuthState.error(
-        e.toString().replaceFirst('Exception: ', ''),
-      );
+      state = AuthState.error(e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -95,9 +148,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       state = AuthState.authenticated(userProfile);
     } catch (e) {
-      state = AuthState.error(
-        e.toString().replaceFirst('Exception: ', ''),
-      );
+      state = AuthState.error(e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -140,11 +191,7 @@ class AuthState {
   final UserProfile? user;
   final String? error;
 
-  AuthState({
-    required this.isLoading,
-    this.user,
-    this.error,
-  });
+  AuthState({required this.isLoading, this.user, this.error});
 
   factory AuthState.initial() => AuthState(isLoading: true);
 
@@ -153,8 +200,7 @@ class AuthState {
   factory AuthState.authenticated(UserProfile user) =>
       AuthState(isLoading: false, user: user);
 
-  factory AuthState.unauthenticated() =>
-      AuthState(isLoading: false);
+  factory AuthState.unauthenticated() => AuthState(isLoading: false);
 
   factory AuthState.error(String error) =>
       AuthState(isLoading: false, error: error);
@@ -166,11 +212,7 @@ class AuthState {
   bool get hasError => error != null && error!.isNotEmpty;
 
   /// Create a copy with updated values
-  AuthState copyWith({
-    bool? isLoading,
-    UserProfile? user,
-    String? error,
-  }) {
+  AuthState copyWith({bool? isLoading, UserProfile? user, String? error}) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
       user: user ?? this.user,
@@ -198,4 +240,3 @@ final userIdProvider = Provider<int?>((ref) {
   final user = ref.watch(currentUserProvider);
   return user?.id;
 });
-

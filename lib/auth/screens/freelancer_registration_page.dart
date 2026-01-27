@@ -5,6 +5,8 @@ import '../../core/models/api_models.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../../core/exceptions/api_exception.dart';
 import 'freelancer_membership_plan_page.dart';
+import '../widgets/city_search_field.dart';
+import '../widgets/phone_code_dropdown.dart';
 
 class FreelancerRegistrationPage extends ConsumerStatefulWidget {
   const FreelancerRegistrationPage({super.key});
@@ -22,8 +24,9 @@ class _FreelancerRegistrationPageState
   bool _isLoading = false;
 
   // Number of Users
-  final TextEditingController _numberOfUsersController =
-      TextEditingController(text: '1');
+  final TextEditingController _numberOfUsersController = TextEditingController(
+    text: '1',
+  );
 
   // Address Options
   bool _companyAddressSameAsSignup = true;
@@ -46,6 +49,9 @@ class _FreelancerRegistrationPageState
   String _officeCountryCode = '+91';
   String _mobileCountryCode = '+91';
 
+  final FocusNode _officePhoneFocus = FocusNode();
+  final FocusNode _mobilePhoneFocus = FocusNode();
+
   @override
   void dispose() {
     _numberOfUsersController.dispose();
@@ -60,6 +66,8 @@ class _FreelancerRegistrationPageState
     _officeNumberController.dispose();
     _mobileNumberController.dispose();
     _websiteController.dispose();
+    _officePhoneFocus.dispose();
+    _mobilePhoneFocus.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -79,70 +87,70 @@ class _FreelancerRegistrationPageState
         addressLine1: _companyAddressSameAsSignup
             ? null
             : _address1Controller.text.trim().isNotEmpty
-                ? _address1Controller.text.trim()
-                : null,
+            ? _address1Controller.text.trim()
+            : null,
         addressLine2: _companyAddressSameAsSignup
             ? null
             : _address2Controller.text.trim().isNotEmpty
-                ? _address2Controller.text.trim()
-                : null,
+            ? _address2Controller.text.trim()
+            : null,
         addressLine3: null, // Not in current form
         city: _companyAddressSameAsSignup
             ? null
             : _cityController.text.trim().isNotEmpty
-                ? _cityController.text.trim()
-                : null,
+            ? _cityController.text.trim()
+            : null,
         state: _companyAddressSameAsSignup
             ? null
             : _stateController.text.trim().isNotEmpty
-                ? _stateController.text.trim()
-                : null,
+            ? _stateController.text.trim()
+            : null,
         zipcode: _companyAddressSameAsSignup
             ? null
             : _zipController.text.trim().isNotEmpty
-                ? _zipController.text.trim()
-                : null,
+            ? _zipController.text.trim()
+            : null,
         country: _companyAddressSameAsSignup
             ? null
             : _countryController.text.trim().isNotEmpty
-                ? _countryController.text.trim()
-                : null,
+            ? _countryController.text.trim()
+            : null,
         isContactDetailsIsSameUser: _contactDetailsSameAsSignup ? 1 : 0,
         designation: _contactDetailsSameAsSignup
             ? null
             : _designationController.text.trim().isNotEmpty
-                ? _designationController.text.trim()
-                : null,
+            ? _designationController.text.trim()
+            : null,
         department: _contactDetailsSameAsSignup
             ? null
             : _departmentController.text.trim().isNotEmpty
-                ? _departmentController.text.trim()
-                : null,
+            ? _departmentController.text.trim()
+            : null,
         officePhoneExt: _contactDetailsSameAsSignup
             ? null
             : _officeNumberController.text.trim().isNotEmpty
-                ? _officeCountryCode
-                : null,
+            ? _officeCountryCode
+            : null,
         officePhone: _contactDetailsSameAsSignup
             ? null
             : _officeNumberController.text.trim().isNotEmpty
-                ? _officeNumberController.text.trim()
-                : null,
+            ? _officeNumberController.text.trim()
+            : null,
         mobilePhoneExt: _contactDetailsSameAsSignup
             ? null
             : _mobileNumberController.text.trim().isNotEmpty
-                ? _mobileCountryCode
-                : null,
+            ? _mobileCountryCode
+            : null,
         mobilePhone: _contactDetailsSameAsSignup
             ? null
             : _mobileNumberController.text.trim().isNotEmpty
-                ? _mobileNumberController.text.trim()
-                : null,
+            ? _mobileNumberController.text.trim()
+            : null,
         companyWebsite: _contactDetailsSameAsSignup
             ? null
             : _websiteController.text.trim().isNotEmpty
-                ? _websiteController.text.trim()
-                : null,
+            ? _websiteController.text.trim()
+            : null,
       );
 
       // Call API
@@ -364,10 +372,7 @@ class _FreelancerRegistrationPageState
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(24), child: child),
         ],
       ),
     );
@@ -398,7 +403,9 @@ class _FreelancerRegistrationPageState
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: value ? const Color(0xFF8BB6D9).withOpacity(0.3) : Colors.grey[200]!,
+          color: value
+              ? const Color(0xFF8BB6D9).withOpacity(0.3)
+              : Colors.grey[200]!,
           width: value ? 2 : 1,
         ),
         boxShadow: [
@@ -431,11 +438,7 @@ class _FreelancerRegistrationPageState
                 ),
               ),
               child: value
-                  ? const Icon(
-                      Icons.check,
-                      color: Colors.white,
-                      size: 18,
-                    )
+                  ? const Icon(Icons.check, color: Colors.white, size: 18)
                   : const SizedBox(width: 20, height: 20),
             ),
             const SizedBox(width: 16),
@@ -467,82 +470,33 @@ class _FreelancerRegistrationPageState
           titleColor: Colors.white,
           titleBackground: Colors.black,
           child: Column(
-        children: [
-          _buildTextField(
-            controller: _address1Controller,
-            label: 'Address 1',
-            hint: 'Enter address line 1',
-          ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            controller: _address2Controller,
-            label: 'Address 2',
-            hint: 'Enter address line 2',
-          ),
-          const SizedBox(height: 16),
-          Row(
             children: [
-              Expanded(
-                child: _buildDropdownField(
-                  label: 'City',
-                  value: _cityController.text.isNotEmpty ? _cityController.text : null,
-                  items: const ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata'],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _cityController.text = value;
-                      });
-                    }
-                  },
-                ),
+              _buildTextField(
+                controller: _address1Controller,
+                label: 'Address 1',
+                hint: 'Enter address line 1',
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildDropdownField(
-                  label: 'State',
-                  value: _stateController.text.isNotEmpty ? _stateController.text : null,
-                  items: const ['Maharashtra', 'Delhi', 'Karnataka', 'Tamil Nadu', 'West Bengal'],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _stateController.text = value;
-                      });
-                    }
-                  },
-                ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _address2Controller,
+                label: 'Address 2',
+                hint: 'Enter address line 2',
+              ),
+              const SizedBox(height: 16),
+              CitySearchField(
+                cityController: _cityController,
+                stateController: _stateController,
+                countryController: _countryController,
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _zipController,
+                label: 'Zip Code',
+                hint: 'Enter zip code',
+                keyboardType: TextInputType.number,
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextField(
-                  controller: _zipController,
-                  label: 'Zip Code',
-                  hint: 'Enter zip code',
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildDropdownField(
-                  label: 'Country',
-                  value: _countryController.text.isNotEmpty ? _countryController.text : null,
-                  items: const ['India', 'USA', 'UK', 'Canada', 'Australia'],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _countryController.text = value;
-                      });
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
         ),
       ),
     );
@@ -560,89 +514,93 @@ class _FreelancerRegistrationPageState
           titleColor: Colors.white,
           titleBackground: const Color(0xFF11998E),
           child: Column(
-        children: [
-          Row(
             children: [
-              Expanded(
-                child: _buildTextField(
-                  controller: _designationController,
-                  label: 'Designation',
-                  hint: 'Designation',
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _designationController,
+                      label: 'Designation',
+                      hint: 'Designation',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _departmentController,
+                      label: 'Department',
+                      hint: 'Department',
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildTextField(
-                  controller: _departmentController,
-                  label: 'Department',
-                  hint: 'Department',
-                ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 120,
+                    child: PhoneCodeDropdown(
+                      value: _officeCountryCode,
+                      onChanged: (code) {
+                        if (code != null) {
+                          setState(() {
+                            _officeCountryCode = code;
+                          });
+                          _officePhoneFocus.requestFocus();
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _officeNumberController,
+                      focusNode: _officePhoneFocus,
+                      label: 'Office Number',
+                      hint: '9876543210',
+                      keyboardType: TextInputType.phone,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 120,
+                    child: PhoneCodeDropdown(
+                      value: _mobileCountryCode,
+                      onChanged: (code) {
+                        if (code != null) {
+                          setState(() {
+                            _mobileCountryCode = code;
+                          });
+                          _mobilePhoneFocus.requestFocus();
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _mobileNumberController,
+                      focusNode: _mobilePhoneFocus,
+                      label: 'Mobile Number',
+                      hint: '9876543210',
+                      keyboardType: TextInputType.phone,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _websiteController,
+                label: 'Company Website',
+                hint: 'https://abc.com',
+                keyboardType: TextInputType.url,
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              SizedBox(
-                width: 80,
-                child: _buildDropdownField(
-                  label: '',
-                  value: _officeCountryCode,
-                  items: ['+91', '+1', '+44', '+86'],
-                  onChanged: (value) {
-                    setState(() {
-                      _officeCountryCode = value!;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildTextField(
-                  controller: _officeNumberController,
-                  label: 'Office Number',
-                  hint: '9876543210',
-                  keyboardType: TextInputType.phone,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              SizedBox(
-                width: 80,
-                child: _buildDropdownField(
-                  label: '',
-                  value: _mobileCountryCode,
-                  items: ['+91', '+1', '+44', '+86'],
-                  onChanged: (value) {
-                    setState(() {
-                      _mobileCountryCode = value!;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildTextField(
-                  controller: _mobileNumberController,
-                  label: 'Mobile Number',
-                  hint: '9876543210',
-                  keyboardType: TextInputType.phone,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            controller: _websiteController,
-            label: 'Company Website',
-            hint: 'https://abc.com',
-            keyboardType: TextInputType.url,
-          ),
-        ],
-      ),
         ),
       ),
     );
@@ -653,6 +611,7 @@ class _FreelancerRegistrationPageState
     required String label,
     required String hint,
     TextInputType keyboardType = TextInputType.text,
+    FocusNode? focusNode,
     String? suffixText,
   }) {
     return Column(
@@ -671,13 +630,11 @@ class _FreelancerRegistrationPageState
           decoration: BoxDecoration(
             color: Colors.grey[50],
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.grey[300]!,
-              width: 1.5,
-            ),
+            border: Border.all(color: Colors.grey[300]!, width: 1.5),
           ),
           child: TextFormField(
             controller: controller,
+            focusNode: focusNode,
             keyboardType: keyboardType,
             enabled: !_isLoading,
             style: const TextStyle(
@@ -744,8 +701,11 @@ class _FreelancerRegistrationPageState
     required Function(String?) onChanged,
   }) {
     // Ensure value is in items list, otherwise use null
-    final validValue = value != null && value.isNotEmpty && items.contains(value) ? value : null;
-    
+    final validValue =
+        value != null && value.isNotEmpty && items.contains(value)
+        ? value
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -764,10 +724,7 @@ class _FreelancerRegistrationPageState
           decoration: BoxDecoration(
             color: Colors.grey[50],
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.grey[300]!,
-              width: 1.5,
-            ),
+            border: Border.all(color: Colors.grey[300]!, width: 1.5),
           ),
           child: DropdownButtonFormField<String>(
             value: validValue,
@@ -779,10 +736,9 @@ class _FreelancerRegistrationPageState
               ),
               hintText: 'Select',
             ),
-            hint: label.isEmpty ? null : Text(
-              'Select',
-              style: TextStyle(color: Colors.grey[400]),
-            ),
+            hint: label.isEmpty
+                ? null
+                : Text('Select', style: TextStyle(color: Colors.grey[400])),
             items: items.map((String item) {
               return DropdownMenuItem<String>(
                 value: item,
@@ -797,7 +753,10 @@ class _FreelancerRegistrationPageState
               );
             }).toList(),
             onChanged: onChanged,
-            icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B)),
+            icon: const Icon(
+              Icons.keyboard_arrow_down,
+              color: Color(0xFF64748B),
+            ),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -827,19 +786,18 @@ class _FreelancerRegistrationPageState
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: _isLoading ? null : () {
-                  HapticFeedback.lightImpact();
-                  Navigator.pop(context);
-                },
+                onPressed: _isLoading
+                    ? null
+                    : () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                      },
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  side: BorderSide(
-                    color: Colors.grey[300]!,
-                    width: 1.5,
-                  ),
+                  side: BorderSide(color: Colors.grey[300]!, width: 1.5),
                 ),
                 child: const Text(
                   'Cancel',
@@ -876,7 +834,9 @@ class _FreelancerRegistrationPageState
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                     : const Row(
@@ -906,4 +866,3 @@ class _FreelancerRegistrationPageState
     );
   }
 }
-

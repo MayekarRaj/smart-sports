@@ -11,7 +11,8 @@ class CoachMembershipPlanPage extends StatefulWidget {
   const CoachMembershipPlanPage({super.key});
 
   @override
-  State<CoachMembershipPlanPage> createState() => _CoachMembershipPlanPageState();
+  State<CoachMembershipPlanPage> createState() =>
+      _CoachMembershipPlanPageState();
 }
 
 class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
@@ -28,7 +29,7 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
 
   // Selected clubs
   final Set<int> _selectedClubIds = {};
-  
+
   // Fetched data
   List<Club> _clubs = [];
   bool _isLoadingClubs = false;
@@ -47,19 +48,24 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
 
   /// Map service name to key for selectedServices map
   String _getServiceKey(String serviceName) {
-    final normalized = serviceName.toLowerCase()
+    final normalized = serviceName
+        .toLowerCase()
         .replaceAll(' ', '_')
         .replaceAll('&', '')
         .replaceAll('(', '')
         .replaceAll(')', '');
-    
-    if (normalized.contains('access_clubs') || normalized.contains('access clubs')) {
+
+    if (normalized.contains('access_clubs') ||
+        normalized.contains('access clubs')) {
       return 'access_clubs';
-    } else if (normalized.contains('access_members') || normalized.contains('access to members')) {
+    } else if (normalized.contains('access_members') ||
+        normalized.contains('access to members')) {
       return 'access_members';
-    } else if (normalized.contains('coach_ratings') || normalized.contains('coach ratings')) {
+    } else if (normalized.contains('coach_ratings') ||
+        normalized.contains('coach ratings')) {
       return 'coach_ratings';
-    } else if (normalized.contains('events') || normalized.contains('tournaments')) {
+    } else if (normalized.contains('events') ||
+        normalized.contains('tournaments')) {
       return 'events_tournaments';
     } else if (normalized.contains('branches')) {
       return 'branches';
@@ -70,7 +76,7 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
     } else if (normalized.contains('slack')) {
       return 'slack';
     }
-    
+
     return normalized;
   }
 
@@ -85,12 +91,14 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
 
     try {
       final response = await _authRepository.getPaidServicesList('coach');
-      
+
       if (mounted) {
         setState(() {
           // need to update this later to show only active services
           // _paidServices = response.data.where((service) => service.isServiceActive).toList();
-          _paidServices = response.data.where((service) => service.isDeleted == 0).toList();
+          _paidServices = response.data
+              .where((service) => service.isDeleted == 0)
+              .toList();
           for (var service in _paidServices) {
             final key = _getServiceKey(service.name);
             if (!_selectedServices.containsKey(key)) {
@@ -128,7 +136,7 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
 
     try {
       final response = await _authRepository.getAllClubList();
-      
+
       if (mounted) {
         setState(() {
           _clubs = response.data;
@@ -201,16 +209,16 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
 
       if (mounted) {
         setState(() => _isSavingServices = false);
-        
+
         // Save role to storage if not already saved
         final roleStr = await _storageService.getString('user_role');
         if (roleStr == null || roleStr.isEmpty) {
           await _storageService.saveString('user_role', 'coach');
         }
-        
+
         // Extract subscription_id from response (required for Club/Branch)
         final subscriptionId = response.data?['subscription_id']?.toString();
-        
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -255,7 +263,8 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-              begin: Alignment.topLeft, end: Alignment.bottomRight,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
         ),
@@ -274,7 +283,11 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
         // ),
         title: const Text(
           'Membership Details',
-          style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         centerTitle: true,
       ),
@@ -324,20 +337,32 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: () { setState(() { _isFreeMembership = true; }); },
+                  onTap: () {
+                    setState(() {
+                      _isFreeMembership = true;
+                    });
+                  },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
-                      color: _isFreeMembership ? Colors.grey[300] : Colors.white,
+                      color: _isFreeMembership
+                          ? Colors.grey[300]
+                          : Colors.white,
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
-                        bottomLeft: _isFreeMembership ? Radius.zero : const Radius.circular(16),
+                        bottomLeft: _isFreeMembership
+                            ? Radius.zero
+                            : const Radius.circular(16),
                       ),
                     ),
                     child: const Text(
                       'FREE MEMBERSHIP',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
                     ),
                   ),
                 ),
@@ -359,7 +384,9 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
                       color: !_isFreeMembership ? Colors.black : Colors.white,
                       borderRadius: BorderRadius.only(
                         topRight: const Radius.circular(16),
-                        bottomRight: !_isFreeMembership ? Radius.zero : const Radius.circular(16),
+                        bottomRight: !_isFreeMembership
+                            ? Radius.zero
+                            : const Radius.circular(16),
                       ),
                     ),
                     child: Text(
@@ -368,7 +395,9 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: !_isFreeMembership ? Colors.white : Colors.black87,
+                        color: !_isFreeMembership
+                            ? Colors.white
+                            : Colors.black87,
                       ),
                     ),
                   ),
@@ -415,11 +444,10 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
               children: const [
                 _BenefitRow(text: 'Access only to Clubs within your locality'),
                 _BenefitRow(text: 'Check Club Ratings and Reviews'),
-                _BenefitRow(text: 'Receive  request for Coach from any Members'),
                 _BenefitRow(
-                  text:
-                      'Track Sponsorship and Revenue Records',
+                  text: 'Receive  request for Coach from any Members',
                 ),
+                _BenefitRow(text: 'Track Sponsorship and Revenue Records'),
                 _BenefitRow(text: 'Readable Access to the forum discussion'),
               ],
             ),
@@ -521,14 +549,19 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
             // Build service options dynamically from API
             ..._paidServices.map((service) {
               final serviceKey = _getServiceKey(service.name);
-              final hasClubTypes = service.name.toLowerCase().contains('access clubs');
-              final isUsers = service.name.toLowerCase().contains('users') && 
-                             !service.name.toLowerCase().contains('access to members');
-              
+              final hasClubTypes = service.name.toLowerCase().contains(
+                'access clubs',
+              );
+              final isUsers =
+                  service.name.toLowerCase().contains('users') &&
+                  !service.name.toLowerCase().contains('access to members');
+
               return _buildServiceOption(
                 serviceKey,
                 service.name,
-                (service.description2?.isNotEmpty ?? false) ? service.description2! : (service.description1 ?? ''),
+                (service.description2?.isNotEmpty ?? false)
+                    ? service.description2!
+                    : (service.description1 ?? ''),
                 service.amountValue,
                 hasClubTypes: hasClubTypes,
                 userCount: isUsers ? 4 : null,
@@ -552,13 +585,13 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
     int? userCount,
   }) {
     final isSelected = _selectedServices[key] ?? false;
-    
+
     return InkWell(
       onTap: () {
         setState(() {
           _selectedServices[key] = !isSelected;
         });
-        
+
         // Fetch clubs when Access Clubs is selected
         if (!isSelected && hasClubTypes) {
           if (_clubs.isEmpty && !_isLoadingClubs) {
@@ -576,7 +609,9 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: isSelected ? const Color(0xFF8BB6D9).withOpacity(0.05) : Colors.white,
+          color: isSelected
+              ? const Color(0xFF8BB6D9).withOpacity(0.05)
+              : Colors.white,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -669,17 +704,27 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline, size: 16, color: Colors.red[700]),
+                      Icon(
+                        Icons.error_outline,
+                        size: 16,
+                        color: Colors.red[700],
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _clubsError!,
-                          style: TextStyle(fontSize: 12, color: Colors.red[700]),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red[700],
+                          ),
                         ),
                       ),
                       TextButton(
                         onPressed: _fetchClubs,
-                        child: const Text('Retry', style: TextStyle(fontSize: 12)),
+                        child: const Text(
+                          'Retry',
+                          style: TextStyle(fontSize: 12),
+                        ),
                       ),
                     ],
                   ),
@@ -696,9 +741,7 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: [
-                    ..._clubs.map((club) => _buildClubChip(club)),
-                  ],
+                  children: [..._clubs.map((club) => _buildClubChip(club))],
                 ),
             ],
           ],
@@ -710,25 +753,30 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
   Widget _getServiceIcon(String key) {
     IconData icon;
     Color color;
-    
+
     final normalizedKey = key.toLowerCase();
-    
-    if (normalizedKey.contains('access_clubs') || normalizedKey.contains('access clubs')) {
+
+    if (normalizedKey.contains('access_clubs') ||
+        normalizedKey.contains('access clubs')) {
       icon = Icons.sports_soccer;
       color = Colors.blue;
-    } else if (normalizedKey.contains('access_members') || normalizedKey.contains('access to members')) {
+    } else if (normalizedKey.contains('access_members') ||
+        normalizedKey.contains('access to members')) {
       icon = Icons.people;
       color = Colors.orange;
-    } else if (normalizedKey.contains('coach_ratings') || normalizedKey.contains('coach ratings')) {
+    } else if (normalizedKey.contains('coach_ratings') ||
+        normalizedKey.contains('coach ratings')) {
       icon = Icons.star;
       color = Colors.green;
-    } else if (normalizedKey.contains('events') || normalizedKey.contains('tournaments')) {
+    } else if (normalizedKey.contains('events') ||
+        normalizedKey.contains('tournaments')) {
       icon = Icons.emoji_events;
       color = Colors.amber;
     } else if (normalizedKey.contains('branches')) {
       icon = Icons.store;
       color = Colors.blue;
-    } else if (normalizedKey.contains('users') && !normalizedKey.contains('access to members')) {
+    } else if (normalizedKey.contains('users') &&
+        !normalizedKey.contains('access to members')) {
       icon = Icons.people_outline;
       color = Colors.blue;
     } else if (normalizedKey.contains('forum')) {
@@ -741,7 +789,7 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
       icon = Icons.help;
       color = Colors.grey;
     }
-    
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -907,10 +955,19 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
               onPressed: () => Navigator.pop(context),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
                 side: const BorderSide(color: Colors.grey),
               ),
-              child: const Text('Cancel', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -919,45 +976,95 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
               onPressed: () => Navigator.pop(context),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
                 side: const BorderSide(color: Colors.grey),
               ),
-              child: const Text('Back', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey)),
+              child: const Text(
+                'Back',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
               onPressed: () async {
-                if (_isFreeMembership) {
-                  // Save role to storage if not already saved
-                  final roleStr = await _storageService.getString('user_role');
-                  if (roleStr == null || roleStr.isEmpty) {
-                    await _storageService.saveString('user_role', 'coach');
-                  }
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Free membership activated'),
-                      backgroundColor: Colors.green,
+                setState(() => _isSavingServices = true);
+                try {
+                  // 1. Choose Membership Type API Call
+                  await _authRepository.chooseMembershipType(
+                    ChooseMembershipTypeRequest(
+                      membershipType: _isFreeMembership ? 'Free' : 'Paid',
                     ),
                   );
-                  
-                  // Navigate to coach dashboard
-                  final dashboard = RoleRouter.dashboardFor(UserRole.coach);
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => dashboard),
-                    (route) => false, // Remove all previous routes
-                  );
-                } else {
-                  // Save optional paid services before navigating to payment
-                  await _saveOptionalPaidServices();
+
+                  if (!mounted) return;
+
+                  if (_isFreeMembership) {
+                    // Save role to storage if not already saved
+                    final roleStr = await _storageService.getString(
+                      'user_role',
+                    );
+                    if (roleStr == null || roleStr.isEmpty) {
+                      await _storageService.saveString('user_role', 'coach');
+                    }
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Free membership activated'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+
+                      setState(() => _isSavingServices = false);
+
+                      // Navigate to coach dashboard
+                      final dashboard = RoleRouter.dashboardFor(UserRole.coach);
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (_) => dashboard),
+                        (route) => false, // Remove all previous routes
+                      );
+                    }
+                  } else {
+                    // Save optional paid services before navigating to payment
+                    // verify saveOptionalPaidServices handles its own loading state
+                    await _saveOptionalPaidServices();
+                  }
+                } on ApiException catch (e) {
+                  if (mounted) {
+                    setState(() => _isSavingServices = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.message),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    setState(() => _isSavingServices = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('An error occurred: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
               ),
               child: _isSavingServices
                   ? const SizedBox(
@@ -970,7 +1077,11 @@ class _CoachMembershipPlanPageState extends State<CoachMembershipPlanPage> {
                     )
                   : Text(
                       _isFreeMembership ? 'Submit' : 'Next',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
             ),
           ),
@@ -1015,24 +1126,28 @@ class CoachMobileMissingServicesList extends StatelessWidget {
       _MobileMissingService(
         emoji: '🧑‍🎓',
         name: 'Invite-Only Player Connections',
-        description: 'Get matched to verified, active players and connect within the app.',
+        description:
+            'Get matched to verified, active players and connect within the app.',
         hasTrial: true,
       ),
       _MobileMissingService(
         emoji: '🔔',
         name: 'Push & Email Notifications',
-        description: 'Stay updated on player requests, tournament openings and schedule changes via direct notifications.',
+        description:
+            'Stay updated on player requests, tournament openings and schedule changes via direct notifications.',
         hasTrial: true,
       ),
       _MobileMissingService(
         emoji: '💼',
         name: 'Coach Portfolio Tools',
-        description: 'Showcase certificates, endorsements, and personalized training achievements.',
+        description:
+            'Showcase certificates, endorsements, and personalized training achievements.',
       ),
       _MobileMissingService(
         emoji: '👩‍🏫',
         name: 'Listed in Pro Coach Search',
-        description: 'Be featured as a verified coach when clubs or players are looking to book lessons.',
+        description:
+            'Be featured as a verified coach when clubs or players are looking to book lessons.',
       ),
     ];
     return Column(
@@ -1057,12 +1172,20 @@ class CoachMobileMissingServicesList extends StatelessWidget {
                           child: Text.rich(
                             TextSpan(
                               text: item.name,
-                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Colors.black),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: Colors.black,
+                              ),
                               children: [
                                 if (item.hasTrial)
                                   const TextSpan(
                                     text: ' *',
-                                    style: TextStyle(color: Colors.red, fontSize: 17, fontWeight: FontWeight.w700),
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                               ],
                             ),
@@ -1086,7 +1209,7 @@ class CoachMobileMissingServicesList extends StatelessWidget {
                   ),
                   textAlign: TextAlign.start,
                 ),
-              )
+              ),
             ],
           ),
         );

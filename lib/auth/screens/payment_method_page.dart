@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../core/services/storage_service.dart';
 import '../../core/repositories/auth_repository.dart';
 import '../../core/models/api_models.dart';
+import '../../core/services/payment_settings_service.dart';
 import 'payment_confirmation_page.dart';
 
-class PaymentMethodPage extends StatefulWidget {
+class PaymentMethodPage extends ConsumerStatefulWidget {
   final double amount;
   final String? subscriptionId; // Required only when Add Club or Branch
 
@@ -18,14 +20,11 @@ class PaymentMethodPage extends StatefulWidget {
   });
 
   @override
-  State<PaymentMethodPage> createState() => _PaymentMethodPageState();
+  ConsumerState<PaymentMethodPage> createState() => _PaymentMethodPageState();
 }
 
-class _PaymentMethodPageState extends State<PaymentMethodPage> {
+class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   String _selectedPaymentMethod = 'CREDIT / DEBIT CARD';
-  final _paypalIdController = TextEditingController(
-    text: 'sushant.godghate@sekai-ichi.com',
-  );
   final _referenceNumberController = TextEditingController();
   final StorageService _storageService = StorageService();
   final AuthRepository _authRepository = AuthRepository();
@@ -45,13 +44,12 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
     if (_selectedPaymentMethod == 'CREDIT / DEBIT CARD') {
       _initializeStripeIfNeeded();
     }
-    
+
     // CardField handles validation automatically
   }
 
   @override
   void dispose() {
-    _paypalIdController.dispose();
     _referenceNumberController.dispose();
     super.dispose();
   }
@@ -59,13 +57,18 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
   /// Initialize Stripe SetupIntent when credit card payment is selected
   /// MANDATORY - SetupIntent must be created before user can proceed
   Future<void> _initializeStripeIfNeeded() async {
-    if (_selectedPaymentMethod == 'CREDIT / DEBIT CARD' && _clientSecret == null && !_isLoadingSetupIntent) {
+    if (_selectedPaymentMethod == 'CREDIT / DEBIT CARD' &&
+        _clientSecret == null &&
+        !_isLoadingSetupIntent) {
       await _createSetupIntent();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final settingsAsync = ref.watch(paymentSettingsServiceProvider);
+    final settings = settingsAsync.value;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -112,16 +115,16 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
               const SizedBox(height: 24),
 
               // Payment Method Selection
-              _buildPaymentMethodSection(),
+              _buildPaymentMethodSection(settings),
               const SizedBox(height: 24),
 
               // Payment Form
               if (_selectedPaymentMethod == 'CREDIT / DEBIT CARD')
                 _buildStripeCardForm()
               else if (_selectedPaymentMethod == 'BANK TRANSFER')
-                _buildBankTransferForm()
+                _buildBankTransferForm(settings)
               else
-                _buildPayPalForm(),
+                _buildPayPalForm(settings),
 
               const SizedBox(height: 32),
 
@@ -173,15 +176,18 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("USD", style: const TextStyle(
+                Text(
+                  "USD",
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                  ),),
+                  ),
+                ),
                 Text(
-                  widget.amount > 0 
-                    ? '${widget.amount.toStringAsFixed(2)}'
-                    : '0.00',
+                  widget.amount > 0
+                      ? '${widget.amount.toStringAsFixed(2)}'
+                      : '0.00',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -196,7 +202,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
     );
   }
 
-  Widget _buildPaymentMethodSection() {
+  Widget _buildPaymentMethodSection(SiteSettingData? settings) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -223,23 +229,35 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
               ),
             ),
           ),
-          _buildPaymentMethodOption(
-            'CREDIT / DEBIT CARD',
-            Icons.credit_card,
-            _selectedPaymentMethod == 'CREDIT / DEBIT CARD',
-          ),
-          const Divider(height: 1),
-          _buildPaymentMethodOption(
-            'BANK TRANSFER',
-            Icons.account_balance,
-            _selectedPaymentMethod == 'BANK TRANSFER',
-          ),
-          const Divider(height: 1),
-          _buildPaymentMethodOption(
-            'PAYPAL',
-            Icons.payment,
-            _selectedPaymentMethod == 'PAYPAL',
-          ),
+          if (settings?.stripeIsEnabled == 1) ...[
+            _buildPaymentMethodOption(
+              'CREDIT / DEBIT CARD',
+              Icons.credit_card,
+              _selectedPaymentMethod == 'CREDIT / DEBIT CARD',
+            ),
+            if (settings?.bankTransferIsEnabled == 1 ||
+                settings?.paypalIsEnabled == 1)
+              const Divider(height: 1),
+          ],
+          if (settings?.bankTransferIsEnabled == 1) ...[
+            _buildPaymentMethodOption(
+              'BANK TRANSFER',
+              Icons.account_balance,
+              _selectedPaymentMethod == 'BANK TRANSFER',
+            ),
+            if (settings?.paypalIsEnabled == 1) const Divider(height: 1),
+          ],
+          if (settings?.paypalIsEnabled == 1)
+            _buildPaymentMethodOption(
+              'PAYPAL',
+              Icons.payment,
+              _selectedPaymentMethod == 'PAYPAL',
+            ),
+          if (settings == null)
+            const Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Center(child: CircularProgressIndicator()),
+            ),
         ],
       ),
     );
@@ -331,10 +349,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                     SizedBox(height: 16),
                     Text(
                       'Initializing payment...',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -399,7 +414,10 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                   //   borderRadius: BorderRadius.circular(8),
                   //   border: Border.all(color: Colors.grey[300]!),
                   // ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   child: CardField(
                     onCardChanged: (card) {
                       setState(() {
@@ -411,10 +429,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                 const SizedBox(height: 16),
                 const Text(
                   'Your card details are securely processed by Stripe.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
             ),
@@ -423,7 +438,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
     );
   }
 
-  Widget _buildBankTransferForm() {
+  Widget _buildBankTransferForm(SiteSettingData? settings) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -440,6 +455,39 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (settings != null) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9), // Slate 100
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)), // Slate 200
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Bank Account Details',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF334155),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildBankDetailRow('Bank Name', settings.bankName),
+                  _buildBankDetailRow('Account Name', settings.bankAccountName),
+                  _buildBankDetailRow(
+                    'Account Number',
+                    settings.bankAccountNumber,
+                  ),
+                  _buildBankDetailRow('Branch Name', settings.bankBranchName),
+                  _buildBankDetailRow('SWIFT Code', settings.bankSwiftCode),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
           _buildTextField(
             controller: _referenceNumberController,
             label: 'Reference Number',
@@ -512,10 +560,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
               padding: EdgeInsets.only(top: 8),
               child: Text(
                 'Required for Bank Transfer',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.orange,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.orange),
               ),
             ),
         ],
@@ -523,7 +568,13 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
     );
   }
 
-  Widget _buildPayPalForm() {
+  Widget _buildPayPalForm(SiteSettingData? settings) {
+    final paypalUrl = settings?.paypalUrl ?? 'https://www.paypal.com';
+    final paypalId =
+        settings?.paypalClientId ??
+        settings?.paypalSecretKey ??
+        'Not Configured'; // fallback
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -547,10 +598,10 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
               color: const Color(0xFF8BB6D9),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Text(
-              'https://www.paypal.com/paypalme/sekaiichik',
+            child: Text(
+              paypalUrl,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -577,7 +628,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              _paypalIdController.text,
+              paypalId,
               style: const TextStyle(fontSize: 16, color: Colors.black87),
             ),
           ),
@@ -586,7 +637,38 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
     );
   }
 
-
+  Widget _buildBankDetailRow(String label, String? value) {
+    if (value == null || value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF334155),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -701,13 +783,15 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
       if (_clientSecret == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Please wait for payment to initialize. If it fails, please retry.'),
+            content: Text(
+              'Please wait for payment to initialize. If it fails, please retry.',
+            ),
             backgroundColor: Colors.orange,
           ),
         );
         return;
       }
-      
+
       // Validate card details are complete using CardField
       if (_cardFieldDetails == null || !_cardFieldDetails!.complete) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -771,7 +855,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
 
     try {
       final response = await _authRepository.createStripeSetupIntent();
-      
+
       if (mounted) {
         setState(() {
           _clientSecret = response.clientSecret;
@@ -823,5 +907,4 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
       }
     }
   }
-
 }
